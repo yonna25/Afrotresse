@@ -257,20 +257,8 @@ function HeroCarousel({ height="100vh", overlay=true }) {
       {/* Dégradé sombre en bas */}
       {overlay && <div style={{ position:"absolute", inset:0, background:"linear-gradient(to bottom, rgba(44,26,14,.3) 0%, rgba(44,26,14,.15) 40%, rgba(44,26,14,.85) 100%)" }} />}
 
-      {/* Badge style actuel */}
-      <div style={{
-        position:"absolute", top:14, right:14,
-        background:"rgba(44,26,14,.6)", backdropFilter:"blur(8px)",
-        border:`1px solid rgba(201,150,58,.4)`, borderRadius:50,
-        padding:"5px 12px", color:C.cream,
-        transition:"opacity .4s", opacity:fade?1:0,
-      }}>
-        <span style={{ fontSize:10, color:C.gold, fontWeight:700, letterSpacing:1, textTransform:"uppercase" }}>{slide.tag}</span>
-        <span style={{ fontSize:12, color:C.cream, marginLeft:6 }}>{slide.style}</span>
-      </div>
-
       {/* Points indicateurs */}
-      <div style={{ position:"absolute", bottom:72, left:"50%", transform:"translateX(-50%)", display:"flex", gap:6 }}>
+      <div style={{ position:"absolute", bottom:16, left:"50%", transform:"translateX(-50%)", display:"flex", gap:6, zIndex:4 }}>
         {HERO_SLIDES.map((_,i) => (
           <div key={i} onClick={()=>sc(i)} style={{
             width: i===cur ? 20 : 6, height:6, borderRadius:50,
@@ -279,6 +267,8 @@ function HeroCarousel({ height="100vh", overlay=true }) {
           }} />
         ))}
       </div>
+      {/* Tag slide — exposé via ref pour le Home */}
+      <div data-slide-tag style={{ display:"none" }}>{slide.tag}||{slide.style}</div>
     </div>
   );
 }
@@ -436,6 +426,70 @@ function Login({ go, setUser, toast }) {
 }
 
 // ═══════════════════════════════════════════════════════════
+// HOME HERO — grand carrousel avec texte + badge tendance
+// ═══════════════════════════════════════════════════════════
+function HomeHero({ name }) {
+  const [cur, sc] = useState(0);
+  const [fade, sf] = useState(true);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      sf(false);
+      setTimeout(() => { sc(i => (i+1) % HERO_SLIDES.length); sf(true); }, 400);
+    }, 3500);
+    return () => clearInterval(t);
+  }, []);
+
+  const slide = HERO_SLIDES[cur];
+
+  return (
+    <div style={{ position:"relative", height:420, overflow:"hidden" }}>
+      {/* Image */}
+      <div style={{
+        position:"absolute", inset:0,
+        backgroundImage:`url(${slide.url})`,
+        backgroundSize:"cover", backgroundPosition:"center top",
+        transition:"opacity .5s ease", opacity:fade?1:0,
+      }} />
+      {/* Dégradé bas fort */}
+      <div style={{ position:"absolute", inset:0, background:"linear-gradient(to bottom, rgba(0,0,0,.08) 0%, rgba(0,0,0,.1) 35%, rgba(20,10,4,.82) 75%, rgba(20,10,4,.95) 100%)" }} />
+
+      {/* Contenu texte */}
+      <div style={{ position:"absolute", inset:0, zIndex:3, display:"flex", flexDirection:"column", justifyContent:"flex-end", padding:"0 20px 22px" }}>
+        <p style={{ color:"rgba(250,244,236,.75)", fontSize:11, letterSpacing:3, textTransform:"uppercase", margin:"0 0 4px", fontWeight:400 }}>BONJOUR 👋</p>
+        <h1 style={{ fontFamily:"'Playfair Display',serif", color:C.cream, fontSize:30, margin:"0 0 12px", lineHeight:1.15, textShadow:"0 2px 12px rgba(0,0,0,.6)" }}>
+          {name}, <em style={{ color:C.gold }}>quelle tresse</em><br/>aujourd'hui ?
+        </h1>
+        {/* Badge tendance sous le titre */}
+        <div style={{
+          display:"inline-flex", alignItems:"center", gap:8,
+          background:"rgba(20,10,4,.65)", backdropFilter:"blur(10px)",
+          border:`1px solid rgba(201,150,58,.5)`, borderRadius:50,
+          padding:"8px 16px", alignSelf:"flex-start",
+          transition:"opacity .4s", opacity:fade?1:0,
+        }}>
+          <span style={{ fontSize:13 }}>⚡</span>
+          <span style={{ fontSize:11, color:C.gold, fontWeight:700, letterSpacing:1, textTransform:"uppercase" }}>{slide.tag}</span>
+          <span style={{ width:4, height:4, borderRadius:"50%", background:C.gold, display:"inline-block" }} />
+          <span style={{ fontSize:13, color:C.cream }}>{slide.style}</span>
+        </div>
+
+        {/* Points indicateurs */}
+        <div style={{ display:"flex", gap:6, marginTop:14 }}>
+          {HERO_SLIDES.map((_,i) => (
+            <div key={i} onClick={()=>sc(i)} style={{
+              width:i===cur?22:6, height:6, borderRadius:50,
+              background:i===cur?C.gold:"rgba(255,255,255,.35)",
+              transition:"all .3s", cursor:"pointer",
+            }} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
 // HOME
 // ═══════════════════════════════════════════════════════════
 function Home({ go, user, toast }) {
@@ -443,26 +497,17 @@ function Home({ go, user, toast }) {
   return (
     <div style={{ minHeight:"100vh", background:C.cream, paddingBottom:80 }}>
       {/* HERO CARROUSEL */}
-      <div style={{ position:"relative", height:340, overflow:"hidden" }}>
-        <HeroCarousel height="340px" overlay={true} />
-        <div style={{ position:"absolute", inset:0, zIndex:3, display:"flex", flexDirection:"column", justifyContent:"flex-end", padding:"16px 20px 20px" }}>
-          <p style={{ color:"rgba(250,244,236,.8)", fontSize:11, letterSpacing:2, textTransform:"uppercase", margin:"0 0 2px" }}>Bonjour 👋</p>
-          <h1 style={{ fontFamily:"'Playfair Display',serif", color:C.cream, fontSize:22, margin:"0 0 10px", lineHeight:1.2, textShadow:"0 2px 8px rgba(0,0,0,.5)" }}>
-            {name}, <em style={{ color:C.gold }}>quelle tresse aujourd'hui ?</em>
-          </h1>
-          <div style={{ display:"inline-flex", alignItems:"center", gap:8, background:"rgba(44,26,14,.6)", backdropFilter:"blur(8px)", border:`1px solid rgba(201,150,58,.4)`, borderRadius:50, padding:"6px 14px", color:C.goldL, fontSize:13, alignSelf:"flex-start" }}>
-            ⭐ <strong style={{ fontSize:15 }}>{user?.points||30}</strong> pts · <span style={{ fontSize:11, opacity:.8 }}>{user?.plan==="premium"?"✦ Premium":"Plan gratuit"}</span>
-          </div>
-        </div>
-      </div>
+      <HomeHero name={name} go={go} />
 
-      <div style={{ padding:"24px" }}>
+      <div style={{ padding:"20px 20px 0" }}>
         {/* CTA principal */}
-        <div onClick={()=>go("selfie")} style={{ background:`linear-gradient(135deg,${C.mid},${C.brown})`, borderRadius:22, padding:"20px 28px", display:"flex", alignItems:"center", gap:16, cursor:"pointer", boxShadow:`0 12px 40px rgba(44,26,14,.22)`, marginBottom:24 }}>
-          <span style={{ fontSize:42 }}>📸</span>
-          <div style={{ display:"inline-flex", alignItems:"center", gap:8, background:C.gold, color:C.brown, padding:"14px 24px", borderRadius:50, fontWeight:700, fontSize:15, flex:1, justifyContent:"center" }}>
-            Prendre mon selfie →
+        <div onClick={()=>go("selfie")} style={{ background:`linear-gradient(135deg,${C.gold},#A8782A)`, borderRadius:18, padding:"16px 20px", display:"flex", alignItems:"center", gap:14, cursor:"pointer", boxShadow:`0 8px 24px rgba(201,150,58,.35)`, marginBottom:20 }}>
+          <div style={{ width:44, height:44, borderRadius:12, background:"rgba(255,255,255,.2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>📷</div>
+          <div style={{ flex:1 }}>
+            <strong style={{ color:C.white, fontSize:15, display:"block", lineHeight:1.2 }}>Analyser ma coiffure</strong>
+            <span style={{ color:"rgba(255,255,255,.8)", fontSize:12 }}>Prenez un selfie pour analyser vos tresses</span>
           </div>
+          <div style={{ width:36, height:36, borderRadius:"50%", background:"rgba(255,255,255,.25)", display:"flex", alignItems:"center", justifyContent:"center", color:C.white, fontSize:18, flexShrink:0 }}>→</div>
         </div>
 
         {/* Dernière analyse */}
