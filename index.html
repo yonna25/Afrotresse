@@ -501,24 +501,53 @@ function Home({ go, user, toast }) {
 
       <div style={{ padding:"20px 20px 0" }}>
         {/* CTA principal */}
-        <div onClick={()=>go("selfie")} style={{ background:`linear-gradient(135deg,${C.gold},#A8782A)`, borderRadius:18, padding:"16px 20px", display:"flex", alignItems:"center", gap:14, cursor:"pointer", boxShadow:`0 8px 24px rgba(201,150,58,.35)`, marginBottom:20 }}>
-          <div style={{ width:44, height:44, borderRadius:12, background:"rgba(255,255,255,.2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>📷</div>
-          <div style={{ flex:1 }}>
-            <strong style={{ color:C.white, fontSize:15, display:"block", lineHeight:1.2 }}>Analyser ma coiffure</strong>
-            <span style={{ color:"rgba(255,255,255,.8)", fontSize:12 }}>Prenez un selfie pour analyser vos tresses</span>
+        <div onClick={()=>go("selfie")} style={{
+          background:"linear-gradient(135deg, #C9963A 0%, #A8782A 60%, #8B6020 100%)",
+          borderRadius:22, padding:"18px 20px",
+          display:"flex", alignItems:"center", gap:16,
+          cursor:"pointer",
+          boxShadow:"0 4px 20px rgba(201,150,58,.3), inset 0 1px 0 rgba(255,255,255,.15)",
+          marginBottom:20,
+        }}>
+          {/* Icône caméra SVG style outline blanc */}
+          <div style={{ flexShrink:0 }}>
+            <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4" y="11" width="30" height="22" rx="5" stroke="white" strokeWidth="2.2" fill="none"/>
+              <circle cx="19" cy="22" r="6" stroke="white" strokeWidth="2.2" fill="none"/>
+              <path d="M13 11l2.5-4h7L25 11" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <circle cx="29" cy="17" r="1.5" fill="white"/>
+            </svg>
           </div>
-          <div style={{ width:36, height:36, borderRadius:"50%", background:"rgba(255,255,255,.25)", display:"flex", alignItems:"center", justifyContent:"center", color:C.white, fontSize:18, flexShrink:0 }}>→</div>
+          {/* Texte */}
+          <div style={{ flex:1 }}>
+            <strong style={{ color:"#1a0f06", fontSize:16, display:"block", lineHeight:1.3, fontWeight:700 }}>Prendre mon Selfie</strong>
+            <span style={{ color:"rgba(26,15,6,.65)", fontSize:12.5 }}>Prenez un selfie pour analyser vos tresses</span>
+          </div>
+          {/* Flèche ronde sombre */}
+          <div style={{
+            width:40, height:40, borderRadius:"50%",
+            background:"rgba(44,26,14,.35)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            color:"#1a0f06", fontSize:18, fontWeight:700, flexShrink:0,
+          }}>→</div>
         </div>
 
         {/* Dernière analyse */}
-        <p style={{ fontFamily:"'Playfair Display',serif", fontSize:18, color:C.brown, margin:"0 0 14px" }}>Mes analyses</p>
-        <div onClick={()=>go("results")} style={{ background:C.white, borderRadius:16, padding:"18px", cursor:"pointer", boxShadow:`0 2px 12px rgba(0,0,0,.06)`, display:"flex", alignItems:"center", gap:14, marginBottom:20 }}>
-          <span style={{ fontSize:32 }}>💫</span>
-          <div>
-            <strong style={{ fontSize:14, color:C.txt, display:"block" }}>Mes résultats</strong>
-            <span style={{ fontSize:12, color:C.txtL }}>Voir ma dernière analyse</span>
+        <p style={{ fontFamily:"'Playfair Display',serif", fontSize:20, color:C.brown, margin:"0 0 12px", fontWeight:700 }}>Mes analyses</p>
+        <div onClick={()=>go("results")} style={{
+          background:C.white, borderRadius:18, padding:"18px 20px",
+          cursor:"pointer", boxShadow:"0 2px 16px rgba(0,0,0,.07)",
+          display:"flex", alignItems:"center", gap:16, marginBottom:20,
+        }}>
+          {/* Icône étoile filante */}
+          <div style={{ width:48, height:48, borderRadius:14, background:"rgba(201,150,58,.1)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, flexShrink:0 }}>
+            🌟
           </div>
-          <span style={{ marginLeft:"auto", color:C.gold, fontSize:20 }}>›</span>
+          <div style={{ flex:1 }}>
+            <strong style={{ fontSize:15, color:C.txt, display:"block", fontWeight:700 }}>Mes résultats</strong>
+            <span style={{ fontSize:12.5, color:C.txtL }}>Voir ma dernière analyse</span>
+          </div>
+          <span style={{ color:"#aaa", fontSize:18, fontWeight:300 }}>›</span>
         </div>
 
 {/* Bannière premium — activée en v2 */}
