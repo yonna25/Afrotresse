@@ -166,7 +166,7 @@ function Toast({ msg, show }) {
 function Nav({ cur, go }) {
   return (
     <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:430, background:C.white, borderTop:`1px solid ${C.dark}`, display:"flex", padding:"10px 0 22px", zIndex:100 }}>
-      {[["home","🏠","Accueil"],["selfie","📸","Analyser"],["premium","👑","Premium"],["profile","👤","Profil"]].map(([id,ic,lb]) => (
+      {[["home","🏠","Accueil"],["selfie","📸","Analyser"],["profile","👤","Profil"]].map(([id,ic,lb]) => (
         <div key={id} onClick={() => go(id)} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4, cursor:"pointer" }}>
           <span style={{ fontSize:22 }}>{ic}</span>
           <span style={{ fontSize:10, color:cur===id?C.gold:C.txtL, fontWeight:cur===id?700:400 }}>{lb}</span>
@@ -465,33 +465,18 @@ function Home({ go, user, toast }) {
           </div>
         </div>
 
-        {/* Grid */}
-        <p style={{ fontFamily:"'Playfair Display',serif", fontSize:18, color:C.brown, margin:"0 0 14px" }}>Accès rapide</p>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:20 }}>
-          {[
-            { ic:"💫", t:"Mes résultats",   s:"Dernière analyse",   sc:"results"  },
-            { ic:"📚", t:"Bibliothèque",    s:"Styles sauvegardés", sc:"library"  },
-            { ic:"🎁", t:"Parrainage",      s:"Gagne des points",   sc:"referral" },
-            { ic:"⭐", t:"Avis clients",    s:"La communauté",      sc:"reviews"  },
-          ].map(c => (
-            <div key={c.sc} onClick={()=>go(c.sc)} style={{ background:C.white, borderRadius:16, padding:"18px", cursor:"pointer", boxShadow:`0 2px 12px rgba(0,0,0,.06)` }}>
-              <span style={{ fontSize:28, display:"block", marginBottom:8 }}>{c.ic}</span>
-              <strong style={{ fontSize:13, color:C.txt, display:"block" }}>{c.t}</strong>
-              <span style={{ fontSize:11, color:C.txtL }}>{c.s}</span>
-            </div>
-          ))}
+        {/* Dernière analyse */}
+        <p style={{ fontFamily:"'Playfair Display',serif", fontSize:18, color:C.brown, margin:"0 0 14px" }}>Mes analyses</p>
+        <div onClick={()=>go("results")} style={{ background:C.white, borderRadius:16, padding:"18px", cursor:"pointer", boxShadow:`0 2px 12px rgba(0,0,0,.06)`, display:"flex", alignItems:"center", gap:14, marginBottom:20 }}>
+          <span style={{ fontSize:32 }}>💫</span>
+          <div>
+            <strong style={{ fontSize:14, color:C.txt, display:"block" }}>Mes résultats</strong>
+            <span style={{ fontSize:12, color:C.txtL }}>Voir ma dernière analyse</span>
+          </div>
+          <span style={{ marginLeft:"auto", color:C.gold, fontSize:20 }}>›</span>
         </div>
 
-        {user?.plan !== "premium" && (
-          <div onClick={()=>go("premium")} style={{ background:`linear-gradient(135deg,${C.gold},#7A5018)`, borderRadius:16, padding:"18px 20px", cursor:"pointer", display:"flex", alignItems:"center", gap:14 }}>
-            <span style={{ fontSize:32 }}>👑</span>
-            <div style={{ flex:1 }}>
-              <strong style={{ color:C.white, fontSize:14, display:"block" }}>Passe en Premium</strong>
-              <span style={{ color:"rgba(255,255,255,.8)", fontSize:12 }}>Bibliothèque · Analyses illimitées · dès 1 500 XOF/mois</span>
-            </div>
-            <span style={{ color:C.white, fontSize:20 }}>›</span>
-          </div>
-        )}
+{/* Bannière premium — activée en v2 */}
 
         {/* Clé API manquante */}
         {ANTHROPIC_API_KEY === "COLLE_TA_CLE_ICI" && (
