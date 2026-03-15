@@ -818,15 +818,17 @@ function Analyzing({ go, setScreen, analysis, setResults, toast }) {
     // Appel IA réel
     analyzeWithClaude(analysis?.b64 || "", analysis?.mime || "image/jpeg")
       .then(data => {
-        // Attendre que l'animation soit terminée avant d'afficher les résultats
         const animDuration = steps.length * 900 + 600;
         const elapsed = Date.now() - startTime;
         const remaining = Math.max(0, animDuration - elapsed);
-        setTimeout(() => {
-          setResults(data);
-          window.__afroResults = data;
+        const dispatch = () => {
           window.dispatchEvent(new CustomEvent("afro:results", { detail: data }));
-        }, remaining);
+        };
+        if (remaining > 0) {
+          setTimeout(dispatch, remaining);
+        } else {
+          dispatch();
+        }
       })
       .catch(e => {
         se(e.message);
