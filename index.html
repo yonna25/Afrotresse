@@ -800,7 +800,7 @@ function Selfie({ go, user, setUser, toast, setAnalysis }) {
 // ═══════════════════════════════════════════════════════════
 // ANALYSE IA
 // ═══════════════════════════════════════════════════════════
-function Analyzing({ go, analysis, setResults, toast }) {
+function Analyzing({ go, setScreen, analysis, setResults, toast }) {
   const [step, ss] = useState(0);
   const [prog, sp] = useState(0);
   const [err, se] = useState(null);
@@ -824,7 +824,8 @@ function Analyzing({ go, analysis, setResults, toast }) {
         const remaining = Math.max(0, animDuration - elapsed);
         setTimeout(() => {
           setResults(data);
-          setTimeout(() => go("results"), 100);
+          window.scrollTo(0,0);
+          setScreen("results");
         }, remaining);
       })
       .catch(e => {
@@ -1403,6 +1404,7 @@ function AfroTresse() {
     tRef.current = setTimeout(() => setToastState(s => ({...s,show:false})), 2600);
   }, []);
 
+  const goRef = useRef(null);
   const go = useCallback((s) => {
     // Vérifier quota avant d'aller sur selfie
     if (s === "selfie" && getTotalUsage() >= getCurrentLimit()) {
@@ -1410,10 +1412,11 @@ function AfroTresse() {
     }
     window.scrollTo(0,0); setScreen(s);
   }, []);
+  goRef.current = go;
 
   useEffect(() => { if (user && screen==="splash") setScreen("home"); }, []);
 
-  const p = { go, user, setUser, toast, analysis, setAnalysis, results, setResults };
+  const p = { go, setScreen, user, setUser, toast, analysis, setAnalysis, results, setResults };
 
   const SCREENS = {
     splash:    <Splash    {...p} />,
