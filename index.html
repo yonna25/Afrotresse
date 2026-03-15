@@ -30,8 +30,8 @@ const { useState, useRef, useEffect, useCallback } = React;
    ═══════════════════════════════════════════════════════════════ */
 
 // ─── 🔑 CONFIGURATION ─────────────────────────────────────────────────────
-// Colle ta clé API Anthropic ici (console.anthropic.com)
-const ANTHROPIC_API_KEY = "COLLE_TA_CLE_ICI"; // sk-ant-...
+// Clé API gérée côté serveur via le proxy Vercel /api/analyze
+// Ne jamais mettre la clé ici — elle est dans Vercel → Settings → Environment Variables
 
 // ─── Palette design ───────────────────────────────────────────────────────
 const C = {
@@ -191,21 +191,6 @@ function simpleHash(str) {
 // ─── Appel à l'API Claude Vision — économique ─────────────────────────────
 async function analyzeWithClaude(base64Image, mimeType = "image/jpeg") {
 
-  // 1. Mode démo si pas de clé
-  if (!ANTHROPIC_API_KEY || ANTHROPIC_API_KEY === "COLLE_TA_CLE_ICI") {
-    await new Promise(r => setTimeout(r, 3500));
-    return {
-      forme: "Ovale",
-      description_visage: "Visage harmonieux aux proportions équilibrées. Front légèrement plus large que le menton avec des pommettes doucement saillantes.",
-      recommandations: [
-        { nom:"Knotless Braids",  score:97, raison:"La forme ovale met parfaitement en valeur les knotless — leur légèreté naturelle sublime les traits." },
-        { nom:"Fulani Braids",    score:91, raison:"Les motifs géométriques s'harmonisent idéalement avec la symétrie naturelle de ce visage." },
-        { nom:"Senegalese Twist", score:86, raison:"Les torsades créent un effet d'allongement élégant qui accentue les proportions naturelles." },
-      ],
-      simulated: true,
-    };
-  }
-
   // 2. Vérifier le cache — même image = pas d'appel API
   const imageHash = simpleHash(base64Image);
   const cached = getCachedResult(imageHash);
@@ -228,13 +213,11 @@ async function analyzeWithClaude(base64Image, mimeType = "image/jpeg") {
     ? base64Image.slice(0, maxChars)
     : base64Image;
 
-  // 5. Appel API avec modèle léger (haiku = 10x moins cher que opus)
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
+  // 5. Appel via le proxy Vercel (la clé API est côté serveur, jamais exposée)
+  const response = await fetch("/api/analyze", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001", // modèle léger = moins cher
@@ -691,15 +674,7 @@ function Home({ go, user, toast }) {
 
 {/* Bannière premium — activée en v2 */}
 
-        {/* Clé API manquante */}
-        {ANTHROPIC_API_KEY === "COLLE_TA_CLE_ICI" && (
-          <div style={{ marginTop:16, background:"#FFF3CD", borderRadius:16, padding:"16px 18px", border:"1px solid #FBBF24" }}>
-            <strong style={{ fontSize:13, color:"#92400E", display:"block", marginBottom:4 }}>⚙️ Mode démonstration actif</strong>
-            <p style={{ fontSize:12, color:"#92400E", margin:0, lineHeight:1.5 }}>
-              L'analyse IA utilise des résultats simulés. Pour activer la vraie IA : <strong>console.anthropic.com</strong> → API Keys → colle ta clé dans le code (ligne 18).
-            </p>
-          </div>
-        )}
+        {/* Clé API gérée côté serveur via proxy Vercel — pas de bannière nécessaire */}
       </div>
       <Nav cur="home" go={go} />
     </div>
@@ -730,13 +705,17 @@ function Selfie({ go, user, setUser, toast, setAnalysis }) {
   };
 
   const launch = async () => {
-    if (user?.plan !== "premium" && (user?.points||0) < 10) {
-      toast("⚠️ 10 points requis. Achète un pack ou abonne-toi.");
-      go("premium"); return;
+    if (user?.plan === "premium") {
+      setAnalysis({ b64, mime, photo });
+      setUser({ ...user, analyses:(user.analyses||0)+1 });
+      go("analyzing");
+      return;
     }
+    const usage = getTotalUsage();
+    const limit = getCurrentLimit();
+    if (usage >= limit) { go("quota"); return; }
     setAnalysis({ b64, mime, photo });
-    if (user?.plan !== "premium") setUser({ ...user, points: Math.max(0,(user.points||0)-10), analyses:(user.analyses||0)+1 });
-    else setUser({ ...user, analyses:(user.analyses||0)+1 });
+    setUser({ ...user, analyses:(user.analyses||0)+1 });
     go("analyzing");
   };
 
@@ -853,7 +832,7 @@ function Analyzing({ go, analysis, setResults, toast }) {
 
       <h2 style={{ fontFamily:"'Playfair Display',serif", color:C.cream, fontSize:26, margin:"0 0 8px" }}>Analyse en cours…</h2>
       <p style={{ color:C.sand, fontSize:14, margin:"0 0 28px" }}>
-        {ANTHROPIC_API_KEY !== "COLLE_TA_CLE_ICI" ? "AfroTresse IA analyse ton visage" : "Simulation en cours (mode démo)"}
+        {"AfroTresse IA analyse ton visage"}
       </p>
 
       <div style={{ width:"100%", display:"flex", flexDirection:"column", gap:10 }}>
@@ -1308,7 +1287,7 @@ function Reviews({ go, toast }) {
 // ÉCRAN QUOTA ATTEINT — avec tarifs
 // ═══════════════════════════════════════════════════════════
 function QuotaScreen({ go, bonusAlreadyUsed }) {
-  const WHATSAPP_NUMBER = "22960000000"; // ← remplace par ton numéro
+  const WHATSAPP_NUMBER = "22901646491";
   const msgBonus = encodeURIComponent("Bonjour ! J'ai testé AfroTresse et je veux laisser mon avis pour débloquer 5 analyses 🌍✨");
   const msgPay   = encodeURIComponent("Bonjour ! Je veux accéder à AfroTresse Premium. Comment procéder ?");
 
