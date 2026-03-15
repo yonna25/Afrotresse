@@ -824,7 +824,7 @@ function Analyzing({ go, analysis, setResults, toast }) {
         const remaining = Math.max(0, animDuration - elapsed);
         setTimeout(() => {
           setResults(data);
-          go("results");
+          setTimeout(() => go("results"), 100);
         }, remaining);
       })
       .catch(e => {
