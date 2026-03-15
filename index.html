@@ -824,8 +824,8 @@ function Analyzing({ go, setScreen, analysis, setResults, toast }) {
         const remaining = Math.max(0, animDuration - elapsed);
         setTimeout(() => {
           setResults(data);
-          window.scrollTo(0,0);
-          setScreen("results");
+          window.__afroResults = data;
+          window.dispatchEvent(new CustomEvent("afro:results", { detail: data }));
         }, remaining);
       })
       .catch(e => {
@@ -1415,6 +1415,16 @@ function AfroTresse() {
   goRef.current = go;
 
   useEffect(() => { if (user && screen==="splash") setScreen("home"); }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      setResults(e.detail);
+      window.scrollTo(0,0);
+      setScreen("results");
+    };
+    window.addEventListener("afro:results", handler);
+    return () => window.removeEventListener("afro:results", handler);
+  }, []);
 
   const p = { go, setScreen, user, setUser, toast, analysis, setAnalysis, results, setResults };
 
