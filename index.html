@@ -190,16 +190,42 @@ function simpleHash(str) {
 
 // ─── Appel à l'API Claude Vision — économique ─────────────────────────────
 async function analyzeWithClaude(base64Image, mimeType = "image/jpeg") {
+  console.log("📡 Envoi au serveur...");
+  
+  try {
+    const response = await fetch("/api/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-3-5-sonnet-20240620",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: mimeType, data: base64Image } },
+            { type: "text", text: "Analyse ce visage et suggère 3 coiffures de tresses africaines. Réponds en JSON uniquement." }
+          ]
+        }]
+      })
+    });
 
-  // 2. Vérifier le cache — même image = pas d'appel API
-  const imageHash = simpleHash(base64Image);
-  const cached = getCachedResult(imageHash);
-  if (cached) {
-    console.log("✓ Résultat depuis le cache — 0 crédit utilisé");
-    localStorage.setItem("afrotresse_pending_result", JSON.stringify(cached));
-    return { ...cached, fromCache: true };
+    if (!response.ok) throw new Error("Erreur serveur");
+
+    const data = await response.json();
+    const rawText = data.content[0].text;
+    const cleanJson = rawText.replace(/`json|```/g, "").trim();
+    const result = JSON.parse(cleanJson);
+
+    // On stocke le résultat pour l'écran suivant
+    localStorage.setItem("afrotresse_pending_result", JSON.stringify(result));
+    
+    return result; 
+  } catch (error) {
+    console.error("Erreur d'analyse:", error);
+    throw error;
   }
-
+}
+    
   // 3. Vérifier le quota total
   const usage = getTotalUsage();
   const limit = getCurrentLimit();
