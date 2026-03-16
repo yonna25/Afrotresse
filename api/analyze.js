@@ -56,19 +56,47 @@ function pickTwoStyles(faceShape) {
   return shuffled.slice(0, 2)
 }
 
-// Fal.ai hair-change — sera activé en Phase 2
-// Pour l'instant on affiche les photos de la bibliothèque locale
+// Convertit un buffer en data URI base64
+function bufferToDataUri(buffer, mimeType) {
+  return `data:${mimeType};base64,${buffer.toString('base64')}`
+}
+
 async function applyHairStyle(selfieDataUri, styleImageUrl, falApiKey) {
-  // TODO Phase 2 : intégration Fal.ai quand l'API upload sera stable
-  return null
+  try {
+    const body = {
+      image_url:           selfieDataUri, // base64 data URI du selfie
+      reference_image_url: styleImageUrl, // URL publique du style
+    }
+    console.log('Calling hair-change with style:', styleImageUrl)
+
+    const res = await fetch('https://fal.run/fal-ai/image-apps-v2/hair-change', {
+      method:  'POST',
+      headers: {
+        'Authorization': `Key ${falApiKey}`,
+        'Content-Type':  'application/json',
+      },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) {
+      console.error('hair-change error:', res.status, await res.text())
+      return null
+    }
+    const data = await res.json()
+    console.log('hair-change response:', JSON.stringify(data).slice(0, 200))
+    return data?.image?.url || data?.images?.[0]?.url || data?.output?.url || data?.url || null
+  } catch (e) {
+    console.error('applyHairStyle error:', e)
+    return null
+  }
 }
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   const anthropicKey = process.env.ANTHROPIC_API_KEY
+  const falKey       = process.env.FAL_API_KEY
   if (!anthropicKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY manquante' })
-  const falKey = process.env.FAL_API_KEY // Phase 2
+  if (!falKey)       return res.status(500).json({ error: 'FAL_API_KEY manquante' })
 
   try {
     // 1. Récupérer le selfie
@@ -118,18 +146,31 @@ Formes : oval, round, square, heart, long, diamond`,
     // 3. Piocher exactement 2 styles
     const selected = pickTwoStyles(faceShape)
 
-    // 4. Construire les 2 recommandations avec photos locales
-    const recommendations = selected.map((style) => ({
-      id:             style.id,
-      name:           style.name,
-      region:         style.region,
-      duration:       style.duration,
-      difficulty:     style.difficulty,
-      tags:           style.tags,
-      localImage:     style.localImage,
-      generatedImage: null, // Phase 2 : Fal.ai
-      matchScore:     Math.floor(Math.random() * 15) + 83,
-    }))
+    // 4. Selfie en base64 data URI — pas d'upload nécessaire
+    const selfieDataUri = `data:${mimeType};base64,${selfieBuffer.toString('base64')}`
+
+    // 5. URL Vercel pour les photos de styles
+    const host    = req.headers.host || req.headers['x-forwarded-host']
+    const baseUrl = `https://${host}`
+
+    // 6. Générer les 2 essayages en parallèle
+    const recommendations = await Promise.all(
+      selected.map(async (style) => {
+        const styleUrl       = `${baseUrl}${style.localImage}`
+        const generatedImage = await applyHairStyle(selfieDataUri, styleUrl, falKey)
+        return {
+          id:             style.id,
+          name:           style.name,
+          region:         style.region,
+          duration:       style.duration,
+          difficulty:     style.difficulty,
+          tags:           style.tags,
+          localImage:     style.localImage,
+          generatedImage,
+          matchScore:     Math.floor(Math.random() * 15) + 83,
+        }
+      })
+    )
 
     return res.status(200).json({
       faceShape,
