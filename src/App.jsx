@@ -1,17 +1,17 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
-import Home    from './pages/Home.jsx'
-import Camera  from './pages/Camera.jsx'
-import Analyze from './pages/Analyze.jsx'
-import Results from './pages/Results.jsx'
-import Library from './pages/Library.jsx'
-import Profile from './pages/Profile.jsx'
+import Home     from './pages/Home.jsx'
+import Camera   from './pages/Camera.jsx'
+import Analyze  from './pages/Analyze.jsx'
+import Results  from './pages/Results.jsx'
+import Library  from './pages/Library.jsx'
+import Profile  from './pages/Profile.jsx'
+import Credits  from './pages/Credits.jsx'
 import BottomNav from './components/BottomNav.jsx'
 
 function AnimatedRoutes() {
   const location = useLocation()
-  // Cacher la nav sur les pages plein-écran
-  const hideNav = ['/camera', '/analyze'].includes(location.pathname)
+  const hideNav  = ['/camera', '/analyze', '/credits'].includes(location.pathname)
 
   return (
     <>
@@ -23,6 +23,7 @@ function AnimatedRoutes() {
           <Route path="/results" element={<Results />} />
           <Route path="/library" element={<Library />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/credits" element={<Credits />} />
         </Routes>
       </AnimatePresence>
       {!hideNav && <BottomNav />}
