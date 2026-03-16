@@ -56,51 +56,34 @@ function pickTwoStyles(faceShape) {
   return shuffled.slice(0, 2)
 }
 
-async function uploadToFalStorage(buffer, mimeType, falApiKey) {
-  try {
-    // Upload via fal.ai files API
-    const res = await fetch('https://fal.ai/api/upload', {
-      method:  'POST',
-      headers: {
-        'Authorization': `Key ${falApiKey}`,
-        'Content-Type':  mimeType,
-        'X-File-Name':   'selfie.jpg',
-      },
-      body: buffer,
-    })
-    if (!res.ok) {
-      const err = await res.text()
-      console.error('Upload failed:', res.status, err)
-      return null
-    }
-    const data = await res.json()
-    console.log('Upload success:', JSON.stringify(data))
-    return data.url || data.file_url || data.cdn_url || null
-  } catch (e) {
-    console.error('Upload error:', e)
-    return null
-  }
+// Convertit un buffer en data URI base64
+function bufferToDataUri(buffer, mimeType) {
+  return `data:${mimeType};base64,${buffer.toString('base64')}`
 }
 
-async function applyHairStyle(selfieUrl, styleImageUrl, falApiKey) {
+async function applyHairStyle(selfieDataUri, styleImageUrl, falApiKey) {
   try {
+    const body = {
+      image_url:           selfieDataUri, // base64 data URI du selfie
+      reference_image_url: styleImageUrl, // URL publique du style
+    }
+    console.log('Calling hair-change with style:', styleImageUrl)
+
     const res = await fetch('https://fal.run/fal-ai/image-apps-v2/hair-change', {
       method:  'POST',
       headers: {
         'Authorization': `Key ${falApiKey}`,
         'Content-Type':  'application/json',
       },
-      body: JSON.stringify({
-        image_url:           selfieUrl,
-        reference_image_url: styleImageUrl,
-      }),
+      body: JSON.stringify(body),
     })
     if (!res.ok) {
       console.error('hair-change error:', res.status, await res.text())
       return null
     }
     const data = await res.json()
-    return data?.image?.url || data?.images?.[0]?.url || data?.output?.url || null
+    console.log('hair-change response:', JSON.stringify(data).slice(0, 200))
+    return data?.image?.url || data?.images?.[0]?.url || data?.output?.url || data?.url || null
   } catch (e) {
     console.error('applyHairStyle error:', e)
     return null
@@ -163,22 +146,18 @@ Formes : oval, round, square, heart, long, diamond`,
     // 3. Piocher exactement 2 styles
     const selected = pickTwoStyles(faceShape)
 
-    // 4. Uploader le selfie sur Fal.ai
-    const selfieUrl = await uploadToFalStorage(selfieBuffer, mimeType, falKey)
+    // 4. Selfie en base64 data URI — pas d'upload nécessaire
+    const selfieDataUri = `data:${mimeType};base64,${selfieBuffer.toString('base64')}`
 
-    // 5. URL de base Vercel
-    // URL dynamique — fonctionne peu importe le déploiement
+    // 5. URL Vercel pour les photos de styles
     const host    = req.headers.host || req.headers['x-forwarded-host']
     const baseUrl = `https://${host}`
 
     // 6. Générer les 2 essayages en parallèle
     const recommendations = await Promise.all(
       selected.map(async (style) => {
-        let generatedImage = null
-        if (selfieUrl) {
-          const styleUrl = `${baseUrl}${style.localImage}`
-          generatedImage = await applyHairStyle(selfieUrl, styleUrl, falKey)
-        }
+        const styleUrl       = `${baseUrl}${style.localImage}`
+        const generatedImage = await applyHairStyle(selfieDataUri, styleUrl, falKey)
         return {
           id:             style.id,
           name:           style.name,
