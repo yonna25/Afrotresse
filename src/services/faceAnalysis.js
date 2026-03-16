@@ -1,122 +1,94 @@
-// Braid catalogue with metadata
 export const BRAIDS_DB = [
   {
     id: 'box-braids',
     name: 'Box Braids',
-    description: 'Les box braids sont intemporelles et polyvalentes, parfaites pour tous types de visages. Protectrices et élégantes.',
+    description: 'Intemporelles et polyvalentes, parfaites pour tous types de visages. Protectrices et elegantes.',
     tags: ['Protectrice', 'Classique', 'Polyvalente'],
     faceShapes: ['oval', 'round', 'square', 'heart', 'diamond'],
-    duration: '4–6h',
-    difficulty: 'Intermédiaire',
-    image: 'https://images.unsplash.com/photo-1611604548018-d56bbd85d681?w=400&q=80',
+    duration: '4-6h',
+    difficulty: 'Intermediaire',
+    image: '/Afrotresse1.jpg',
     matchScore: 98,
   },
   {
     id: 'cornrows',
     name: 'Cornrows',
-    description: 'Les cornrows sculptent le crâne et mettent en valeur les traits. Idéales pour les visages ovales et longs.',
-    tags: ['Traditionnelle', 'Sport', 'Légère'],
+    description: 'Les cornrows sculptent le crane et mettent en valeur les traits. Ideales pour les visages ovales.',
+    tags: ['Traditionnelle', 'Sport', 'Legere'],
     faceShapes: ['oval', 'long', 'square'],
-    duration: '2–4h',
-    difficulty: 'Avancée',
-    image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=80',
+    duration: '2-4h',
+    difficulty: 'Avancee',
+    image: '/Afrotresse2.jpg',
     matchScore: 95,
   },
   {
     id: 'senegalese-twist',
     name: 'Senegalese Twist',
-    description: 'Les twists sénégalais apportent volume et texture. Leur effet spiral crée une silhouette majestueuse.',
-    tags: ['Volume', 'Élégante', 'Longue durée'],
+    description: 'Les twists senegalais apportent volume et texture. Leur effet spiral cree une silhouette majestueuse.',
+    tags: ['Volume', 'Elegante', 'Longue duree'],
     faceShapes: ['round', 'square', 'heart'],
-    duration: '5–7h',
-    difficulty: 'Intermédiaire',
-    image: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&q=80',
+    duration: '5-7h',
+    difficulty: 'Intermediaire',
+    image: '/Afrotresse3.jpg',
     matchScore: 92,
   },
   {
     id: 'fulani-braids',
     name: 'Fulani Braids',
-    description: 'Inspirées de la culture peule, ces tresses centrales avec perles dorées sont d\'une beauté royale.',
+    description: 'Inspirees de la culture peule, ces tresses centrales avec perles dorees sont royales.',
     tags: ['Culturelle', 'Perles', 'Unique'],
     faceShapes: ['oval', 'heart', 'diamond'],
-    duration: '3–5h',
-    difficulty: 'Avancée',
-    image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&q=80',
+    duration: '3-5h',
+    difficulty: 'Avancee',
+    image: '/Afrotresse4.jpg',
     matchScore: 88,
   },
   {
     id: 'knotless-braids',
     name: 'Knotless Braids',
-    description: 'Sans nœuds à la racine, elles sont plus douces pour le cuir chevelu tout en restant magnifiques.',
+    description: 'Sans noeuds a la racine, plus douces pour le cuir chevelu tout en restant magnifiques.',
     tags: ['Sans douleur', 'Moderne', 'Naturelle'],
     faceShapes: ['oval', 'round', 'long', 'square', 'heart', 'diamond'],
-    duration: '6–8h',
-    difficulty: 'Intermédiaire',
-    image: 'https://images.unsplash.com/photo-1617722800977-2bc4ce0e6ac2?w=400&q=80',
+    duration: '6-8h',
+    difficulty: 'Intermediaire',
+    image: '/Afrotresse5.jpg',
     matchScore: 96,
-  },
-  {
-    id: 'lemonade-braids',
-    name: 'Lemonade Braids',
-    description: 'Ces tresses latérales inspirées de Beyoncé allongent le visage et dégagent les traits.',
-    tags: ['Tendance', 'Latérale', 'Glamour'],
-    faceShapes: ['round', 'square', 'heart'],
-    duration: '4–6h',
-    difficulty: 'Avancée',
-    image: 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=400&q=80',
-    matchScore: 85,
   },
   {
     id: 'ghana-braids',
     name: 'Ghana Braids',
-    description: 'Aussi appelées banana cornrows, elles sont larges, structurées et terriblement chics.',
-    tags: ['Africaine', 'Structurée', 'Bold'],
+    description: 'Aussi appelees banana cornrows, elles sont larges, structurees et terriblement chics.',
+    tags: ['Africaine', 'Structuree', 'Bold'],
     faceShapes: ['oval', 'long', 'diamond'],
-    duration: '3–4h',
-    difficulty: 'Intermédiaire',
-    image: 'https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?w=400&q=80',
+    duration: '3-4h',
+    difficulty: 'Intermediaire',
+    image: '/Afrotresse6.jpg',
     matchScore: 90,
-  },
-  {
-    id: 'micro-braids',
-    name: 'Micro Braids',
-    description: 'Fines comme des fils d\'or, les micro braids offrent une grande légèreté et une liberté de coiffage infinie.',
-    tags: ['Délicate', 'Légère', 'Versatile'],
-    faceShapes: ['oval', 'long', 'heart'],
-    duration: '8–12h',
-    difficulty: 'Expert',
-    image: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400&q=80',
-    matchScore: 82,
   },
 ]
 
 const FACE_SHAPE_NAMES = {
   oval:    'Ovale',
   round:   'Ronde',
-  square:  'Carrée',
-  heart:   'Cœur',
+  square:  'Carree',
+  heart:   'Coeur',
   long:    'Longue',
   diamond: 'Diamant',
 }
 
 const FACE_SHAPE_DESCRIPTIONS = {
-  oval:    'Visage équilibré — la plupart des styles te conviennent à merveille.',
-  round:   'Visage doux et rond — les styles allongés te mettront en valeur.',
-  square:  'Visage anguleux et fort — les styles avec du volume adoucissent tes traits.',
-  heart:   'Visage pointu en bas — les styles avec du volume en bas équilibrent ta silhouette.',
-  long:    'Visage allongé — les styles avec du volume sur les côtés créent l\'harmonie.',
-  diamond: 'Pommettes larges — les styles qui encadrent le visage sont parfaits pour toi.',
+  oval:    'Visage equilibre — la plupart des styles te conviennent a merveille.',
+  round:   'Visage doux et rond — les styles allonges te mettront en valeur.',
+  square:  'Visage anguleux — les styles avec du volume adoucissent tes traits.',
+  heart:   'Visage pointu en bas — les styles avec du volume equilibrent ta silhouette.',
+  long:    'Visage allonge — les styles avec du volume sur les cotes creent l\'harmonie.',
+  diamond: 'Pommettes larges — les styles qui encadrent le visage sont parfaits.',
 }
 
-/**
- * Calls /api/analyze with the photo blob.
- * Returns { faceShape, recommendations[] }
- */
 export async function analyzeFace(photoBlob) {
   try {
     const formData = new FormData()
     formData.append('photo', photoBlob, 'selfie.jpg')
-
     const res = await fetch('/api/analyze', { method: 'POST', body: formData })
     if (!res.ok) throw new Error('API error')
     const data = await res.json()
@@ -133,8 +105,8 @@ function buildRecommendations(faceShape, reason = '', confidence = 0.85) {
   const matching = BRAIDS_DB
     .filter(b => b.faceShapes.includes(faceShape))
     .sort((a, b) => b.matchScore - a.matchScore)
-    .slice(0, 5)
-    .map((b, i) => ({ ...b, matchScore: Math.max(75, b.matchScore - i * 3) }))
+    .slice(0, 3)
+    .map((b, i) => ({ ...b, matchScore: Math.max(75, b.matchScore - i * 4) }))
 
   return {
     faceShape,
