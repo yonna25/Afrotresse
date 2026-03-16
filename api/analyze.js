@@ -58,22 +58,24 @@ function pickTwoStyles(faceShape) {
 
 async function uploadToFalStorage(buffer, mimeType, falApiKey) {
   try {
-    // Bonne URL Fal.ai storage
-    const res = await fetch('https://rest.fal.ai/storage/upload/data-uri', {
+    // Upload via fal.ai files API
+    const res = await fetch('https://fal.ai/api/upload', {
       method:  'POST',
       headers: {
         'Authorization': `Key ${falApiKey}`,
-        'Content-Type':  'application/json',
+        'Content-Type':  mimeType,
+        'X-File-Name':   'selfie.jpg',
       },
-      body: JSON.stringify({
-        content_type: mimeType,
-        data:         `data:${mimeType};base64,${buffer.toString('base64')}`,
-      }),
+      body: buffer,
     })
-    if (!res.ok) throw new Error(await res.text())
+    if (!res.ok) {
+      const err = await res.text()
+      console.error('Upload failed:', res.status, err)
+      return null
+    }
     const data = await res.json()
-    console.log('Upload success:', data)
-    return data.url || data.file_url || null
+    console.log('Upload success:', JSON.stringify(data))
+    return data.url || data.file_url || data.cdn_url || null
   } catch (e) {
     console.error('Upload error:', e)
     return null
