@@ -10,6 +10,7 @@ import BottomNav from './components/BottomNav.jsx'
 
 function AnimatedRoutes() {
   const location = useLocation()
+  // Cacher la nav sur les pages plein-écran
   const hideNav = ['/camera', '/analyze'].includes(location.pathname)
 
   return (
