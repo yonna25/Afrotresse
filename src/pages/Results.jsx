@@ -57,11 +57,16 @@ export default function Results() {
           </div>
         )}
         <div className="flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs text-warm font-body">Forme du visage</span>
             <span className="text-xs bg-gold/20 text-gold border border-gold/30 px-2 py-0.5 rounded-full font-body font-semibold">
               {data.faceShapeName}
             </span>
+            {data.confidence && (
+              <span className="text-xs bg-mid text-goldLight border border-gold/20 px-2 py-0.5 rounded-full font-body">
+                IA {data.confidence}%
+              </span>
+            )}
           </div>
           <p className="text-cream/80 text-xs mt-1 font-body leading-relaxed">
             {data.faceShapeDescription}
