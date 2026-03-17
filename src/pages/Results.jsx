@@ -1,3 +1,6 @@
+console.log("Styles passés en props:", styles);
+console.log("StylesData importé:", stylesData);
+
 import { motion } from "framer-motion";
 import stylesData from "./stylesData.json";
 
