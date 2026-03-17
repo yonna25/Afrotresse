@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
+import stylesData from "./stylesData.json";
 
 export default function Results({ styles = [] }) {
-  if (!styles.length) return null;
+  // 🔥 fallback automatique
+  const finalStyles = styles.length ? styles : stylesData;
 
   return (
     <div className="px-4 py-6 space-y-6 bg-[#2b1810] min-h-screen">
@@ -9,10 +11,10 @@ export default function Results({ styles = [] }) {
         Tes résultats
       </h2>
 
-      {styles.map((style, index) => {
+      {finalStyles.map((style, index) => {
         const imgSrc = style.generatedImage
           ? style.generatedImage
-          : `/styles/${style.localImage}`;
+          : /styles/${style.localImage};
 
         return (
           <motion.div
@@ -30,6 +32,7 @@ export default function Results({ styles = [] }) {
                   e.target.src = "/styles/napi1.jpg";
                 }}
               />
+
               <div className="absolute top-3 left-3 bg-yellow-400 text-black text-xs px-2 py-1 rounded-full">
                 +100 vues
               </div>
