@@ -3,18 +3,34 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import CameraCapture from '../components/CameraCapture.jsx'
 
+// Convertit une blob URL en base64 data URL
+async function blobUrlToBase64(blobUrl) {
+  const res    = await fetch(blobUrl)
+  const blob   = await res.blob()
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onloadend = () => resolve(reader.result)
+    reader.readAsDataURL(blob)
+  })
+}
+
 export default function Camera() {
   const navigate = useNavigate()
-  const [photo,     setPhoto]     = useState(null)
-  const [showCam,   setShowCam]   = useState(false)
+  const [photo,   setPhoto]   = useState(null)
+  const [showCam, setShowCam] = useState(false)
 
   const handleCapture = (data) => {
     setPhoto(data)
     setShowCam(false)
   }
 
-  const handleAnalyze = () => {
-    sessionStorage.setItem('afrotresse_photo', photo.url)
+  const handleAnalyze = async () => {
+    let photoData = photo.url
+    // Si c'est une blob URL, convertir en base64 pour survivre à la navigation
+    if (photo.url.startsWith('blob:')) {
+      photoData = await blobUrlToBase64(photo.url)
+    }
+    sessionStorage.setItem('afrotresse_photo', photoData)
     navigate('/analyze')
   }
 
@@ -39,7 +55,6 @@ export default function Camera() {
       <div className="flex-1 px-6 flex flex-col items-center justify-center gap-8 pb-10">
         {!photo ? (
           <>
-            {/* Preview zone */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -53,7 +68,6 @@ export default function Camera() {
               </p>
             </motion.div>
 
-            {/* Tips */}
             <div className="w-full max-w-sm space-y-2">
               {[
                 ['💡', 'Bonne lumière face à toi'],
@@ -67,7 +81,6 @@ export default function Camera() {
               ))}
             </div>
 
-            {/* Actions */}
             <div className="w-full max-w-sm space-y-3">
               <button onClick={() => setShowCam(true)} className="btn-gold w-full">
                 📸 Ouvrir la caméra
@@ -91,7 +104,6 @@ export default function Camera() {
             animate={{ opacity: 1, scale: 1 }}
             className="w-full max-w-sm flex flex-col items-center gap-6"
           >
-            {/* Photo preview */}
             <div className="w-64 h-80 rounded-3xl overflow-hidden border-2 border-gold/40"
               style={{ boxShadow: '0 0 40px rgba(201,150,58,0.2)' }}>
               <img src={photo.url} alt="Selfie" className="w-full h-full object-cover" />
