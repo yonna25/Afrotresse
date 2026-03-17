@@ -1,24 +1,15 @@
 import { motion } from "framer-motion";
+import stylesData from "./stylesData.json";
 
 export default function Results({ styles = [] }) {
-  if (!styles.length) {
-    return (
-      <div className="text-center mt-10 text-gray-500">
-        Aucun style trouvé...
-      </div>
-    );
-  }
+  const finalStyles = styles.length ? styles : stylesData;
 
   return (
     <div className="px-4 py-6 space-y-6">
-      {styles.map((style, index) => {
-        console.log("STYLE:", style);
-
+      {finalStyles.map((style, index) => {
         const imgSrc = style.generatedImage
           ? style.generatedImage
           : `/styles/${style.localImage}`;
-
-        console.log("IMG SRC:", imgSrc);
 
         return (
           <motion.div
@@ -32,11 +23,9 @@ export default function Results({ styles = [] }) {
               alt={style.name}
               className="w-full h-72 object-cover"
               onError={(e) => {
-                console.log("ERREUR IMAGE → fallback");
                 e.target.src = "/styles/napi1.jpg";
               }}
             />
-
             <div className="p-4">
               <h3 className="text-lg font-semibold">{style.name}</h3>
               <p className="text-sm text-gray-500 mt-1">
