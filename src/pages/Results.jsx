@@ -160,7 +160,7 @@ function StyleCard({ style, index, isSaved, onSave }) {
   // 2. Photo locale de ta bibliothèque
   const imgSrc = (!imgError && style.generatedImage)
     ? style.generatedImage
-    : style.localImage || null
+    : style.localImage || style.image || null
 
   return (
     <motion.div
