@@ -6,6 +6,7 @@ import { getCredits, hasCredits, useOneTest } from "../services/credits.js";
 export default function Results() {
   const navigate = useNavigate();
   const [styles, setStyles]           = useState([]);
+  const [page, setPage]               = useState(0);
   const [faceShape, setFaceShape]     = useState('oval');
   const [selfieUrl, setSelfieUrl]     = useState(null);
   const [loadingIdx, setLoadingIdx]   = useState(null);
@@ -172,8 +173,8 @@ export default function Results() {
         )}
       </AnimatePresence>
 
-      {/* Cartes styles */}
-      {styles.map((style, index) => {
+      {/* Cartes styles — 3 par page */}
+      {styles.slice(page * 3, page * 3 + 3).map((style, index) => {
         const imgSrc    = style.generatedImage || style.image || `/styles/${style.localImage}`;
         const isLoading = loadingIdx === index;
 
@@ -261,10 +262,30 @@ export default function Results() {
         );
       })}
 
-      <button onClick={() => navigate('/camera')}
-        className="w-full py-3 rounded-xl text-sm font-semibold text-[#FFC000] border border-[#FFC000]">
-        Nouveau test
-      </button>
+      {/* Boutons navigation */}
+      <div className="flex gap-3 mt-2">
+        <button onClick={() => navigate('/camera')}
+          className="flex-1 py-3 rounded-xl text-sm font-semibold"
+          style={{ border:'1px solid rgba(255,192,0,0.3)', color:'#FFC000', background:'rgba(255,192,0,0.05)' }}>
+          📸 Nouveau selfie
+        </button>
+        {styles.length > (page + 1) * 3 && (
+          <button
+            onClick={() => { setPage(p => p + 1); setResultImage(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+            className="flex-1 py-3 rounded-xl text-sm font-semibold"
+            style={{ background: '#FFC000', color: '#000' }}>
+            3 styles suivants →
+          </button>
+        )}
+        {page > 0 && styles.length <= (page + 1) * 3 && (
+          <button
+            onClick={() => { setPage(0); setResultImage(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+            className="flex-1 py-3 rounded-xl text-sm font-semibold"
+            style={{ border:'1px solid rgba(255,192,0,0.3)', color:'#FFC000' }}>
+            ↩ Revoir les premiers
+          </button>
+        )}
+      </div>
     </div>
   );
 }
