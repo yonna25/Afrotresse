@@ -41,7 +41,7 @@ function WelcomePopup({ onDone }) {
         </div>
 
         {/* Titre */}
-        <h2 className="font-display text-center text-2xl mb-2"
+        <h2 className="font-display text-center text-lg mb-2"
           style={{ color: '#FAF4EC' }}>
           Bienvenue chez <span style={{ color: '#C9963A' }}>AfroTresse</span>
         </h2>
