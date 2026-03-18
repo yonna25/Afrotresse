@@ -43,14 +43,14 @@ export default function Credits() {
   }
 
   return (
-    <div className="min-h-screen bg-brown pb-28">
+    <div className="min-h-screen pb-28" style={{ background:"#1A0E07" }}>
 
       {/* Header */}
-      <div className="glass px-5 pt-12 pb-5">
+      <div className="px-5 pt-12 pb-5" style={{ background:"rgba(255,255,255,0.04)", borderBottom:"1px solid rgba(201,150,58,0.15)" }}>
         <div className="flex items-center gap-3 mb-4">
           <button onClick={() => navigate(-1)}
             className="w-9 h-9 rounded-full flex items-center justify-center"
-            style={{ background:'rgba(92,51,23,0.5)', border:'1px solid rgba(201,150,58,0.2)' }}>
+            style={{ background:"rgba(255,255,255,0.1)", border:'1px solid rgba(201,150,58,0.2)' }}>
             <svg viewBox="0 0 24 24" className="w-4 h-4 text-cream" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
@@ -61,9 +61,9 @@ export default function Credits() {
         {/* Solde */}
         <div className="rounded-3xl p-5 text-center"
           style={{ background:'linear-gradient(135deg, #5C3317, #2C1A0E)', border:'1px solid rgba(201,150,58,0.3)', boxShadow:'0 4px 24px rgba(201,150,58,0.15)' }}>
-          <p className="font-body text-xs text-warm uppercase tracking-widest mb-1">Solde actuel</p>
+          <p className="font-body text-xs text-[#D4B896] uppercase tracking-widest mb-1">Solde actuel</p>
           <p className="font-display text-5xl text-gold font-bold">{credits}</p>
-          <p className="font-body text-sm text-warm mt-1">
+          <p className="font-body text-sm text-[#D4B896] mt-1">
             {credits === 0 ? 'Plus de tests disponibles' : `test${credits > 1 ? 's' : ''} disponible${credits > 1 ? 's' : ''}`}
           </p>
           <p className="font-body text-xs mt-2" style={{ color:'rgba(232,185,106,0.6)' }}>
@@ -88,14 +88,14 @@ export default function Credits() {
         {/* ── ACHETER ── */}
         {tab === 0 && (
           <>
-            <p className="font-body text-warm text-xs text-center mb-2">
+            <p className="font-body text-[#D4B896] text-xs text-center mb-2">
               Paiement MTN MoMo & Moov Money — disponible bientôt
             </p>
             {PRICING.packs.map((pack) => (
               <motion.div key={pack.id}
                 initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }}
                 className="relative rounded-3xl p-5"
-                style={{ background: pack.popular ? 'linear-gradient(135deg, rgba(92,51,23,0.8), rgba(44,26,14,0.9))' : 'rgba(92,51,23,0.3)', border: pack.popular ? '1px solid rgba(201,150,58,0.5)' : '1px solid rgba(201,150,58,0.15)' }}>
+                style={{ background: pack.popular ? 'linear-gradient(135deg, rgba(201,150,58,0.25), rgba(232,185,106,0.1))' : 'rgba(255,255,255,0.06)', border: pack.popular ? '1px solid rgba(201,150,58,0.5)' : '1px solid rgba(201,150,58,0.15)' }}>
 
                 {pack.popular && (
                   <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-xs font-bold font-body"
@@ -107,13 +107,13 @@ export default function Credits() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-display text-cream text-lg">{pack.label}</p>
-                    <p className="font-body text-warm text-xs mt-0.5">
+                    <p className="font-body text-[#D4B896] text-xs mt-0.5">
                       {pack.monthly ? 'Illimité pendant 30 jours' : `${pack.tests} test${pack.tests > 1 ? 's' : ''} = ${pack.tests * 2} styles`}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="font-display text-gold text-xl font-bold">{pack.price}</p>
-                    <p className="font-body text-warm text-xs">{PRICING.currency}</p>
+                    <p className="font-body text-[#D4B896] text-xs">{PRICING.currency}</p>
                   </div>
                 </div>
 
@@ -141,13 +141,13 @@ export default function Credits() {
             {/* Mon code */}
             <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }}
               className="rounded-3xl p-5"
-              style={{ background:'rgba(92,51,23,0.4)', border:'1px solid rgba(201,150,58,0.2)' }}>
+              style={{ background:"rgba(255,255,255,0.08)", border:'1px solid rgba(201,150,58,0.2)' }}>
               <p className="font-display text-cream text-sm mb-1">Mon code parrain</p>
-              <p className="font-body text-warm text-xs mb-3">
+              <p className="font-body text-[#D4B896] text-xs mb-3">
                 Partage ce code — tu gagnes <span className="text-gold font-bold">+{PRICING.referral.giver} test</span> par filleule inscrite
               </p>
               <div className="flex items-center gap-3 rounded-2xl px-4 py-3"
-                style={{ background:'#2C1A0E', border:'1px solid rgba(201,150,58,0.25)' }}>
+                style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(201,150,58,0.3)' }}>
                 <span className="flex-1 font-display text-lg text-gold tracking-widest text-center">{myCode}</span>
                 <button onClick={handleCopy}
                   className="text-xs font-body px-3 py-1.5 rounded-xl transition-all"
@@ -157,7 +157,7 @@ export default function Credits() {
               </div>
               <div className="flex justify-between mt-3 pt-3"
                 style={{ borderTop:'1px solid rgba(201,150,58,0.1)' }}>
-                <span className="font-body text-warm text-xs">Filleules parrainées</span>
+                <span className="font-body text-[#D4B896] text-xs">Filleules parrainées</span>
                 <span className="font-display text-gold">{getReferralCount()}</span>
               </div>
             </motion.div>
@@ -165,9 +165,9 @@ export default function Credits() {
             {/* Entrer un code */}
             <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }}
               className="rounded-3xl p-5"
-              style={{ background:'rgba(92,51,23,0.4)', border:'1px solid rgba(201,150,58,0.2)' }}>
+              style={{ background:"rgba(255,255,255,0.08)", border:'1px solid rgba(201,150,58,0.2)' }}>
               <p className="font-display text-cream text-sm mb-1">J'ai un code parrain</p>
-              <p className="font-body text-warm text-xs mb-3">
+              <p className="font-body text-[#D4B896] text-xs mb-3">
                 Entre le code d'une amie et reçois <span className="text-gold font-bold">+{PRICING.referral.receiver} test gratuit</span>
               </p>
               <div className="flex gap-2">
@@ -177,7 +177,7 @@ export default function Credits() {
                   placeholder="AFRO-XXXXX"
                   maxLength={10}
                   className="flex-1 rounded-2xl px-4 py-3 font-body text-sm text-cream outline-none"
-                  style={{ background:'rgba(44,26,14,0.8)', border:'1px solid rgba(201,150,58,0.3)' }}
+                  style={{ background:'rgba(255,255,255,0.07)', border:'1px solid rgba(201,150,58,0.3)' }}
                 />
                 <button onClick={handleApplyRef}
                   className="px-4 rounded-2xl font-body text-sm font-semibold"
@@ -195,7 +195,7 @@ export default function Credits() {
 
             {/* Comment ça marche */}
             <div className="rounded-3xl p-5"
-              style={{ background:'rgba(92,51,23,0.3)', border:'1px solid rgba(201,150,58,0.1)' }}>
+              style={{ background:"rgba(255,255,255,0.06)", border:'1px solid rgba(201,150,58,0.1)' }}>
               <p className="font-display text-cream text-sm mb-3">Comment ça marche ?</p>
               {[
                 ['1', 'Copie ton code et partage à une amie', '📤'],
@@ -225,7 +225,7 @@ export default function Credits() {
                 style={{ background:'rgba(26,102,64,0.2)', border:'1px solid rgba(26,102,64,0.4)' }}>
                 <p className="text-4xl mb-3">✅</p>
                 <p className="font-display text-cream text-lg">Merci pour ton avis !</p>
-                <p className="font-body text-warm text-sm mt-2">
+                <p className="font-body text-[#D4B896] text-sm mt-2">
                   Tu as reçu <span className="text-gold font-bold">+{PRICING.reviewBonus} test gratuit</span>
                 </p>
               </div>
@@ -255,7 +255,7 @@ function ReviewForm({ onSubmit, bonus }) {
       style={{ background:'rgba(26,102,64,0.2)', border:'1px solid rgba(26,102,64,0.4)' }}>
       <p className="text-4xl mb-3">🌟</p>
       <p className="font-display text-cream text-lg">Merci !</p>
-      <p className="font-body text-warm text-sm mt-2">
+      <p className="font-body text-[#D4B896] text-sm mt-2">
         +{bonus} test gratuit ajouté à ton solde
       </p>
     </div>
@@ -263,9 +263,9 @@ function ReviewForm({ onSubmit, bonus }) {
 
   return (
     <div className="rounded-3xl p-5"
-      style={{ background:'rgba(92,51,23,0.4)', border:'1px solid rgba(201,150,58,0.2)' }}>
+      style={{ background:"rgba(255,255,255,0.08)", border:'1px solid rgba(201,150,58,0.2)' }}>
       <p className="font-display text-cream text-lg mb-1">Laisse ton avis</p>
-      <p className="font-body text-warm text-xs mb-4">
+      <p className="font-body text-[#D4B896] text-xs mb-4">
         En échange de ton avis honnête, reçois <span className="text-gold font-bold">+{bonus} test gratuit</span>
       </p>
 
@@ -287,7 +287,7 @@ function ReviewForm({ onSubmit, bonus }) {
         placeholder="Dis-nous ce que tu penses de l'application... (minimum 10 caractères)"
         rows={4}
         className="w-full rounded-2xl px-4 py-3 font-body text-sm text-cream outline-none resize-none"
-        style={{ background:'rgba(44,26,14,0.8)', border:'1px solid rgba(201,150,58,0.3)' }}
+        style={{ background:'rgba(255,255,255,0.07)', border:'1px solid rgba(201,150,58,0.3)' }}
       />
 
       <button
