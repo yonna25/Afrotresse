@@ -34,22 +34,21 @@ function WelcomePopup({ onDone }) {
         className="w-full max-w-sm rounded-t-3xl p-6 pb-10"
         style={{ background: '#2C1A0E', border: '1px solid rgba(201,150,58,0.3)' }}
       >
-        {/* Icone */}
-        <div className="flex justify-center mb-4">
-          <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl"
-            style={{ background: 'rgba(201,150,58,0.15)', border: '1px solid rgba(201,150,58,0.4)' }}>
-            🌿
-          </div>
+        {/* Logo réduit */}
+        <div className="flex justify-center mb-3">
+          <img src="/logo.png" alt="AfroTresse" className="h-28 w-auto object-contain"
+            onError={e => { e.target.style.display='none' }}/>
         </div>
 
         {/* Titre */}
-        <h2 className="font-display text-center text-xl mb-1"
+        <h2 className="font-display text-center text-2xl mb-2"
           style={{ color: '#FAF4EC' }}>
           Bienvenue chez <span style={{ color: '#C9963A' }}>AfroTresse</span>
         </h2>
-        <p className="font-body text-center text-sm mb-6"
-          style={{ color: 'rgba(250,244,236,0.65)' }}>
-          L'art de la tresse, ta signature
+        <p className="font-body text-center text-sm mb-6 leading-relaxed"
+          style={{ color: 'rgba(250,244,236,0.75)' }}>
+          Tu ne choisis pas une tresse…<br/>
+          Tu découvres celle qui te révèle comme une <strong style={{ color:'#C9963A' }}>Reine 👑</strong>
         </p>
 
         {/* Champ prénom */}
@@ -83,8 +82,8 @@ function WelcomePopup({ onDone }) {
         </button>
 
         <p className="font-body text-xs text-center mt-3"
-          style={{ color: 'rgba(250,244,236,0.35)' }}>
-          Ton prénom reste uniquement sur ton téléphone
+          style={{ color: 'rgba(250,244,236,0.45)' }}>
+          ✨ Ton prénom reste uniquement sur ton téléphone
         </p>
       </motion.div>
     </motion.div>
