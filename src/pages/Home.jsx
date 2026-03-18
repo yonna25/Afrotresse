@@ -118,17 +118,19 @@ export default function Home() {
           style={{ height:'50%', background:'linear-gradient(to top, rgba(44,26,14,0.98) 0%, rgba(44,26,14,0.82) 50%, transparent 100%)' }}/>
 
         <div className="absolute inset-x-0 top-0 z-30 px-5 pt-4">
-          <div className="flex items-center gap-2 mb-0.5">
-            <img src="/logo.png" alt="AfroTresse" className="w-10 h-10 rounded-full object-cover"/>
-            <span className="font-display text-3xl leading-none">
-              <span style={{ color:'#FAF4EC' }} className="font-bold">Afro</span>
-              <span style={{ color:'#C9963A' }} className="font-bold">Tresse</span>
-            </span>
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="AfroTresse" className="w-10 h-10 rounded-full object-cover flex-shrink-0"/>
+            <div className="flex flex-col justify-center">
+              <span className="font-display text-3xl leading-none">
+                <span style={{ color:'#FAF4EC' }} className="font-bold">Afro</span>
+                <span style={{ color:'#C9963A' }} className="font-bold">Tresse</span>
+              </span>
+              <p className="font-body text-xs mt-0.5"
+                style={{ color:'#FAF4EC', letterSpacing:'0.12em', opacity:0.80 }}>
+                Chaque visage a sa tresse
+              </p>
+            </div>
           </div>
-          <p className="font-body text-xs ml-9"
-            style={{ color:'#FAF4EC', letterSpacing:'0.12em', opacity:0.80 }}>
-            Chaque visage a sa tresse
-          </p>
         </div>
 
         {/* GREETING + BADGE + DOTS */}
