@@ -46,10 +46,10 @@ function parseForm(req) {
   })
 }
 
-function pickTwoStyles(faceShape) {
+function pickAllStyles(faceShape) {
   const compatible = BRAIDS_LIBRARY.filter(s => s.faceShapes.includes(faceShape))
   const shuffled   = [...compatible].sort(() => Math.random() - 0.5)
-  return shuffled.slice(0, 2)
+  return shuffled
 }
 
 export default async function handler(req, res) {
@@ -99,7 +99,7 @@ export default async function handler(req, res) {
       }
     } catch(e) { console.error('Claude error:', e) }
 
-    const selected = pickTwoStyles(faceShape)
+    const selected = pickAllStyles(faceShape)
 
     const recommendations = selected.map((style) => ({
       id:             style.id,
@@ -119,7 +119,7 @@ export default async function handler(req, res) {
       confidence:      Math.round(confidence * 100),
       reason,
       analysisId:      Date.now().toString(36),
-      recommendations: recommendations.slice(0, 2),
+      recommendations: recommendations,
     })
 
   } catch (error) {
