@@ -14,6 +14,8 @@ export default function Credits() {
   const [refInput, setRefInput] = useState('')
   const [refMsg,   setRefMsg]   = useState(null)
   const [reviewDone, setReviewDone] = useState(false)
+  const [paymentLoading, setPaymentLoading] = useState(null)
+  const [paymentError, setPaymentError] = useState('')
 
   const myCode = getMyReferralCode()
 
@@ -42,6 +44,40 @@ export default function Credits() {
     if (ok) { setReviewDone(true); refresh() }
   }
 
+  const handlePayment = async (packId) => {
+    setPaymentLoading(packId)
+    setPaymentError('')
+    try {
+      const res = await fetch('/api/fedapay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pack: packId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erreur paiement')
+      // Rediriger vers FedaPay checkout
+      window.location.href = data.paymentUrl
+    } catch (err) {
+      setPaymentError('Paiement indisponible. Reessaie.')
+    } finally {
+      setPaymentLoading(null)
+    }
+  }
+
+  // Verifier si paiement reussi (retour FedaPay)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('payment') === 'success') {
+      const credits = parseInt(params.get('credits') || '0')
+      if (credits > 0) {
+        addCredits(credits)
+        refresh()
+      }
+      // Nettoyer l'URL
+      window.history.replaceState({}, '', '/credits')
+    }
+  }, [])
+
   return (
     <div className="min-h-screen pb-28" style={{ background:"#1A0E07" }}>
 
@@ -69,16 +105,6 @@ export default function Credits() {
           <p className="font-body text-xs mt-2" style={{ color:'rgba(232,185,106,0.6)' }}>
             1 test = 2 styles générés sur ton visage
           </p>
-          {/* Bouton securisation credits */}
-          <button
-            onClick={() => navigate('/magic-link')}
-            className="mt-4 w-full py-2.5 rounded-2xl font-body text-xs font-semibold flex items-center justify-center gap-2"
-            style={{ background:'rgba(201,150,58,0.1)', border:'1px solid rgba(201,150,58,0.3)', color:'#C9963A' }}>
-            🔐 Securiser mes credits par email
-          </button>
-          <p className="font-body text-xs mt-1" style={{ color:'rgba(201,150,58,0.45)' }}>
-            Recupere tes credits en cas de perte ou changement de telephone
-          </p>
         </div>
       </div>
 
@@ -98,8 +124,11 @@ export default function Credits() {
         {/* ── ACHETER ── */}
         {tab === 0 && (
           <>
+            {paymentError && (
+              <p className="font-body text-red-400 text-xs text-center mb-2">{paymentError}</p>
+            )}
             <p className="font-body text-[#D4B896] text-xs text-center mb-2">
-              Paiement MTN MoMo & Moov Money — disponible bientôt
+              Paiement securise via MTN MoMo & Moov Money
             </p>
             {PRICING.packs.map((pack) => (
               <motion.div key={pack.id}
@@ -127,17 +156,17 @@ export default function Credits() {
                   </div>
                 </div>
 
-                {/* Bouton paiement — désactivé Phase 1 */}
-                <div className="mt-4 space-y-2">
-                  <button disabled
-                    className="w-full py-3 rounded-2xl font-body text-sm font-semibold opacity-50 cursor-not-allowed"
-                    style={{ background:'rgba(255,165,0,0.2)', border:'1px solid rgba(255,165,0,0.3)', color:'#FFA500' }}>
-                    📱 MTN MoMo — Bientôt disponible
-                  </button>
-                  <button disabled
-                    className="w-full py-3 rounded-2xl font-body text-sm font-semibold opacity-50 cursor-not-allowed"
-                    style={{ background:'rgba(0,100,200,0.2)', border:'1px solid rgba(0,100,200,0.3)', color:'#4A90D9' }}>
-                    💙 Moov Money — Bientôt disponible
+                <div className="mt-4">
+                  <button
+                    onClick={() => handlePayment(pack.id)}
+                    disabled={paymentLoading === pack.id}
+                    className="w-full py-3 rounded-2xl font-body text-sm font-semibold transition-all"
+                    style={{
+                      background: paymentLoading === pack.id ? 'rgba(201,150,58,0.3)' : 'linear-gradient(135deg,#C9963A,#E8B96A)',
+                      color: '#2C1A0E',
+                      opacity: paymentLoading === pack.id ? 0.7 : 1,
+                    }}>
+                    {paymentLoading === pack.id ? 'Redirection...' : '📱 Payer via MTN MoMo / Moov Money'}
                   </button>
                 </div>
               </motion.div>
