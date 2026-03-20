@@ -47,7 +47,7 @@ function WelcomePopup({ onDone }) {
         {/* Titre accrocheur */}
         <h2 className="font-display text-center font-bold mb-2"
           style={{ color: '#FAF4EC', fontSize: 'clamp(1.2rem, 5vw, 1.6rem)', lineHeight: '1.3' }}>
-          Tu hesites sur ta prochaine coiffure ?
+          Tu hesites sur<br/>ta prochaine coiffure ?
         </h2>
 
         {/* Phrase emotionnelle */}
