@@ -29,7 +29,7 @@ export default async function handler(req, res) {
         description:   selectedPack.description,
         amount:        selectedPack.amount,
         currency:      { iso: 'XOF' },
-        callback_url:  `${process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : 'https://afrotresse-hfwf.vercel.app'}/credits?payment=success&pack=${pack}&credits=${selectedPack.credits}`,
+        callback_url:  `https://afrotresse-hfwf.vercel.app/credits?payment=success&pack=${pack}&credits=${selectedPack.credits}`,
         customer: {
           email: email || 'client@afrotresse.com',
           ...(phone && { phone_number: { number: phone, country: 'BJ' } })
