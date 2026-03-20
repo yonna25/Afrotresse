@@ -245,9 +245,25 @@ export default function Credits() {
         </div>
       </div>
 
+      {/* Bouton principal */}
+      <div className="px-4 mt-4 space-y-2">
+        <button
+          onClick={() => navigate('/camera')}
+          className="w-full py-4 rounded-2xl font-display font-bold text-lg"
+          style={{ background: 'linear-gradient(135deg,#C9963A,#E8B96A)', color: '#2C1A0E', boxShadow: '0 4px 20px rgba(201,150,58,0.4)' }}>
+          📸 Tester ma tresse 👑
+        </button>
+        <button
+          onClick={() => setTab(0)}
+          className="w-full py-2.5 rounded-2xl font-body text-sm font-semibold"
+          style={{ background: 'rgba(201,150,58,0.08)', border: '1px solid rgba(201,150,58,0.25)', color: '#C9963A' }}>
+          ➕ Credits
+        </button>
+      </div>
+
       {/* Tabs */}
       <div className="flex gap-2 px-4 mt-4">
-        {['Acheter', 'Parrainer', 'Avis gratuit'].map((label, i) => (
+        {['🎯 Booster', '🤝 Gagner', '🧠 Avis'].map((label, i) => (
           <button key={label} onClick={() => setTab(i)}
             className="flex-1 py-2.5 rounded-2xl text-xs font-body font-semibold transition-all"
             style={{ background: tab===i ? '#C9963A' : 'rgba(92,51,23,0.4)', color: tab===i ? '#2C1A0E' : '#8B5E3C', border:'1px solid rgba(201,150,58,0.15)' }}>
