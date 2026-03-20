@@ -39,8 +39,10 @@ export default async function handler(req, res) {
 
     if (!fedaRes.ok) {
       const err = await fedaRes.text()
-      console.error('FedaPay error:', err)
-      return res.status(500).json({ error: 'Erreur FedaPay' })
+      console.error('FedaPay error status:', fedaRes.status)
+      console.error('FedaPay error body:', err)
+      console.error('FedaPay secret key prefix:', secretKey?.substring(0, 10))
+      return res.status(500).json({ error: 'Erreur FedaPay', details: err })
     }
 
     const data = await fedaRes.json()
