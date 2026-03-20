@@ -94,7 +94,7 @@ export default async function handler(req, res) {
     const mime   = selfieType || 'image/jpeg'
     const ext    = mime.split('/')[1] || 'jpg'
 
-    const uploadRes = await fetch('https://storage.fal.run', {
+    const uploadRes = await fetch('https://storage.fal.ai', {
       method:  'POST',
       headers: {
         'Authorization': `Key ${falKey}`,
@@ -109,7 +109,7 @@ export default async function handler(req, res) {
     const { url: selfieUrl } = await uploadRes.json()
 
     // ─── Bouclier 3 : 1 image seulement ───
-    const generateRes = await fetch('https://fal.run/fal-ai/image-apps-v2/hair-change', {
+    const generateRes = await fetch('https://fal.ai/api/fal-ai/image-apps-v2/hair-change', {
       method:  'POST',
       headers: {
         'Authorization': `Key ${falKey}`,
