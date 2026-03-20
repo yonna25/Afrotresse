@@ -16,6 +16,10 @@ export default function Credits() {
   const [reviewDone, setReviewDone] = useState(false)
   const [paymentLoading, setPaymentLoading] = useState(null)
   const [paymentError, setPaymentError] = useState('')
+  const [showEmailPopup, setShowEmailPopup] = useState(false)
+  const [pendingPackId, setPendingPackId] = useState(null)
+  const [emailInput, setEmailInput] = useState('')
+  const [emailSent, setEmailSent] = useState(false)
 
   const myCode = getMyReferralCode()
 
@@ -44,18 +48,26 @@ export default function Credits() {
     if (ok) { setReviewDone(true); refresh() }
   }
 
-  const handlePayment = async (packId) => {
-    setPaymentLoading(packId)
+  const handlePayment = (packId) => {
+    setPendingPackId(packId)
+    setShowEmailPopup(true)
+    setPaymentError('')
+  }
+
+  const handleConfirmPayment = async (email) => {
+    setShowEmailPopup(false)
+    setPaymentLoading(pendingPackId)
     setPaymentError('')
     try {
       const res = await fetch('/api/fedapay', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pack: packId }),
+        body: JSON.stringify({ pack: pendingPackId, email }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Erreur paiement')
-      // Rediriger vers FedaPay checkout
+      // Sauvegarder email pour magic link apres paiement
+      if (email) localStorage.setItem('afrotresse_email', email)
       window.location.href = data.paymentUrl
     } catch (err) {
       setPaymentError('Paiement indisponible. Reessaie.')
@@ -73,12 +85,60 @@ export default function Credits() {
         addCredits(credits)
         refresh()
       }
-      // Nettoyer l'URL
+      // Proposer magic link si email sauvegarde
+      const savedEmail = localStorage.getItem('afrotresse_email')
+      if (savedEmail) setEmailSent(true)
       window.history.replaceState({}, '', '/credits')
     }
   }, [])
 
   return (
+    <>
+    {/* Popup email avant paiement */}
+    <AnimatePresence>
+      {showEmailPopup && (
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-end justify-center"
+          style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
+          <motion.div
+            initial={{ y: 300 }} animate={{ y: 0 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+            className="w-full max-w-sm rounded-t-3xl p-6 pb-10"
+            style={{ background: '#2C1A0E', border: '1px solid rgba(201,150,58,0.3)' }}>
+            <h2 className="font-display text-center text-lg mb-1" style={{ color: '#FAF4EC' }}>
+              Securise ton achat
+            </h2>
+            <p className="font-body text-center text-sm mb-5" style={{ color: 'rgba(250,244,236,0.6)' }}>
+              Entre ton email pour recevoir ton recu et recuperer tes credits en cas de perte de telephone.
+            </p>
+            <input
+              type="email"
+              placeholder="ton@email.com"
+              value={emailInput}
+              onChange={e => setEmailInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleConfirmPayment(emailInput.trim())}
+              className="w-full px-4 py-3 rounded-2xl font-body text-sm outline-none mb-3"
+              style={{ background: 'rgba(92,51,23,0.5)', border: '1px solid rgba(201,150,58,0.35)', color: '#FAF4EC' }}
+              autoFocus
+            />
+            <button
+              onClick={() => handleConfirmPayment(emailInput.trim())}
+              className="w-full py-3 rounded-2xl font-display font-semibold text-sm"
+              style={{ background: 'linear-gradient(135deg,#C9963A,#E8B96A)', color: '#2C1A0E' }}>
+              Continuer vers le paiement
+            </button>
+            <button
+              onClick={() => handleConfirmPayment('')}
+              className="w-full py-2 mt-2 font-body text-xs text-center"
+              style={{ color: 'rgba(250,244,236,0.4)' }}>
+              Continuer sans email
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+
     <div className="min-h-screen pb-28" style={{ background:"#1A0E07" }}>
 
       {/* Header */}
@@ -275,6 +335,8 @@ export default function Credits() {
         )}
       </div>
     </div>
+    </div>
+    </>
   )
 }
 
