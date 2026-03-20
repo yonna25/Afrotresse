@@ -105,12 +105,16 @@ export default function Results() {
 
   if (!shuffledStyles.length) return (
     <div className="min-h-screen bg-[#2b1810] flex items-center justify-center">
-      <p className="text-white text-center px-4">
-        Aucun resultat.<br/>
-        <button onClick={() => navigate('/camera')} className="mt-4 text-yellow-400 underline">
-          Prendre un selfie
-        </button>
-      </p>
+        <div className="text-center px-6">
+          <p className="text-4xl mb-4">💆🏾‍♀️</p>
+          <p className="text-white text-xl font-display font-semibold mb-2">Quelle tresse aujourd'hui ?</p>
+          <p className="text-gray-400 text-sm mb-6">Prends un selfie pour decouvrir les styles qui sublimeront ton visage.</p>
+          <button onClick={() => navigate('/')}
+            className="px-6 py-3 rounded-full font-semibold text-sm"
+            style={{ background: '#FFC000', color: '#000' }}>
+            Decouvrir ma tresse parfaite
+          </button>
+        </div>
     </div>
   );
 
