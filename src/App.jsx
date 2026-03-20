@@ -84,19 +84,13 @@ function WelcomePopup({ onDone }) {
           className="w-full py-4 rounded-2xl font-display font-bold text-base"
           style={{ background: 'linear-gradient(135deg,#C9963A,#E8B96A)', color: '#2C1A0E', boxShadow: '0 4px 20px rgba(201,150,58,0.4)' }}
         >
-          {name.trim() ? `Decouvrir ma tresse parfaite, ${name.trim()} 👑` : 'Decouvrir ma tresse parfaite 👑'}
+          Decouvrir ma tresse parfaite 👑
         </button>
 
         {/* Urgence */}
         <p className="font-body text-xs text-center mt-2 font-semibold"
           style={{ color: '#E8B96A' }}>
           🎁 3 essais gratuits aujourd'hui seulement !
-        </p>
-
-        {/* Social proof */}
-        <p className="font-body text-xs text-center mt-1"
-          style={{ color: 'rgba(250,244,236,0.4)' }}>
-          Deja +50 femmes ont trouve leur tresse parfaite 🎉
         </p>
       </motion.div>
     </motion.div>
