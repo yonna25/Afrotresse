@@ -53,9 +53,8 @@ function WelcomePopup({ onDone }) {
         {/* Phrase emotionnelle */}
         <p className="font-body text-center text-sm mb-4 leading-relaxed"
           style={{ color: 'rgba(250,244,236,0.8)' }}>
-          Teste sur <strong style={{ color:'#E8B96A' }}>TON visage</strong> et<br/>
-          Decouvre la tresse<br/>
-          qui va te rendre magnifique aujourd'hui
+          Teste sur <strong style={{ color:'#E8B96A' }}>TON visage</strong> et decouvre<br/>
+          la tresse qui va te rendre magnifique aujourd'hui.
         </p>
 
         {/* Champ prénom */}
