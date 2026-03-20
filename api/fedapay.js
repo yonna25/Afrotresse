@@ -10,9 +10,9 @@ export default async function handler(req, res) {
     const { pack, email, phone } = req.body
 
     const PACKS = {
-      starter:  { amount: 500,  credits: 3,  description: 'AfroTresse - Pack Starter 3 essais' },
-      standard: { amount: 750,  credits: 5,  description: 'AfroTresse - Pack Standard 5 essais' },
-      premium:  { amount: 1200, credits: 10, description: 'AfroTresse - Pack Premium 10 essais' },
+      starter: { amount: 500,  credits: 3,  description: 'AfroTresse - Pack Starter 3 tests' },
+      plus:    { amount: 1500, credits: 10, description: 'AfroTresse - Pack Plus 10 tests' },
+      pro:     { amount: 2500, credits: 99, description: 'AfroTresse - Abonnement mensuel' },
     }
 
     const selectedPack = PACKS[pack]
