@@ -46,6 +46,22 @@ function TickerBar() {
             </span>
           ))}
         </motion.div>
+      {/* Bouton flottant analyser */}
+      <div className="absolute bottom-20 left-0 right-0 z-40 flex justify-center px-5 pointer-events-none">
+        <motion.button
+          initial={{ opacity:0, y:20 }}
+          animate={{ opacity:1, y:0 }}
+          transition={{ delay:0.5, duration:0.5 }}
+          onClick={() => window.location.href = '/camera'}
+          className="pointer-events-auto px-8 py-4 rounded-full font-display font-bold text-base"
+          style={{
+            background: 'linear-gradient(135deg,#C9963A,#E8B96A)',
+            color: '#2C1A0E',
+            boxShadow: '0 4px 24px rgba(201,150,58,0.6)',
+          }}>
+          Analyser mon visage 🤳🏿
+        </motion.button>
+      </div>
       </div>
     </div>
   )
@@ -140,21 +156,10 @@ export default function Home() {
             animate={{ opacity:1, y:0 }}
             transition={{ duration:0.5 }}>
 
-            {/* Badge Bonjour */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-2"
-              style={{ background:'rgba(201,150,58,0.15)', border:'1px solid rgba(201,150,58,0.4)' }}>
-              <span className="text-sm">👋</span>
-              <span className="font-body text-xs font-semibold tracking-widest uppercase"
-                style={{ color:'#FAF4EC' }}>
-                Bonjour
-              </span>
-            </div>
-
-            <h1 className="font-display leading-[1.15]" style={{ fontSize:'1.4rem' }}>
-              <span style={{ color:'#FAF4EC' }} className="italic">{userName},&nbsp;</span>
-              <span style={{ color:'#C9963A' }}>quelle tresse</span>
+            <h1 className="font-display leading-[1.2]" style={{ fontSize:'1.7rem' }}>
+              <span style={{ color:'#FAF4EC' }} className="font-bold">Prete pour ton nouveau look,</span>
               <br/>
-              <span style={{ color:'#FAF4EC' }}>aujourd'hui ?</span>
+              <span style={{ color:'#C9963A' }} className="font-bold">{userName} ? ✨</span>
             </h1>
           </motion.div>
 
@@ -190,6 +195,22 @@ export default function Home() {
             ))}
           </div>
         </div>
+      {/* Bouton flottant analyser */}
+      <div className="absolute bottom-20 left-0 right-0 z-40 flex justify-center px-5 pointer-events-none">
+        <motion.button
+          initial={{ opacity:0, y:20 }}
+          animate={{ opacity:1, y:0 }}
+          transition={{ delay:0.5, duration:0.5 }}
+          onClick={() => window.location.href = '/camera'}
+          className="pointer-events-auto px-8 py-4 rounded-full font-display font-bold text-base"
+          style={{
+            background: 'linear-gradient(135deg,#C9963A,#E8B96A)',
+            color: '#2C1A0E',
+            boxShadow: '0 4px 24px rgba(201,150,58,0.6)',
+          }}>
+          Analyser mon visage 🤳🏿
+        </motion.button>
+      </div>
       </div>
     </div>
   )
