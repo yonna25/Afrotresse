@@ -150,7 +150,7 @@ export default function Home() {
         </div>
 
         {/* GREETING + BADGE + DOTS */}
-        <div className="absolute inset-x-0 bottom-0 z-30 px-5 pb-24">
+        <div className="absolute inset-x-0 bottom-0 z-30 px-5 pb-36">
           <motion.div
             initial={{ opacity:0, y:20 }}
             animate={{ opacity:1, y:0 }}
@@ -168,7 +168,7 @@ export default function Home() {
             <motion.div key={current}
               initial={{ opacity:0, x:-10 }} animate={{ opacity:1, x:0 }}
               exit={{ opacity:0, x:10 }} transition={{ duration:0.3 }}
-              className="mt-4 inline-flex">
+              className="mt-2 inline-flex">
               <div className="flex items-center gap-2 px-4 py-2 rounded-full"
                 style={{ background:'rgba(255,255,255,0.07)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.1)' }}>
                 <span className="font-body text-xs font-bold" style={{ color:slide.accent }}>
