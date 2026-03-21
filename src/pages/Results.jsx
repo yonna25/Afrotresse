@@ -314,13 +314,10 @@ export default function Results() {
                 disabled={isLoading}
                 className="w-full py-3 rounded-xl font-bold text-sm mt-2 transition-all"
                 style={{
-                  background: !hasCredits()
-                    ? '#5a3225'
-                    : hasPaidCredits()
-                    ? (isLoading ? '#a08000' : '#FFC000')
-                    : 'rgba(92,51,23,0.6)',
-                  color: !hasCredits() ? '#FFC000' : hasPaidCredits() ? '#000' : '#E8B96A',
-                  border: hasPaidCredits() && hasCredits() ? 'none' : '1px solid rgba(255,192,0,0.4)',
+                  background: isLoading ? '#a08000' : '#FFC000',
+                  color: '#000',
+                  border: 'none',
+                  opacity: isLoading ? 0.7 : 1,
                 }}>
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -333,8 +330,8 @@ export default function Results() {
                 ) : !hasCredits()
                   ? "Plus de credits"
                   : hasPaidCredits()
-                  ? "Me transformer"
-                  : "Essayer sur moi"
+                  ? "Me transformer ✨"
+                  : "🔒 Essayer sur moi"
                 }
               </button>
             </div>
