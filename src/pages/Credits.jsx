@@ -26,6 +26,7 @@ export default function Credits() {
   const [supabaseUser, setSupabaseUser] = useState(null)
   const [magicLinkSent, setMagicLinkSent] = useState(false)
 
+  const popularRef = useRef(null)
   const myCode = getMyReferralCode()
 
   useEffect(() => {
@@ -262,7 +263,7 @@ export default function Credits() {
           📸 Tester ma tresse 👑
         </button>
         <button
-          onClick={() => setActiveView('credits')}
+          onClick={() => { setActiveView('credits'); setTimeout(() => popularRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100) }}
           className="w-full py-2.5 rounded-2xl font-body text-sm font-semibold"
           style={{ background: 'rgba(201,150,58,0.08)', border: '1px solid rgba(201,150,58,0.25)', color: '#C9963A' }}>
           ➕ Credits
@@ -292,6 +293,7 @@ export default function Credits() {
             </p>
             {PRICING.packs.map((pack) => (
               <motion.div key={pack.id}
+                ref={pack.popular ? popularRef : null}
                 initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }}
                 className="relative rounded-3xl p-5"
                 style={{ background: pack.popular ? 'linear-gradient(135deg, rgba(201,150,58,0.25), rgba(232,185,106,0.1))' : 'rgba(255,255,255,0.06)', border: pack.popular ? '1px solid rgba(201,150,58,0.5)' : '1px solid rgba(201,150,58,0.15)' }}>
