@@ -1,4 +1,4 @@
-import * as fal from '@fal-ai/client'
+import { fal } from '@fal-ai/client'
 
 export const config = { api: { bodyParser: { sizeLimit: '10mb' } } }
 
