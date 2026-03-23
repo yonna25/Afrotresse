@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { getCredits, hasCredits, useOneTest, PRICING } from "../services/credits.js";
+import { getCredits, consumeCredits, canDiscover, canTransform, PRICING, addSeenStyleId, getSeenStyleIds } from "../services/credits.js";
 import EnhancedBraidCard from "../components/EnhancedBraidCard";
 
 const FACE_SHAPE_TEXTS = {
@@ -57,8 +57,11 @@ export default function Results() {
     if (raw) {
       const parsed = JSON.parse(raw);
       const recs = parsed.recommendations || [];
-      setStyles(recs);
-      setShuffledStyles(shuffleArray(recs));
+      const seen = getSeenStyleIds();
+      // Exclure les styles déjà vus du premier crédit
+      const filtered = recs.filter(r => !seen.includes(r.id));
+      setStyles(filtered);
+      setShuffledStyles(shuffleArray(filtered));
       setFaceShape(parsed.faceShape || 'oval');
       setFaceShapeName(parsed.faceShapeName || '');
     }
@@ -67,17 +70,21 @@ export default function Results() {
     setCredits(getCredits());
   }, []);
 
-  const hasPaidCredits = () => getCredits() > (PRICING.freeTests || 2)
+  const handleTryStyle = async (style, index, type = 'transform') => {
+    // Vérifier les crédits selon le type
+    if (type === 'discover') {
+      if (!canDiscover()) { navigate('/credits'); return; }
+    } else if (type === 'transform') {
+      if (!canTransform()) { navigate('/credits'); return; }
+    }
 
-  const handleTryStyle = async (style, index) => {
-    if (!hasCredits()) { navigate('/credits'); return; }
-    if (!hasPaidCredits()) { navigate('/credits'); return; }
     setErrorMsg("");
     setResultImage(null);
     setIsFallback(false);
     setLoadingIdx(index);
     setWaitingMsgIdx(0);
     setResultMsg('');
+
     // Rotation messages d'attente
     let idx = 0;
     waitingIntervalRef.current = setInterval(() => {
@@ -95,17 +102,31 @@ export default function Results() {
       const res = await fetch('/api/falGenerate', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ selfieBase64, selfieType, styleImageUrl, faceShape, styleId: style.id, paid: true }),
+        body: JSON.stringify({ 
+          selfieBase64, 
+          selfieType, 
+          styleImageUrl, 
+          faceShape, 
+          styleId: style.id, 
+          type: type // 'discover' ou 'transform'
+        }),
       });
 
       const data = await res.json();
       if (res.status === 429) { setErrorMsg(data.error); return; }
+
       clearInterval(waitingIntervalRef.current);
-      useOneTest();
+
+      // Consommer les crédits
+      const creditsCost = type === 'discover' ? PRICING.discoverCost : PRICING.transformCost;
+      consumeCredits(creditsCost);
+      addSeenStyleId(style.id);
+      
       setCredits(getCredits());
       setResultImage(data.imageUrl);
       setResultMsg(RESULT_MSGS[Math.floor(Math.random() * RESULT_MSGS.length)]);
       setIsFallback(data.fallback || false);
+
       setTimeout(() => {
         resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
@@ -195,15 +216,15 @@ export default function Results() {
         </motion.div>
       )}
 
-      {/* Credites epuises */}
-      {!hasCredits() && (
+      {/* Credits epuises */}
+      {!canDiscover() && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
           className="bg-[#3a2118] rounded-2xl p-4 border-2 border-yellow-400">
           <p className="text-white font-semibold mb-2">Plus de credits gratuits 💭</p>
           <p className="text-sm text-gray-300 mb-3">Achete un pack pour continuer a explorer et transformer tes photos !</p>
           <button onClick={() => navigate('/credits')}
             className="w-full py-3 rounded-xl font-bold text-sm"
-            style={{ background: '#FFC000' }}>
+            style={{ background: '#FFC000', color: '#000' }}>
             Obtenir des credits
           </button>
         </motion.div>
@@ -268,7 +289,9 @@ export default function Results() {
           index={index}
           onTryStyle={handleTryStyle}
           isLoading={loadingIdx === index}
-          hasCredits={hasCredits()}
+          canDiscover={canDiscover()}
+          canTransform={canTransform()}
+          credits={credits}
         />
       ))}
 
