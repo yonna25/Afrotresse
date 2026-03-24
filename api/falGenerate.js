@@ -33,6 +33,21 @@ export default async function handler(req, res) {
 
   const { selfieBase64, selfieType, styleImageUrl, faceShape, styleId, paid } = req.body || {}
 
+  // ✅ VALIDATION : Vérifier les 2 images obligatoires
+  if (!selfieBase64 || selfieBase64.trim() === '') {
+    return res.status(400).json({ 
+      error: 'Selfie manquant. Prends une photo d\'abord.',
+      missing: 'selfie'
+    })
+  }
+
+  if (!styleImageUrl || styleImageUrl.trim() === '') {
+    return res.status(400).json({ 
+      error: 'Image de référence (coiffure) manquante. Sélectionne une coiffure.',
+      missing: 'styleImageUrl'
+    })
+  }
+
   // Bouclier 4 : Pas de cle -> preset (mode gratuit uniquement)
   if (!falKey) {
     if (paid) return res.status(500).json({ error: 'Service indisponible. Reessaie.' })
@@ -52,6 +67,7 @@ export default async function handler(req, res) {
     const selfieUrl = await fal.storage.upload(blob)
 
     // Generer via SDK — Bouclier 3 : 1 image
+    // ✅ À ce stade, styleImageUrl est GARANTI d'être fourni (validation ligne 46-53)
     const result = await fal.subscribe('fal-ai/image-apps-v2/hair-change', {
       input: {
         image_url:           selfieUrl,
