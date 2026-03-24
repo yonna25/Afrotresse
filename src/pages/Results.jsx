@@ -40,8 +40,8 @@ function getSessionHistory() {
 function pushSessionHistory(entry) {
   try {
     const hist = getSessionHistory()
-    const last = hist[hist.length - 1]
-    if (last && last.ts === entry.ts) return
+    // Deduplication : ne pas pousser si meme _ts (actualisation page)
+    if (hist.some(h => h.ts === entry.ts)) return
     hist.push(entry)
     sessionStorage.setItem(KEY_SESSION_HISTORY, JSON.stringify(hist))
   } catch {}
@@ -101,8 +101,10 @@ export default function Results() {
       const shuffled = shuffleArray(filtered);
       const styles3  = shuffled.slice(0, 3);
 
+      // _ts est defini par Analyze.jsx — identifiant stable de cette analyse
+      const ts = parsed._ts || parsed.faceShape + "_" + (parsed.confidence || 0)
       const entry = {
-        ts:            Date.now(),
+        ts,
         faceShape:     parsed.faceShape || "oval",
         faceShapeName: parsed.faceShapeName || "",
         shuffled,
