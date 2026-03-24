@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { analyzeFace } from '../services/faceAnalysis.js'
+import { consumeAnalysis } from '../services/credits.js'
 
 const STEPS = [
   { text: 'Analyse de tes traits uniques...', icon: '✨', pct: 20 },
@@ -65,6 +66,7 @@ export default function Analyze() {
         setShowMediaPipeMsg(false)
         setProgress(100)
         sessionStorage.setItem('afrotresse_results', JSON.stringify(result))
+        consumeAnalysis()
         setTimeout(() => navigate('/results'), 400)
       } catch (err) {
         console.error('Analysis failed:', err)
@@ -74,6 +76,7 @@ export default function Analyze() {
         const result = await analyzeFace(blob)
         setProgress(100)
         sessionStorage.setItem('afrotresse_results', JSON.stringify(result))
+        consumeAnalysis()
         setTimeout(() => navigate('/results'), 400)
       }
     }
