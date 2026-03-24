@@ -11,17 +11,35 @@ const STEPS = [
   { text: 'Voici tes tresses ideales...', icon: '😍', pct: 98 },
 ]
 
+const MEDIAPIPE_STEP = { text: 'Initialisation MediaPipe en cours...', icon: '⚙️', pct: 10 }
+
 export default function Analyze() {
   const navigate  = useNavigate()
   const [step,    setStep]    = useState(0)
   const [progress,setProgress] = useState(0)
+  const [showMediaPipeMsg, setShowMediaPipeMsg] = useState(false)
 
   useEffect(() => {
     const photoUrl = sessionStorage.getItem('afrotresse_photo')
 
-    // Progress animation
+    // Progress animation avec gestion du message MediaPipe
     let stepIndex = 0
+    let mediaPipeShown = false
+    let mediaTimerStarted = false
+    const mediaPipeTimer = 1000 // Afficher message après 1s
+
     const interval = setInterval(() => {
+      // Afficher message MediaPipe après 1s
+      if (!mediaTimerStarted) {
+        mediaTimerStarted = true
+        setTimeout(() => {
+          if (!mediaPipeShown) {
+            setShowMediaPipeMsg(true)
+            mediaPipeShown = true
+          }
+        }, mediaPipeTimer)
+      }
+
       if (stepIndex < STEPS.length - 1) {
         stepIndex++
         setStep(stepIndex)
@@ -29,7 +47,6 @@ export default function Analyze() {
       }
     }, 600)
 
-    // Actual analysis
     // Vider les anciens résultats avant chaque nouvelle analyse
     sessionStorage.removeItem("afrotresse_results")
 
@@ -41,16 +58,32 @@ export default function Analyze() {
           blob = await res.blob()
         } catch {}
       }
-      const result = await analyzeFace(blob)
-      clearInterval(interval)
-      setProgress(100)
-      sessionStorage.setItem('afrotresse_results', JSON.stringify(result))
-      setTimeout(() => navigate('/results'), 400)
+
+      try {
+        const result = await analyzeFace(blob)
+        clearInterval(interval)
+        setShowMediaPipeMsg(false)
+        setProgress(100)
+        sessionStorage.setItem('afrotresse_results', JSON.stringify(result))
+        setTimeout(() => navigate('/results'), 400)
+      } catch (err) {
+        console.error('Analysis failed:', err)
+        clearInterval(interval)
+        setShowMediaPipeMsg(false)
+        // Fallback: même en cas d'erreur, on continue (fallback ovale dans analyzeFace)
+        const result = await analyzeFace(blob)
+        setProgress(100)
+        sessionStorage.setItem('afrotresse_results', JSON.stringify(result))
+        setTimeout(() => navigate('/results'), 400)
+      }
     }
     run()
 
     return () => clearInterval(interval)
   }, [navigate])
+
+  // Déterminer le step à afficher
+  const displayStep = showMediaPipeMsg ? MEDIAPIPE_STEP : STEPS[step]
 
   return (
     <div className="min-h-screen bg-brown flex flex-col items-center justify-center px-6">
@@ -74,7 +107,7 @@ export default function Analyze() {
             transition={{ duration: 1.5, repeat: Infinity }}
             className="text-4xl"
           >
-            {STEPS[step]?.icon}
+            {displayStep?.icon}
           </motion.div>
         </div>
       </div>
@@ -82,13 +115,13 @@ export default function Analyze() {
       {/* Step text */}
       <AnimatePresence mode="wait">
         <motion.p
-          key={step}
+          key={displayStep?.text}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           className="font-body text-goldLight text-base text-center"
         >
-          {STEPS[step]?.text}
+          {displayStep?.text}
         </motion.p>
       </AnimatePresence>
 
