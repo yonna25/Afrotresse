@@ -4,7 +4,6 @@ export async function useFaceAnalysis(photoBlob, timeoutMs = 8000) {
   try {
     // Lazy load MediaPipe pour perf au démarrage
     const FaceMesh = (await import('@mediapipe/face_mesh')).FaceMesh
-    const { drawConnectors, drawLandmarks } = await import('@mediapipe/drawing_utils')
 
     return new Promise((resolve, reject) => {
       let timeoutId
