@@ -65,7 +65,8 @@ export default function Analyze() {
         clearInterval(interval)
         setShowMediaPipeMsg(false)
         setProgress(100)
-        sessionStorage.setItem('afrotresse_results', JSON.stringify(result))
+        const stamped = { ...result, _ts: Date.now() }
+        sessionStorage.setItem('afrotresse_results', JSON.stringify(stamped))
         consumeAnalysis()
         setTimeout(() => navigate('/results'), 400)
       } catch (err) {
@@ -75,7 +76,8 @@ export default function Analyze() {
         // Fallback: même en cas d'erreur, on continue (fallback ovale dans analyzeFace)
         const result = await analyzeFace(blob)
         setProgress(100)
-        sessionStorage.setItem('afrotresse_results', JSON.stringify(result))
+        const stamped2 = { ...result, _ts: Date.now() }
+        sessionStorage.setItem('afrotresse_results', JSON.stringify(stamped2))
         consumeAnalysis()
         setTimeout(() => navigate('/results'), 400)
       }
