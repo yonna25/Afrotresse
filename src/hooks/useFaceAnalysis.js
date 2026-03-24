@@ -1,9 +1,8 @@
-import { useEffect, useRef } from 'react'
-
-export async function useFaceAnalysis(photoBlob, timeoutMs = 8000) {
+export async function useFaceAnalysis(photoBlob, timeoutMs = 12000) {
   try {
-    // Lazy load MediaPipe pour perf au démarrage
-    const FaceMesh = (await import('@mediapipe/face_mesh')).FaceMesh
+    // Lazy load MediaPipe - importation correcte
+    const module = await import('@mediapipe/face_mesh')
+    const FaceMesh = module.FaceMesh
 
     return new Promise((resolve, reject) => {
       let timeoutId
