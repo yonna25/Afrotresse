@@ -2,9 +2,12 @@ export async function useFaceAnalysis(photoBlob, timeoutMs = 15000) {
   return new Promise((resolve, reject) => {
     let timeoutId
 
+    console.log('[useFaceAnalysis] Démarrage, timeout:', timeoutMs)
+
     try {
       // Lazy load MediaPipe
       import('@mediapipe/face_mesh').then(({ FaceMesh }) => {
+        console.log('[useFaceAnalysis] FaceMesh chargé avec succès')
         const startTime = Date.now()
 
         // Canvas pour traiter l'image
@@ -13,11 +16,15 @@ export async function useFaceAnalysis(photoBlob, timeoutMs = 15000) {
         canvas.width = 640
         canvas.height = 480
 
+        console.log('[useFaceAnalysis] Canvas créé: 640x480')
+
         // Charger l'image
         const img = new Image()
         img.crossOrigin = 'anonymous'
 
         img.onload = () => {
+          console.log('[useFaceAnalysis] Image chargée:', img.width, 'x', img.height)
+
           // Redimensionner l'image
           const ratio = img.width / img.height
           let w = 640, h = 480, x = 0, y = 0
@@ -31,8 +38,10 @@ export async function useFaceAnalysis(photoBlob, timeoutMs = 15000) {
           }
 
           ctx.drawImage(img, x, y, w, h)
+          console.log('[useFaceAnalysis] Image dessinée sur canvas')
 
           // Initialiser FaceMesh
+          console.log('[useFaceAnalysis] Initialisation FaceMesh...')
           const faceMesh = new FaceMesh({
             locateFile: (file) =>
               `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
@@ -45,14 +54,22 @@ export async function useFaceAnalysis(photoBlob, timeoutMs = 15000) {
             minTrackingConfidence: 0.65,
           })
 
+          console.log('[useFaceAnalysis] FaceMesh options définies')
+
           // Handler résultats
           let detected = false
           faceMesh.onResults((results) => {
+            console.log('[useFaceAnalysis] Résultats reçus', {
+              hasLandmarks: !!results.multiFaceLandmarks,
+              count: results.multiFaceLandmarks?.length || 0,
+            })
+
             if (!detected && results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
               detected = true
               if (timeoutId) clearTimeout(timeoutId)
 
               const landmarks = results.multiFaceLandmarks[0]
+              console.log('[useFaceAnalysis] ✅ Visage détecté! Landmarks:', landmarks.length)
               faceMesh.close()
 
               resolve({
@@ -65,33 +82,41 @@ export async function useFaceAnalysis(photoBlob, timeoutMs = 15000) {
             }
           })
 
+          console.log('[useFaceAnalysis] Envoi de l\'image à FaceMesh...')
           // Envoyer l'image
           faceMesh.send({ image: canvas })
 
           // Timeout de sécurité
           timeoutId = setTimeout(() => {
+            console.error('[useFaceAnalysis] ❌ TIMEOUT après', timeoutMs, 'ms')
             faceMesh.close()
             reject(new Error(`Timeout: MediaPipe n'a pas détecté de visage après ${timeoutMs}ms`))
           }, timeoutMs)
         }
 
-        img.onerror = () => {
+        img.onerror = (err) => {
+          console.error('[useFaceAnalysis] ❌ Erreur chargement image:', err)
           reject(new Error('Impossible de charger l\'image'))
         }
 
+        console.log('[useFaceAnalysis] Conversion blob en URL...')
         // Convertir blob en URL
         const reader = new FileReader()
         reader.onload = (e) => {
+          console.log('[useFaceAnalysis] Blob converti en data URL')
           img.src = e.target.result
         }
-        reader.onerror = () => {
+        reader.onerror = (err) => {
+          console.error('[useFaceAnalysis] ❌ Erreur FileReader:', err)
           reject(new Error('Erreur lecture du fichier'))
         }
         reader.readAsDataURL(photoBlob)
       }).catch((err) => {
+        console.error('[useFaceAnalysis] ❌ Erreur import MediaPipe:', err)
         reject(new Error(`Impossible de charger MediaPipe: ${err.message}`))
       })
     } catch (err) {
+      console.error('[useFaceAnalysis] ❌ Erreur catch:', err)
       reject(new Error(`Erreur: ${err.message}`))
     }
   })
