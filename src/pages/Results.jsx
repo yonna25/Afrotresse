@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getCredits, consumeCredits, PRICING, addSeenStyleId, getSeenStyleIds } from "../services/credits.js";
@@ -19,25 +19,25 @@ export default function Results() {
   const [errorMsg, setErrorMsg] = useState("");
   const [zoomImage, setZoomImage] = useState(null);
   const [credits, setCredits] = useState(getCredits());
-  const [downloadCount, setDownloadCount] = useState(0); // Suivi pour 1 credit = 3 downloads
+  
+  // Logique de sauvegarde (Priorit\u00e9 : 1 credit = 3 saves)
+  const [downloadCount, setDownloadCount] = useState(0);
 
   const faceShape = localStorage.getItem("afrotresse_face_shape") || "oval";
   const selfieUrl = localStorage.getItem("afrotresse_selfie");
 
-  // Logique de sauvegarde/telechargement
   const handleDownload = (imageUrl) => {
     if (credits < 1 && downloadCount === 0) {
       navigate("/credits");
       return;
     }
-
-    // Logique de telechargement reel ici (FileSaver ou simple a.click)
+    
+    // Simulation de telechargement
     const link = document.createElement('a');
     link.href = imageUrl;
-    link.download = `afrotresse-${Date.now()}.jpg`;
+    link.download = `afrotresse-style-${Date.now()}.jpg`;
     link.click();
 
-    // Gestion de la consommation : 1 credit tous les 3 downloads
     const nextCount = downloadCount + 1;
     if (nextCount >= 3) {
       consumeCredits(1);
@@ -49,31 +49,37 @@ export default function Results() {
   };
 
   return (
-    <div className="min-h-screen bg-[#2C1A0E] text-[#FAF4EC] flex flex-col md:flex-row">
+    <div className="min-h-screen bg-[#2C1A0E] text-[#FAF4EC] flex flex-col md:flex-row overflow-x-hidden">
       
-      {/* SECTION PRINCIPALE */}
+      {/* --- SECTION CONTENU --- */}
       <div className="flex-1 p-5 pb-24">
         
-        {/* HEADER : Titre + Selfie + Analyse */}
-        <div className="mb-10 flex flex-col md:flex-row gap-6 items-center md:items-start bg-white/5 p-6 rounded-3xl border border-white/10">
-          {selfieUrl && (
-            <img src={selfieUrl} className="w-24 h-24 rounded-full border-2 border-[#C9963A] object-cover shadow-lg" alt="Selfie" />
-          )}
-          <div>
-            <h1 className="font-display font-bold text-3xl mb-2 text-[#C9963A]">R\u00e9sultats</h1>
-            <p className="text-sm opacity-90 font-body leading-relaxed max-w-xl">
+        {/* NOUVEAU : Header avec miniature Selfie de l'utilisatrice */}
+        <div className="mb-10 flex items-center gap-5 bg-white/5 p-5 rounded-[2.5rem] border border-white/10 shadow-xl">
+          <div className="relative">
+            {selfieUrl ? (
+              <img src={selfieUrl} className="w-20 h-20 rounded-2xl border-2 border-[#C9963A] object-cover shadow-lg" alt="Selfie" />
+            ) : (
+              <div className="w-20 h-20 rounded-2xl bg-white/10 flex items-center justify-center text-[10px]">No Pic</div>
+            )}
+            <div className="absolute -bottom-2 -right-2 bg-[#C9963A] text-[#2C1A0E] text-[8px] font-black px-2 py-1 rounded-md shadow-md uppercase">Moi</div>
+          </div>
+          
+          <div className="flex flex-col">
+            <h1 className="font-display font-bold text-3xl text-[#C9963A] leading-none mb-2">R\u00e9sultats</h1>
+            <p className="text-[11px] opacity-80 font-body leading-tight max-w-xs italic">
               {FACE_SHAPE_TEXTS[faceShape]}
             </p>
           </div>
         </div>
 
-        {/* GRILLE DE STYLES */}
-        <div className="space-y-10">
+        {/* LISTE DES CARTES (Grille 3 photos intouch\u00e9e) */}
+        <div className="space-y-12">
           {BRAIDS_DB.filter(s => s.faceShapes.includes(faceShape)).map((style, idx) => (
             <div key={style.id} className="bg-[#3D2616] rounded-[2.5rem] overflow-hidden border border-[#C9963A]/20 shadow-2xl">
               
-              {/* Grille 3 photos avec Bouton Save */}
-              <div className="grid grid-cols-3 gap-0.5 h-72 relative bg-black/20">
+              {/* LA GRILLE (Structure conserv\u00e9e) */}
+              <div className="grid grid-cols-3 gap-0.5 h-72 bg-black/40 relative">
                 <div className="col-span-2 h-full overflow-hidden">
                   <img src={style.views.face} className="w-full h-full object-cover object-top" onClick={() => setZoomImage(style.views.face)} />
                 </div>
@@ -81,37 +87,37 @@ export default function Results() {
                   <img src={style.views.back} className="w-full h-full object-cover" onClick={() => setZoomImage(style.views.back)} />
                   <img src={style.views.top} className="w-full h-full object-cover" onClick={() => setZoomImage(style.views.top)} />
                 </div>
-                
-                {/* Bouton de sauvegarde rapide (Affiche le coût de 1/3 credit) */}
+
+                {/* Bouton de sauvegarde rapide sur l'image */}
                 <button 
                   onClick={() => handleDownload(style.views.face)}
-                  className="absolute top-4 right-4 p-3 bg-black/60 backdrop-blur-md rounded-full border border-white/20 active:scale-90 transition-transform"
+                  className="absolute top-4 right-4 p-3 bg-black/50 backdrop-blur-lg rounded-full border border-white/20 active:scale-90 transition-transform"
                 >
                   \ud83d\udce5
                 </button>
               </div>
 
-              {/* BARRE DE STATS (Likes / Vues) */}
-              <div className="px-6 py-3 flex gap-4 text-[11px] font-bold uppercase tracking-widest text-[#C9963A]/80 border-b border-white/5">
-                <span className="flex items-center gap-1.5">\ud83d\udc41 1.2k vues</span>
-                <span className="flex items-center gap-1.5">\u2764\ufe0f 458 likes</span>
+              {/* NOUVEAU : Barre de Stats (Likes/Vues) */}
+              <div className="px-6 py-3 flex gap-5 text-[10px] font-black uppercase tracking-widest text-[#C9963A]/80 border-b border-white/5">
+                <span className="flex items-center gap-1.5">\ud83d\udc41 2.4K vues</span>
+                <span className="flex items-center gap-1.5">\u2764 892 likes</span>
               </div>
 
               <div className="p-6">
-                <div className="flex justify-between items-center mb-2">
+                <div className="flex justify-between items-center mb-3">
                   <h3 className="font-display font-bold text-xl">{style.name}</h3>
-                  <span className="text-[10px] bg-[#C9963A] text-[#2C1A0E] px-3 py-1 rounded-full font-bold">
+                  <span className="text-[10px] bg-[#C9963A] text-[#2C1A0E] px-3 py-1 rounded-full font-black uppercase">
                     {style.duration}
                   </span>
                 </div>
-                <p className="text-xs opacity-70 mb-6 font-body line-clamp-2">{style.description}</p>
+                <p className="text-[11px] opacity-70 mb-6 font-body leading-relaxed">{style.description}</p>
                 
                 <button
-                  onClick={() => {/* Logique Generation */}}
-                  className="w-full py-4 rounded-2xl font-display font-bold text-base shadow-lg active:scale-[0.98] transition-all"
+                  onClick={() => {/* Logique Generation Fal.ai */}}
+                  className="w-full py-4 rounded-2xl font-display font-bold text-base shadow-xl active:scale-[0.98] transition-all"
                   style={{ background: 'linear-gradient(135deg,#C9963A,#E8B96A)', color: '#2C1A0E' }}
                 >
-                  Essayer virtuellement \u2728
+                  Me transformer \u2728
                 </button>
               </div>
             </div>
@@ -119,20 +125,22 @@ export default function Results() {
         </div>
       </div>
 
-      {/* BANDE DE CREDIT (Flottante sur mobile, Bande a droite sur Desktop) */}
-      <div className="fixed bottom-6 right-6 md:relative md:bottom-auto md:right-auto md:w-64 z-40">
-        <div className="bg-[#C9963A] text-[#2C1A0E] p-4 md:p-6 rounded-3xl md:rounded-none md:h-full shadow-2xl flex flex-col items-center justify-center border-2 border-[#2C1A0E]/20 md:border-none">
-          <span className="text-[10px] uppercase font-bold tracking-tighter opacity-80">Ton Solde</span>
-          <div className="text-3xl font-display font-black">{credits}</div>
-          <span className="text-[9px] font-bold">CR\u00c9DITS</span>
+      {/* --- BANDE DE CREDIT (Position conserv\u00e9e) --- */}
+      <div className="fixed bottom-0 left-0 right-0 md:relative md:w-24 z-50 bg-[#C9963A] md:h-screen shadow-2xl">
+        <div className="flex md:flex-col items-center justify-between md:justify-center p-4 md:h-full gap-4">
+          <div className="flex flex-col items-center">
+            <span className="text-[8px] uppercase font-black text-[#2C1A0E]/50">Solde</span>
+            <div className="text-2xl font-display font-black text-[#2C1A0E] leading-none">{credits}</div>
+            <span className="text-[7px] font-bold text-[#2C1A0E]">Credits</span>
+          </div>
           
           {downloadCount > 0 && (
-            <div className="mt-2 text-[10px] font-bold bg-black/10 px-2 py-1 rounded-lg">
-              Save: {downloadCount}/3
+            <div className="bg-[#2C1A0E]/10 px-2 py-1 rounded-lg">
+              <span className="text-[9px] font-black text-[#2C1A0E]">Save: {downloadCount}/3</span>
             </div>
           )}
           
-          <button onClick={() => navigate("/credits")} className="mt-4 bg-[#2C1A0E] text-white text-[10px] px-4 py-2 rounded-full font-bold uppercase">
+          <button onClick={() => navigate("/credits")} className="bg-[#2C1A0E] text-[#C9963A] text-[9px] px-4 py-2 rounded-xl font-black uppercase shadow-lg">
             Recharger
           </button>
         </div>
@@ -143,12 +151,15 @@ export default function Results() {
         {zoomImage && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-6"
+            className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-6 backdrop-blur-xl"
             onClick={() => setZoomImage(null)}
           >
             <img src={zoomImage} className="max-w-full max-h-[80vh] rounded-3xl shadow-2xl border border-white/10" />
             <div className="mt-8 flex gap-4">
-              <button onClick={() => handleDownload(zoomImage)} className="px-8 py-3 bg-[#C9963A] text-[#2C1A0E] rounded-full font-bold shadow-xl">
+              <button 
+                onClick={(e) => { e.stopPropagation(); handleDownload(zoomImage); }} 
+                className="px-8 py-3 bg-[#C9963A] text-[#2C1A0E] rounded-full font-black text-sm"
+              >
                 Sauvegarder (1/3 cr\u00e9dit)
               </button>
               <button className="px-8 py-3 bg-white/10 text-white rounded-full font-bold backdrop-blur-md">Fermer</button>
