@@ -100,9 +100,22 @@ export default function Results() {
       });
 
       const data = await res.json();
-      if (res.status === 429) { setErrorMsg(data.error || "Attends quelques secondes."); return; }
+
+      // Gérer tous les cas d'erreur avant de toucher aux crédits
+      if (!res.ok) {
+        setErrorMsg(data.error || (res.status === 429 ? "Attends quelques secondes." : "Erreur serveur. Réessaie."));
+        return;
+      }
+
+      // Vérifier que l'image est bien là avant de débiter
+      if (!data.imageUrl) {
+        setErrorMsg("La génération a échoué. Aucun crédit débité.");
+        return;
+      }
 
       clearInterval(waitingIntervalRef.current);
+
+      // Débiter SEULEMENT si succès confirmé
       consumeTransform();
       addSeenStyleId(style.id);
       setCredits(getCredits());
