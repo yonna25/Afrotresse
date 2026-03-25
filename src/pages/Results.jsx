@@ -5,20 +5,19 @@ import { getCredits, consumeCredits, consumeTransform, canTransform, addSeenStyl
 import { BRAIDS_DB } from "../services/faceAnalysis.js";
 import { addShare } from "../services/stats.js";
 
-// Pas d'accents directs dans les strings JS — Unicode escapes
 const FACE_SHAPE_TEXTS = {
-  oval:    "Ton visage est de forme Ovale. C\u2019est une structure tr\u00e8s \u00e9quilibr\u00e9e qui s\u2019adapte \u00e0 presque tous les styles.",
+  oval:    "Ton visage est de forme Ovale. C'est une structure très équilibrée qui s'adapte à presque tous les styles.",
   round:   "Ton visage est de forme Ronde. Pour allonger et affiner visuellement tes traits, les tresses hautes sont parfaites.",
-  square:  "Ton visage est de forme Carr\u00e9e. Les tresses avec du volume adoucissent ta m\u00e2choire.",
-  heart:   "Ton visage est en forme de C\u0153ur. Les tresses avec du volume en bas \u00e9quilibrent ton menton.",
-  long:    "Ton visage est de forme Longue. Les tresses lat\u00e9rales cr\u00e9ent l\u2019harmonie parfaite.",
+  square:  "Ton visage est de forme Carrée. Les tresses avec du volume adoucissent ta mâchoire.",
+  heart:   "Ton visage est en forme de Cœur. Les tresses avec du volume en bas équilibrent ton menton.",
+  long:    "Ton visage est de forme Longue. Les tresses latérales créent l'harmonie parfaite.",
   diamond: "Ton visage est de forme Diamant. Les tresses qui encadrent le visage te subliment.",
 }
 
 const RESULT_MSGS = [
-  "Waouh \uD83D\uDE0D, tu es splendide !",
-  "Regarde cette Reine ! \u2728",
-  "Le style parfait pour toi. \uD83D\uDC51",
+  "Waouh 😍, tu es splendide !",
+  "Regarde cette Reine ! ✨",
+  "Le style parfait pour toi. 👑",
 ]
 
 export default function Results() {
@@ -46,7 +45,7 @@ export default function Results() {
     return sorted.slice(0, 3);
   }, [faceShape]);
 
-  // Sauvegarde image (1 cr\u00e9dit = 3 saves)
+  // Sauvegarde image (1 crédit = 3 saves)
   const handleSave = (imageUrl) => {
     if (credits < 1 && saveCount === 0) { navigate("/credits"); return; }
     const link = document.createElement("a");
@@ -75,7 +74,7 @@ export default function Results() {
       const selfieBase64  = selfieUrl?.split(",")[1] || null;
       const selfieType    = selfieUrl?.match(/:(.*?);/)?.[1] || "image/jpeg";
 
-      // Construire l'URL de l'image de r\u00e9f\u00e9rence du style
+      // Construire l'URL de l'image de référence du style
       let styleImageUrl;
       if (style.localImage) {
         styleImageUrl = window.location.origin + "/styles/" + style.localImage;
@@ -122,7 +121,7 @@ export default function Results() {
     } catch (err) {
       clearInterval(waitingIntervalRef.current);
       console.error(err);
-      setErrorMsg("Connexion impossible. Reessaie.");
+      setErrorMsg("Connexion impossible. Réessaie.");
     } finally {
       setLoadingId(null);
     }
@@ -134,7 +133,7 @@ export default function Results() {
         await navigator.share({ title: "AfroTresse", text, url: url || window.location.href });
       } else {
         await navigator.clipboard.writeText(text);
-        alert("Lien copi\u00e9 !");
+        alert("Lien copié !");
       }
     } catch {}
   };
@@ -142,7 +141,7 @@ export default function Results() {
   return (
     <div className="min-h-[100dvh] bg-[#2C1A0E] text-[#FAF4EC] p-4 sm:p-6 pb-40 overflow-x-hidden relative">
 
-      {/* HEADER : Selfie + Pr\u00e9nom + Analyse */}
+      {/* HEADER : Selfie + Prénom + Analyse */}
       <div className="mb-10 flex flex-row gap-5 items-center bg-white/5 p-5 rounded-[2.5rem] border border-white/10 shadow-2xl relative">
         <div className="relative shrink-0">
           {selfieUrl ? (
@@ -155,9 +154,9 @@ export default function Results() {
 
         <div className="flex flex-col flex-1">
           <h1 className="font-display font-bold text-3xl text-[#C9963A]">
-            Tes r\u00e9sultats
+            Tes résultats
             <br/>
-            <span className="text-[#FAF4EC] font-black">{userName} \u2728</span>
+            <span className="text-[#FAF4EC] font-black">{userName} ✨</span>
           </h1>
           <p className="text-[11px] opacity-80 font-body leading-tight mt-1 max-w-xs italic">
             {FACE_SHAPE_TEXTS[faceShape]}
@@ -173,7 +172,7 @@ export default function Results() {
         </motion.div>
       )}
 
-      {/* R\u00e9sultat Fal.ai */}
+      {/* Résultat Fal.ai */}
       <AnimatePresence>
         {resultImage && (
           <motion.div ref={resultRef}
@@ -185,17 +184,17 @@ export default function Results() {
               </h3>
               <p className="text-[11px] mt-1 opacity-70">
                 {isFallback
-                  ? "Aper\u00e7u bas\u00e9 sur ta forme de visage"
-                  : "Ce style te met vraiment en valeur. Montre-le \u00e0 ta coiffeuse !"}
+                  ? "Aperçu basé sur ta forme de visage"
+                  : "Ce style te met vraiment en valeur. Montre-le à ta coiffeuse !"}
               </p>
             </div>
-            <img src={resultImage} alt="R\u00e9sultat" className="w-full object-cover"/>
+            <img src={resultImage} alt="Résultat" className="w-full object-cover"/>
             <div className="p-5 space-y-2">
               <button
-                onClick={() => handleShare("Regarde le style que j\u2019ai choisi avec AfroTresse !", resultImage)}
+                onClick={() => handleShare("Regarde le style que j'ai choisi avec AfroTresse !", resultImage)}
                 className="w-full py-4 rounded-2xl font-bold text-base shadow-xl"
                 style={{ background: "linear-gradient(135deg,#C9963A,#E8B96A)", color: "#2C1A0E" }}>
-                Envoyer \u00e0 ma coiffeuse
+                Envoyer à ma coiffeuse
               </button>
               <button onClick={() => setResultImage(null)}
                 className="w-full py-3 rounded-2xl text-sm font-semibold bg-white/10 text-white/70 border border-white/10">
@@ -239,8 +238,8 @@ export default function Results() {
 
             {/* Barre sociale */}
             <div className="px-6 py-3 flex gap-5 text-[10px] font-black uppercase tracking-widest text-[#C9963A]/80 border-b border-white/5">
-              <span>\uD83D\uDC41\uFE0F 2.4K vues</span>
-              <span>\u2764\uFE0F 892 likes</span>
+              <span>👁️ 2.4K vues</span>
+              <span>❤️ 892 likes</span>
             </div>
 
             <div className="p-6">
@@ -250,29 +249,29 @@ export default function Results() {
               </div>
               <p className="text-[11px] opacity-70 mb-6 font-body leading-relaxed">{style.description}</p>
 
-              {/* Bouton Fal.ai — d\u00e9clenche la transformation */}
+              {/* Bouton Fal.ai — déclenche la transformation */}
               <button
                 onClick={() => handleTryStyle(style)}
                 disabled={loadingId === style.id}
                 className="w-full py-4 rounded-2xl font-display font-bold text-base shadow-xl active:scale-[0.98] transition-all disabled:opacity-60"
                 style={{ background: "linear-gradient(135deg,#C9963A,#E8B96A)", color: "#2C1A0E" }}>
                 {loadingId === style.id
-                  ? "G\u00e9n\u00e9ration en cours... \u23F3"
-                  : "Essayer virtuellement ce style \u2728"}
+                  ? "Génération en cours... ⏳"
+                  : "Essayer virtuellement ce style ✨"}
               </button>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Bouton cr\u00e9dits flottant */}
+      {/* Bouton crédits flottant */}
       <motion.div
         initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
         onClick={() => navigate("/credits")}
         className="fixed bottom-28 right-5 z-40 bg-[#C9963A] text-[#2C1A0E] w-14 h-14 rounded-2xl flex flex-col items-center justify-center shadow-2xl border-2 border-[#2C1A0E]/20 active:scale-95 transition-all">
         <div className="text-[7px] font-black uppercase opacity-60">Solde</div>
         <div className="text-3xl font-display font-black leading-none">{credits}</div>
-        <div className="text-[7px] font-bold tracking-tight">CR\u00c9DITS</div>
+        <div className="text-[7px] font-bold tracking-tight">CRÉDITS</div>
         {saveCount > 0 && (
           <div className="absolute -top-2 -left-2 bg-[#2C1A0E] text-[#C9963A] text-[8px] font-black px-1.5 py-0.5 rounded-md border border-[#C9963A]/20">
             {saveCount}/3
@@ -297,14 +296,14 @@ export default function Results() {
               <button
                 onClick={(e) => { e.stopPropagation(); handleSave(zoomImage); }}
                 className="flex-1 py-4 bg-[#C9963A] text-[#2C1A0E] rounded-2xl font-black shadow-xl flex items-center justify-center gap-2">
-                \uD83D\uDCE5 Sauvegarder
+                📥 Sauvegarder
               </button>
               <button onClick={() => setZoomImage(null)}
                 className="px-8 py-4 bg-white/10 text-white rounded-2xl font-bold backdrop-blur-md border border-white/10">
-                \u2715
+                ✕
               </button>
             </div>
-            <p className="text-[10px] text-white/40 mt-4 uppercase font-bold tracking-widest">3 saves = 1 cr\u00e9dit</p>
+            <p className="text-[10px] text-white/40 mt-4 uppercase font-bold tracking-widest">3 saves = 1 crédit</p>
           </motion.div>
         )}
       </AnimatePresence>
