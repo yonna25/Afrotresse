@@ -2,7 +2,7 @@ import { useFaceAnalysis } from '../hooks/useFaceAnalysis.js'
 import { detectFaceShape, calculateConfidence } from '../utils/faceShapeDetector.js'
 
 export const BRAIDS_DB = [
-  {
+    {
     id: 'box-braids',
     name: 'Box Braids',
     description: 'Intemporelles et polyvalentes, parfaites pour tous types de visages. Protectrices et elegantes.',
