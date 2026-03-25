@@ -1,5 +1,7 @@
 import { fal } from "@fal-ai/client";
 
+fal.config({ credentials: process.env.FAL_API_KEY });
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
