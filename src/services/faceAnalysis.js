@@ -1,24 +1,12 @@
-import { useFaceAnalysis } from '../hooks/useFaceAnalysis.js'
-import { detectFaceShape, calculateConfidence } from '../utils/faceShapeDetector.js'
-
 export const BRAIDS_DB = [
-{
+  {
     id: 'box-braids',
     name: 'Box Braids',
     description: 'Intemporelles et polyvalentes, parfaites pour tous types de visages. Protectrices et elegantes.',
     tags: ['Protectrice', 'Classique', 'Polyvalente'],
     faceShapes: ['oval', 'round', 'square', 'heart', 'diamond'],
     duration: '4-6h', difficulty: 'Intermediaire',
-    localImage: 'boxbraids-top.jpg', matchScore: 98,
-  },
-  {
-    id: 'coco-twists',
-    name: 'Coco Twists',
-    description: 'Twists elegants et volumineux pour un look moderne et sophistique.',
-    tags: ['Volume', 'Moderne', 'Elegant'],
-    faceShapes: ['oval', 'round', 'square', 'heart', 'diamond'],
-    duration: '5-7h', difficulty: 'Intermediaire',
-    localImage: 'cocotwists-top.jpg', matchScore: 95,
+    image: '/Afrotresse1.jpg', matchScore: 98,
   },
   {
     id: 'cornrows',
@@ -27,7 +15,124 @@ export const BRAIDS_DB = [
     tags: ['Traditionnelle', 'Sport', 'Legere'],
     faceShapes: ['oval', 'long', 'square'],
     duration: '2-4h', difficulty: 'Avancee',
-    localImage: 'cornrows-top.jpg', matchScore: 95,
+    image: '/Afrotresse2.jpg', matchScore: 95,
+  },
+  {
+    id: 'senegalese-twist',
+    name: 'Senegalese Twist',
+    description: 'Les twists senegalais apportent volume et texture. Leur effet spiral cree une silhouette majestueuse.',
+    tags: ['Volume', 'Elegante', 'Longue duree'],
+    faceShapes: ['round', 'square', 'heart'],
+    duration: '5-7h', difficulty: 'Intermediaire',
+    image: '/Afrotresse3.jpg', matchScore: 92,
+  },
+  {
+    id: 'fulani-braids',
+    name: 'Fulani Braids',
+    description: 'Inspirees de la culture peule, ces tresses centrales avec perles dorees sont royales.',
+    tags: ['Culturelle', 'Perles', 'Unique'],
+    faceShapes: ['oval', 'heart', 'diamond'],
+    duration: '3-5h', difficulty: 'Avancee',
+    image: '/Afrotresse4.jpg', matchScore: 88,
+  },
+  {
+    id: 'knotless-braids',
+    name: 'Knotless Braids',
+    description: 'Sans noeuds a la racine, plus douces pour le cuir chevelu tout en restant magnifiques.',
+    tags: ['Sans douleur', 'Moderne', 'Naturelle'],
+    faceShapes: ['oval', 'round', 'long', 'square', 'heart', 'diamond'],
+    duration: '6-8h', difficulty: 'Intermediaire',
+    image: '/Afrotresse5.jpg', matchScore: 96,
+  },
+  {
+    id: 'ghana-braids',
+    name: 'Ghana Braids',
+    description: 'Aussi appelees banana cornrows, elles sont larges, structurees et terriblement chics.',
+    tags: ['Africaine', 'Structuree', 'Bold'],
+    faceShapes: ['oval', 'long', 'diamond'],
+    duration: '3-4h', difficulty: 'Intermediaire',
+    image: '/Afrotresse6.jpg', matchScore: 90,
+  },
+  {
+    id: 'lemonade-braids',
+    name: 'Lemonade Braids',
+    description: 'Popularisees par Beyonce, ces tresses laterales sont glamour et tendance.',
+    tags: ['Tendance', 'Glamour', 'Audacieuse'],
+    faceShapes: ['round', 'square', 'heart', 'oval'],
+    duration: '4-6h', difficulty: 'Avancee',
+    image: '/Afrotresse1.jpg', matchScore: 85,
+  },
+  {
+    id: 'butterfly-locs',
+    name: 'Butterfly Locs',
+    description: 'Des locs bohemes et romantiques qui encadrent le visage avec elegance.',
+    tags: ['Boheme', 'Romantique', 'Ondule'],
+    faceShapes: ['oval', 'heart', 'round', 'diamond'],
+    duration: '5-7h', difficulty: 'Avancee',
+    image: '/Afrotresse2.jpg', matchScore: 87,
+  },
+  {
+    id: 'bantu-knots',
+    name: 'Bantu Knots',
+    description: 'Des petits noeuds spirales qui celebrent la beaute africaine avec fierte.',
+    tags: ['Naturelle', 'Culturelle', 'Unique'],
+    faceShapes: ['oval', 'round', 'heart'],
+    duration: '2-3h', difficulty: 'Intermediaire',
+    image: '/Afrotresse3.jpg', matchScore: 82,
+  },
+  {
+    id: 'goddess-braids',
+    name: 'Goddess Braids',
+    description: 'Des tresses epaisses et majestueuses qui degagent une allure de reine africaine.',
+    tags: ['Majestueuse', 'Bold', 'Reine'],
+    faceShapes: ['oval', 'square', 'long'],
+    duration: '4-5h', difficulty: 'Avancee',
+    image: '/Afrotresse4.jpg', matchScore: 89,
+  },
+  {
+    id: 'passion-twist',
+    name: 'Passion Twist',
+    description: 'Tresses torsadees avec une texture naturelle qui donnent un look boheme et moderne.',
+    tags: ['Boheme', 'Moderne', 'Naturelle'],
+    faceShapes: ['oval', 'round', 'heart', 'diamond'],
+    duration: '4-6h', difficulty: 'Intermediaire',
+    image: '/Afrotresse5.jpg', matchScore: 86,
+  },
+  {
+    id: 'faux-locs',
+    name: 'Faux Locs',
+    description: 'L effet des dreadlocks sans l engagement. Style authentique et tres tendance.',
+    tags: ['Authentique', 'Tendance', 'Versatile'],
+    faceShapes: ['oval', 'square', 'diamond', 'long'],
+    duration: '5-7h', difficulty: 'Intermediaire',
+    image: '/Afrotresse6.jpg', matchScore: 84,
+  },
+  {
+    id: 'micro-braids',
+    name: 'Micro Braids',
+    description: 'Tres fines et delicates, elles offrent une grande versatilite de coiffure.',
+    tags: ['Delicate', 'Versatile', 'Fine'],
+    faceShapes: ['oval', 'long', 'heart'],
+    duration: '8-12h', difficulty: 'Expert',
+    image: '/Afrotresse1.jpg', matchScore: 80,
+  },
+  {
+    id: 'spring-twist',
+    name: 'Spring Twist',
+    description: 'Des tresses legeres avec un effet ressort tres tendance et plein de caracteree.',
+    tags: ['Legere', 'Tendance', 'Rebond'],
+    faceShapes: ['round', 'heart', 'oval', 'square'],
+    duration: '4-5h', difficulty: 'Intermediaire',
+    image: '/Afrotresse2.jpg', matchScore: 83,
+  },
+  {
+    id: 'havana-twist',
+    name: 'Havana Twist',
+    description: 'Des twists volumineux d inspiration caribbeenne pour un look tropical et audacieux.',
+    tags: ['Volume', 'Epais', 'Audacieux'],
+    faceShapes: ['long', 'square', 'diamond', 'oval'],
+    duration: '4-6h', difficulty: 'Intermediaire',
+    image: '/Afrotresse3.jpg', matchScore: 81,
   },
   {
     id: 'crochet-braids',
@@ -36,25 +141,34 @@ export const BRAIDS_DB = [
     tags: ['Rapide', 'Volume', 'Pratique'],
     faceShapes: ['oval', 'round', 'heart', 'square'],
     duration: '2-3h', difficulty: 'Intermediaire',
-    localImage: 'crochetbraids-top.jpg', matchScore: 79,
+    image: '/Afrotresse4.jpg', matchScore: 79,
   },
   {
-    id: 'fan-braids',
-    name: 'Fan Braids',
-    description: 'Tresses en eventail pour un look geometrique et impressionnant.',
-    tags: ['Geometrique', 'Bold', 'Impressionnant'],
-    faceShapes: ['oval', 'square', 'heart'],
-    duration: '4-6h', difficulty: 'Avancee',
-    localImage: 'fanbraids-top.jpg', matchScore: 87,
+    id: 'tribal-braids',
+    name: 'Tribal Braids',
+    description: 'Un hommage aux coiffures traditionnelles africaines avec des motifs geometriques uniques.',
+    tags: ['Tribal', 'Geometrique', 'Culturelle'],
+    faceShapes: ['oval', 'square', 'diamond'],
+    duration: '5-7h', difficulty: 'Avancee',
+    image: '/Afrotresse5.jpg', matchScore: 85,
   },
   {
-    id: 'fulani-braids',
-    name: 'Fulani',
-    description: 'Inspirees de la culture peule, ces tresses centrales avec perles dorees sont royales.',
-    tags: ['Culturelle', 'Perles', 'Unique'],
-    faceShapes: ['oval', 'heart', 'diamond'],
-    duration: '3-5h', difficulty: 'Avancee',
-    localImage: 'fulani-top.jpg', matchScore: 88,
+    id: 'feed-in-braids',
+    name: 'Feed-in Braids',
+    description: 'Des cornrows naturelles qui partent de la racine sans extension visible. Ultra propre.',
+    tags: ['Naturelle', 'Propre', 'Discrete'],
+    faceShapes: ['oval', 'round', 'long', 'heart'],
+    duration: '2-4h', difficulty: 'Intermediaire',
+    image: '/Afrotresse6.jpg', matchScore: 87,
+  },
+  {
+    id: 'boho-braids',
+    name: 'Boho Braids',
+    description: 'Le melange parfait entre tresses structurees et boucles libres pour un look romantique.',
+    tags: ['Boheme', 'Romantique', 'Libre'],
+    faceShapes: ['oval', 'heart', 'round', 'diamond'],
+    duration: '6-8h', difficulty: 'Intermediaire',
+    image: '/Afrotresse1.jpg', matchScore: 88,
   },
   {
     id: 'stitch-braids',
@@ -63,9 +177,9 @@ export const BRAIDS_DB = [
     tags: ['Precise', 'Geometrique', 'Nette'],
     faceShapes: ['oval', 'long', 'square', 'diamond'],
     duration: '3-5h', difficulty: 'Avancee',
-    localImage: 'stitchbraids-top.jpg', matchScore: 86,
+    image: '/Afrotresse2.jpg', matchScore: 86,
   },
-]  
+]
 
 const FACE_SHAPE_NAMES = {
   oval:    'Ovale',
@@ -87,18 +201,13 @@ const FACE_SHAPE_DESCRIPTIONS = {
 
 export async function analyzeFace(photoBlob) {
   try {
-    // Appeler MediaPipe local au lieu d'Anthropic
-    const result = await useFaceAnalysis(photoBlob, 8000)
-    
-    // Détecter la forme du visage à partir des landmarks
-    const faceShape = detectFaceShape(result.landmarks)
-    const confidence = calculateConfidence(result.landmarks)
-    
-    return buildRecommendations(faceShape, '', confidence)
-  } catch (err) {
-    console.error('Face analysis error:', err)
-    
-    // Fallback : attendre 2.8s puis retourner une forme aléatoire
+    const formData = new FormData()
+    formData.append('photo', photoBlob, 'selfie.jpg')
+    const res = await fetch('/api/analyze', { method: 'POST', body: formData })
+    if (!res.ok) throw new Error('API error')
+    const data = await res.json()
+    return buildRecommendations(data.faceShape, data.reason, data.confidence)
+  } catch {
     await new Promise(r => setTimeout(r, 2800))
     const shapes = ['oval', 'round', 'square', 'heart', 'long', 'diamond']
     const faceShape = shapes[Math.floor(Math.random() * shapes.length)]
