@@ -36,13 +36,14 @@ export default async function handler(req, res) {
       console.warn("⚠️ Upload référence échoué:", err.message);
     }
 
-    console.log("📤 Test 1 : hair-change-plus avec reference_image_url");
+    console.log("📤 Test 2 : pulid avec id_image_url (pose transfer)");
 
-    // TEST 1 : hair-change-plus
-    const result = await fal.subscribe("fal-ai/image-apps/hair-change-plus", {
+    // TEST 2 : pulid - utilise id_image_url au lieu de reference_image_url
+    // Pulid applique le style de manière très fidèle (pose transfer)
+    const result = await fal.subscribe("fal-ai/pulid", {
       input: {
         image_url: selfieUrl,
-        reference_image_url: referenceUrl,
+        id_image_url: referenceUrl,  // ← Note : paramètre différent!
       },
     });
 
