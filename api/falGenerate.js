@@ -19,31 +19,17 @@ export default async function handler(req, res) {
     const selfieUrl = await fal.storage.upload(file);
     console.log("✅ Selfie uploadé:", selfieUrl);
 
-    const absoluteStyleImageUrl = styleImageUrl.startsWith("http")
-      ? styleImageUrl
-      : `https://afrotresse-hfwf.vercel.app${styleImageUrl}`;
+    console.log("📤 Test 3 : Stable Diffusion v3.5 (texte + image)");
 
-    let referenceUrl = absoluteStyleImageUrl;
-    try {
-      const refResponse = await fetch(absoluteStyleImageUrl);
-      if (refResponse.ok) {
-        const refBuffer = await refResponse.arrayBuffer();
-        const refFile = new File([refBuffer], "reference.jpg", { type: "image/jpeg" });
-        referenceUrl = await fal.storage.upload(refFile);
-        console.log("✅ Référence uploadée:", referenceUrl);
-      }
-    } catch (err) {
-      console.warn("⚠️ Upload référence échoué:", err.message);
-    }
-
-    console.log("📤 Test 2 : pulid avec id_image_url (pose transfer)");
-
-    // TEST 2 : pulid - utilise id_image_url au lieu de reference_image_url
-    // Pulid applique le style de manière très fidèle (pose transfer)
-    const result = await fal.subscribe("fal-ai/pulid", {
+    // TEST 3 : Stable Diffusion - génère depuis une description texte
+    // Plus de contrôle, mais moins de fidélité à la référence
+    const result = await fal.subscribe("fal-ai/stable-diffusion-v3.5", {
       input: {
-        image_url: selfieUrl,
-        id_image_url: referenceUrl,  // ← Note : paramètre différent!
+        prompt: "African woman with detailed braided hairstyle, professional studio lighting, high quality portrait",
+        image_url: styleImageUrl,  // Utilise l'image de style comme inspiration
+        strength: 0.7,  // Force du contrôle (0-1)
+        num_inference_steps: 50,
+        guidance_scale: 7.5,
       },
     });
 
