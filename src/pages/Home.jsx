@@ -56,21 +56,10 @@ function TickerBar() {
 export default function Home() {
   const navigate = useNavigate()
   const [current, setCurrent] = useState(0)
-  const [showFinger, setShowFinger] = useState(false)
   const timerRef = useRef(null)
   const userName = localStorage.getItem('afrotresse_user_name') || 'Reine'
 
-  // Logique du doigt anime (Priorite 4)
-  useEffect(() => {
-    const hasSeenFinger = localStorage.getItem('afrotresse_finger_seen')
-    if (!hasSeenFinger) {
-      const timer = setTimeout(() => setShowFinger(true), 3000)
-      return () => clearTimeout(timer)
-    }
-  }, [])
-
   const handleStart = () => {
-    localStorage.setItem('afrotresse_finger_seen', 'true')
     navigate('/camera')
   }
 
@@ -112,9 +101,15 @@ export default function Home() {
         {/* Content */}
         <div className="absolute inset-x-0 bottom-0 z-30 px-5 pb-36">
           <h1 className="font-display text-2xl text-white font-bold leading-tight">
-            {"Pr\u00eate pour ton nouveau look,"}<br/>
-            <span className="text-[#C9963A]">{userName} ? {"\u2728"}</span>
+            {"Pr\u00eate pour ton nouveau look,"}
           </h1>
+          <h1 className="font-display text-2xl font-bold leading-tight" style={{ color:'#C9963A' }}>
+            {userName} ? {"\u2728"}
+          </h1>
+
+          <p className="mt-3 text-sm font-body leading-snug" style={{ color:'rgba(255,255,255,0.55)' }}>
+            {"D\u00e9couvre les coiffures qui te vont vraiment en quelques secondes."}
+          </p>
 
           <div className="mt-4 flex gap-1.5">
             {SLIDES.map((_, i) => (
@@ -123,7 +118,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Bouton Analyser + Doigt Anime */}
+        {/* Bouton Analyser */}
         <div className="absolute bottom-16 left-0 right-0 z-40 flex flex-col items-center pointer-events-none">
           <div className="relative pointer-events-auto">
             <button
@@ -133,22 +128,6 @@ export default function Home() {
             >
               {"Analyser mon visage \ud83e\udd33\ud83c\udfff"}
             </button>
-
-            {/* Doigt TikTok */}
-            <AnimatePresence>
-              {showFinger && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: [0, -15, 0] }}
-                  exit={{ opacity: 0 }}
-                  transition={{ repeat: 3, duration: 0.8 }}
-                  onAnimationComplete={() => setShowFinger(false)}
-                  className="absolute -bottom-10 right-5 text-4xl"
-                >
-                  {"\ud83d\udc46"}
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
         </div>
       </div>
