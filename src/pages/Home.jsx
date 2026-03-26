@@ -22,12 +22,23 @@ const TICKER_MESSAGES = [
 const INTERVAL = 3500
 
 function TickerBar() {
-  const text = TICKER_MESSAGES.join('   ✦   ')
+  const text = TICKER_MESSAGES.join('   \u2736   ')
+  const innerRef = useRef(null)
+  const [offset, setOffset] = useState(-2000)
+
+  useEffect(() => {
+    if (innerRef.current) {
+      const w = innerRef.current.scrollWidth
+      setOffset(-(w / 3))
+    }
+  }, [])
+
   return (
     <div className="w-full overflow-hidden z-50 relative" style={{ background:'#C9963A', height:'28px' }}>
       <div className="flex items-center h-full">
         <motion.div
-          animate={{ x: [0, -2000] }}
+          ref={innerRef}
+          animate={{ x: [0, offset] }}
           transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
           className="flex items-center gap-0 whitespace-nowrap"
         >
@@ -101,8 +112,8 @@ export default function Home() {
         {/* Content */}
         <div className="absolute inset-x-0 bottom-0 z-30 px-5 pb-36">
           <h1 className="font-display text-2xl text-white font-bold leading-tight">
-            Pr\u00eate pour ton nouveau look,<br/>
-            <span className="text-[#C9963A]">{userName} ? \u2728</span>
+            {"Pr\u00eate pour ton nouveau look,"}<br/>
+            <span className="text-[#C9963A]">{userName} ? {"\u2728"}</span>
           </h1>
 
           <div className="mt-4 flex gap-1.5">
@@ -120,7 +131,7 @@ export default function Home() {
               className="px-10 py-4 rounded-full font-display font-bold text-lg shadow-2xl transition-transform active:scale-95"
               style={{ background: 'linear-gradient(135deg,#C9963A,#E8B96A)', color: '#2C1A0E' }}
             >
-              Analyser mon visage \ud83e\udd33\ud83c\udfff
+              {"Analyser mon visage \ud83e\udd33\ud83c\udfff"}
             </button>
 
             {/* Doigt TikTok */}
@@ -134,7 +145,7 @@ export default function Home() {
                   onAnimationComplete={() => setShowFinger(false)}
                   className="absolute -bottom-10 right-5 text-4xl"
                 >
-                  \ud83d\udc46
+                  {"\ud83d\udc46"}
                 </motion.div>
               )}
             </AnimatePresence>
