@@ -74,6 +74,16 @@ export default function Camera() {
     setPhotoError("")
   }
 
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const url = URL.createObjectURL(file)
+      setPhoto({ blob: file, url })
+    }
+    // 🔥 FIX : Réinitialiser l'input pour que le même fichier puisse être sélectionné à nouveau
+    e.target.value = ""
+  }
+
   return (
     <div className="min-h-screen bg-brown flex flex-col">
       {/* Header */}
@@ -124,13 +134,12 @@ export default function Camera() {
               <label className="btn-outline w-full flex items-center justify-center gap-2 cursor-pointer">
                 <UploadIcon />
                 <span>Importer une photo</span>
-                <input type="file" accept="image/*" className="hidden" onChange={e => {
-                  const file = e.target.files?.[0]
-                  if (file) {
-                    const url = URL.createObjectURL(file)
-                    setPhoto({ blob: file, url })
-                  }
-                }} />
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={handleFileUpload}
+                />
               </label>
             </div>
           </>
