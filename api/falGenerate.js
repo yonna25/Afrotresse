@@ -10,23 +10,26 @@ export default async function handler(req, res) {
   try {
     const { selfieUrl, stylePath } = req.body; 
 
-    // Déterminer l'URL absolue du style sur ton site en production
+    // Sécurité : Si stylePath est manquant, on arrête tout proprement
+    if (!stylePath || stylePath === "undefined") {
+        return res.status(400).json({ error: "Le chemin de la coiffure est invalide (undefined)." });
+    }
+
     const host = req.headers.host;
     const protocol = host.includes('localhost') ? 'http' : 'https';
     const fullStyleUrl = `${protocol}://${host}${stylePath}`;
 
-    console.log("🛠️ Utilisation du style :", fullStyleUrl);
+    console.log("🛠️ Tentative avec le style :", fullStyleUrl);
 
-    // Appel au modèle InstantID (plus robuste pour le visage)
+    // Utilisation d'une version plus stable et universelle de SDXL Inpainting
     const output = await replicate.run(
-      "lucataco/instantid:90264627d26ca0244795b5a2ca23d2da085a6a3dc8f615e449a56285a854a938",
+      "stability-ai/sdxl:39ed52f2a78e934b3ba6e24ee33373c959687291043d96a7862df88010300ded",
       {
         input: {
           image: selfieUrl,
-          pose_image: fullStyleUrl,
-          prompt: "High-end beauty photography, woman with intricate African braids, Ghana weaving, precise parting, 8k resolution",
-          identity_net_strength: 0.8,
-          adapter_strength: 0.8
+          mask: "https://replicate.delivery/pbxt/Jy6G0kU8P8XzZ5X6vX7Q9W0/mask.png", // Temporaire pour test
+          prompt: "Professional beauty photography, woman with intricate African braids, Ghana weaving style, 8k",
+          style_image: fullStyleUrl
         }
       }
     );
@@ -36,6 +39,6 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error("❌ Erreur Production:", error.message);
-    return res.status(500).json({ error: "Erreur lors de la génération IA." });
+    return res.status(500).json({ error: `Erreur IA: ${error.message}` });
   }
 }
