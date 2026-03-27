@@ -1,31 +1,43 @@
-import { generateMask } from "./generate-mask"; // Import de ta nouvelle logique
-import { applyStyle } from "./apply-style";     // Import de ta nouvelle logique
+import Replicate from "replicate";
+
+const replicate = new Replicate({
+  auth: process.env.REPLICATE_API_TOKEN,
+});
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const { selfieUrl, styleImageUrl } = req.body; // Utilise des URLs (Cloudinary/S3)
+    const { selfieUrl, styleImageUrl } = req.body;
 
     if (!selfieUrl || !styleImageUrl) {
-      return res.status(400).json({ error: "Données manquantes (Selfie ou Style)" });
+      return res.status(400).json({ error: "Missing selfieUrl or styleImageUrl" });
     }
 
-    console.log("🚀 Étape 1 : Génération du masque de cheveux...");
-    const maskUrl = await generateMask(selfieUrl);
+    console.log("📸 Traitement du selfie via Replicate...");
 
-    if (!maskUrl) {
-      throw new Error("Échec de la création du masque");
-    }
+    // Utilisation du modèle InstantID (le plus performant pour garder le visage intact)
+    const output = await replicate.run(
+      "lucataco/instantid:90264627d26ca0244795b5a2ca23d2da085a6a3dc8f615e449a56285a854a938",
+      {
+        input: {
+          image: selfieUrl,
+          pose_image: styleImageUrl, // On utilise la coiffure comme guide de pose/structure
+          prompt: "Professional beauty shot, intricate African braids, Ghana weaving style, highly detailed hair texture, 8k",
+          negative_prompt: "low quality, blurry, distorted face, messy hair",
+          identity_net_strength: 0.8,
+          adapter_strength: 0.8
+        }
+      }
+    );
 
-    console.log("🎨 Étape 2 : Application de la coiffure sur le masque...");
-    const finalImage = await applyStyle(selfieUrl, maskUrl, styleImageUrl);
+    // Replicate retourne généralement un tableau d'URLs
+    const finalImageUrl = Array.isArray(output) ? output[0] : output;
 
-    console.log("✅ Transformation réussie !");
-    return res.status(200).json({ imageUrl: finalImage });
+    return res.status(200).json({ imageUrl: finalImageUrl });
 
-  } catch (err) {
-    console.error("❌ Erreur Pipeline:", err.message);
-    return res.status(500).json({ error: "Le pipeline AfroTresse a échoué", details: err.message });
+  } catch (error) {
+    console.error("❌ Erreur Replicate:", error);
+    return res.status(500).json({ error: "Échec de la transformation capillaire." });
   }
 }
