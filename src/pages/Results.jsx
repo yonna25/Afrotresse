@@ -40,17 +40,21 @@ export default function Results() {
   const [errorMsg, setErrorMsg]       = useState("");
   const resultRef                     = useRef(null);
   const errorRef                      = useRef(null);
+  const [page, setPage]               = useState(0); // 0 = page 1, 1 = page 2...
 
   const userName  = localStorage.getItem("afrotresse_user_name") || "Reine";
   const faceShape = localStorage.getItem("afrotresse_face_shape") || "oval";
   const selfieUrl = sessionStorage.getItem("afrotresse_photo") || localStorage.getItem("afrotresse_selfie");
 
-  const currentResults = useMemo(() => {
-    const seenIds  = getSeenStyleIds();
+  const allResults = useMemo(() => {
+    const seenIds   = getSeenStyleIds();
     const available = BRAIDS_DB.filter(s => s.faceShapes.includes(faceShape));
-    const sorted   = [...available].sort((a, b) => (seenIds.includes(a.id) ? 1 : -1) || 0.5 - Math.random());
-    return sorted.slice(0, 3);
+    return [...available].sort((a, b) => (seenIds.includes(a.id) ? 1 : -1) || 0.5 - Math.random());
   }, [faceShape]);
+
+  const PAGE_SIZE   = 3;
+  const totalPages  = Math.ceil(allResults.length / PAGE_SIZE);
+  const currentResults = allResults.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   const handleSave = (imageUrl) => {
     if (credits < 1 && saveCount === 0) { 
@@ -256,6 +260,27 @@ export default function Results() {
           </div>
         ))}
       </div>
+
+      {/* PAGINATION */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4 mt-8 mb-4">
+          <button
+            onClick={() => { setPage(p => p - 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+            disabled={page === 0}
+            className="px-5 py-3 rounded-2xl font-bold text-sm bg-white/10 text-white/70 border border-white/10 disabled:opacity-30 active:scale-95 transition-all">
+            ← Précédent
+          </button>
+          <span className="text-[#C9963A] font-black text-sm">
+            {page + 1} / {totalPages}
+          </span>
+          <button
+            onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+            disabled={page >= totalPages - 1}
+            className="px-5 py-3 rounded-2xl font-bold text-sm bg-white/10 text-white/70 border border-white/10 disabled:opacity-30 active:scale-95 transition-all">
+            Suivant →
+          </button>
+        </div>
+      )}
 
       {/* BOUTON CRÉDITS FLOTTANT */}
       <motion.div
