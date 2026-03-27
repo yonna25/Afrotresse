@@ -1,6 +1,5 @@
-// api/hfGenerate.js
-// Version HuggingFace avec support selfie + coiffure + masque
-
+// api/falGenerate.js
+// Version pragmatique pour HuggingFace Router (img2img coiffure)
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -15,11 +14,9 @@ export default async function handler(req, res) {
 
     const hfToken = process.env.HUGGINGFACE_API_KEY;
     if (!hfToken) {
-      console.error("❌ HUGGINGFACE_API_KEY manquante");
       return res.status(500).json({ error: "API key manquante" });
     }
 
-    // URL absolue de l'image style
     const absoluteStyleImageUrl = styleImageUrl.startsWith("http")
       ? styleImageUrl
       : `https://afrotresse-hfwf.vercel.app${styleImageUrl}`;
@@ -27,11 +24,14 @@ export default async function handler(req, res) {
     console.log("✅ Selfie et style prêts");
     console.log("🔗 URL style:", absoluteStyleImageUrl);
 
-    // ======================================
-    // HuggingFace : modèle de transformation
-    // ======================================
+    // Fetch style image en base64
+    const styleResponse = await fetch(absoluteStyleImageUrl);
+    const styleArrayBuffer = await styleResponse.arrayBuffer();
+    const styleBase64 = Buffer.from(styleArrayBuffer).toString("base64");
+
+    // Appel HuggingFace Router (img2img)
     const hfResponse = await fetch(
-      "https://api-inference.huggingface.co/models/hogiahien/counterfeit-v30-edited", // modèle compatible image+mask
+      "https://router.huggingface.co/models/stabilityai/stable-diffusion-xl-refiner-1.0",
       {
         method: "POST",
         headers: {
@@ -39,10 +39,10 @@ export default async function handler(req, res) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          inputs: "Apply hairstyle from style image to the user's face, keep face intact, realistic",
+          inputs: "Apply hairstyle from reference image, keep face intact, realistic",
           parameters: {
             image: selfieBase64,
-            mask_image: absoluteStyleImageUrl, // ici on peut utiliser style comme masque
+            reference_image: styleBase64,
             guidance_scale: 7.5
           }
         }),
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
       const base64Image = imageBuffer.toString("base64");
       const dataUrl = `data:image/jpeg;base64,${base64Image}`;
 
-      console.log("✅ Image générée avec HuggingFace");
+      console.log("✅ Image générée avec HuggingFace Router");
       return res.status(200).json({ imageUrl: dataUrl });
     } else {
       const errorText = await hfResponse.text();
