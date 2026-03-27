@@ -5,40 +5,39 @@ const replicate = new Replicate({
 });
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
   try {
-    const { selfieUrl, stylePath } = req.body; 
+    const { selfieUrl, stylePath } = req.body;
 
-    // Sécurité : Si stylePath est manquant, on arrête tout proprement
-    if (!stylePath || stylePath === "undefined") {
-        return res.status(400).json({ error: "Le chemin de la coiffure est invalide (undefined)." });
+    if (!selfieUrl || !stylePath) {
+      return res.status(400).json({ error: "Données manquantes (URL selfie ou chemin style)" });
     }
 
+    // Construction de l'URL absolue pour l'image de coiffure
     const host = req.headers.host;
     const protocol = host.includes('localhost') ? 'http' : 'https';
     const fullStyleUrl = `${protocol}://${host}${stylePath}`;
 
-    console.log("🛠️ Tentative avec le style :", fullStyleUrl);
+    console.log("🚀 Lancement Replicate avec le style :", fullStyleUrl);
 
-    // Utilisation d'une version plus stable et universelle de SDXL Inpainting
+    // Modèle de FaceSwap (plus rapide et stable pour la production)
     const output = await replicate.run(
-      "stability-ai/sdxl:39ed52f2a78e934b3ba6e24ee33373c959687291043d96a7862df88010300ded",
+      "lucataco/faceswap:9a42985484da3ec3912140e1e902636239126362391263623912636239126362",
       {
         input: {
-          image: selfieUrl,
-          mask: "https://replicate.delivery/pbxt/Jy6G0kU8P8XzZ5X6vX7Q9W0/mask.png", // Temporaire pour test
-          prompt: "Professional beauty photography, woman with intricate African braids, Ghana weaving style, 8k",
-          style_image: fullStyleUrl
+          target_image: fullStyleUrl, // L'image de la coiffure (cible)
+          source_image: selfieUrl     // Le visage de l'utilisatrice (source)
         }
       }
     );
 
-    const imageUrl = Array.isArray(output) ? output[0] : output;
-    return res.status(200).json({ imageUrl });
+    return res.status(200).json({ imageUrl: output });
 
   } catch (error) {
-    console.error("❌ Erreur Production:", error.message);
+    console.error("❌ Erreur Replicate:", error.message);
     return res.status(500).json({ error: `Erreur IA: ${error.message}` });
   }
 }
