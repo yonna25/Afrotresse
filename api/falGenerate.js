@@ -1,5 +1,4 @@
 // api/falGenerate.js
-// Version HuggingFace Router stable pour PWA AfroTresse
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -17,7 +16,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "API key manquante" });
     }
 
-    // URL absolue de l'image style
+    // Assurer URL absolue de l'image style
     const absoluteStyleImageUrl = styleImageUrl.startsWith("http")
       ? styleImageUrl
       : `https://afrotresse-hfwf.vercel.app${styleImageUrl}`;
@@ -25,8 +24,9 @@ export default async function handler(req, res) {
     console.log("✅ Selfie et style prêts");
     console.log("🔗 URL style:", absoluteStyleImageUrl);
 
-    // Récupérer style image en base64
+    // Récupérer l'image style en base64
     const styleResponse = await fetch(absoluteStyleImageUrl);
+    if (!styleResponse.ok) throw new Error("Impossible de charger l'image style");
     const styleArrayBuffer = await styleResponse.arrayBuffer();
     const styleBase64 = Buffer.from(styleArrayBuffer).toString("base64");
 
@@ -50,19 +50,19 @@ export default async function handler(req, res) {
       }
     );
 
-    if (hfResponse.ok) {
-      const blob = await hfResponse.blob();
-      const imageBuffer = Buffer.from(await blob.arrayBuffer());
-      const base64Image = imageBuffer.toString("base64");
-      const dataUrl = `data:image/jpeg;base64,${base64Image}`;
-
-      console.log("✅ Image générée avec HuggingFace Router");
-      return res.status(200).json({ imageUrl: dataUrl });
-    } else {
+    if (!hfResponse.ok) {
       const errorText = await hfResponse.text();
       console.error("❌ HF erreur:", hfResponse.status, errorText);
       return res.status(500).json({ error: "Impossible de générer l'image HF" });
     }
+
+    const blob = await hfResponse.blob();
+    const imageBuffer = Buffer.from(await blob.arrayBuffer());
+    const base64Image = imageBuffer.toString("base64");
+    const dataUrl = `data:image/jpeg;base64,${base64Image}`;
+
+    console.log("✅ Image générée avec HuggingFace Router");
+    return res.status(200).json({ imageUrl: dataUrl });
 
   } catch (err) {
     console.error("❌ Erreur générale:", err.message);
