@@ -1,4 +1,5 @@
-// Version HuggingFace avec nouvel endpoint router.huggingface.co
+// api/hfGenerate.js
+// Version HuggingFace avec support selfie + coiffure + masque
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -6,7 +7,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { selfieBase64, selfieType, styleImageUrl } = req.body;
+    const { selfieBase64, styleImageUrl } = req.body;
 
     if (!selfieBase64 || !styleImageUrl) {
       return res.status(400).json({ error: "Missing data" });
@@ -18,125 +19,49 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "API key manquante" });
     }
 
-    console.log("✅ Selfie reçu");
-
+    // URL absolue de l'image style
     const absoluteStyleImageUrl = styleImageUrl.startsWith("http")
       ? styleImageUrl
       : `https://afrotresse-hfwf.vercel.app${styleImageUrl}`;
 
+    console.log("✅ Selfie et style prêts");
     console.log("🔗 URL style:", absoluteStyleImageUrl);
 
     // ======================================
-    // Test 1 : Stable Diffusion XL
+    // HuggingFace : modèle de transformation
     // ======================================
-    console.log("📤 Essai 1 : Stable Diffusion XL");
-
-    try {
-      const sdResponse = await fetch(
-        "https://router.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${hfToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            inputs: "Close-up portrait of African woman with beautiful braided hairstyle, natural skin, studio lighting, high quality photo",
-          }),
-        }
-      );
-
-      if (sdResponse.ok) {
-        const blob = await sdResponse.blob();
-        const imageBuffer = Buffer.from(await blob.arrayBuffer());
-        const base64Image = imageBuffer.toString("base64");
-        const dataUrl = `data:image/jpeg;base64,${base64Image}`;
-
-        console.log("✅ Stable Diffusion XL marche!");
-        return res.status(200).json({ imageUrl: dataUrl });
-      } else {
-        const errorText = await sdResponse.text();
-        console.warn("⚠️ SD XL erreur:", sdResponse.status, errorText);
+    const hfResponse = await fetch(
+      "https://api-inference.huggingface.co/models/hogiahien/counterfeit-v30-edited", // modèle compatible image+mask
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${hfToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inputs: "Apply hairstyle from style image to the user's face, keep face intact, realistic",
+          parameters: {
+            image: selfieBase64,
+            mask_image: absoluteStyleImageUrl, // ici on peut utiliser style comme masque
+            guidance_scale: 7.5
+          }
+        }),
       }
-    } catch (err) {
-      console.warn("⚠️ SD XL échoué:", err.message);
+    );
+
+    if (hfResponse.ok) {
+      const blob = await hfResponse.blob();
+      const imageBuffer = Buffer.from(await blob.arrayBuffer());
+      const base64Image = imageBuffer.toString("base64");
+      const dataUrl = `data:image/jpeg;base64,${base64Image}`;
+
+      console.log("✅ Image générée avec HuggingFace");
+      return res.status(200).json({ imageUrl: dataUrl });
+    } else {
+      const errorText = await hfResponse.text();
+      console.error("❌ HF erreur:", hfResponse.status, errorText);
+      return res.status(500).json({ error: "Impossible de générer l'image HF" });
     }
-
-    // ======================================
-    // Test 2 : Stable Diffusion v1.5 (fallback)
-    // ======================================
-    console.log("📤 Essai 2 : Stable Diffusion v1.5");
-
-    try {
-      const sdResponse = await fetch(
-        "https://router.huggingface.co/models/runwayml/stable-diffusion-v1-5",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${hfToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            inputs: "African woman with braids, portrait, professional photo",
-          }),
-        }
-      );
-
-      if (sdResponse.ok) {
-        const blob = await sdResponse.blob();
-        const imageBuffer = Buffer.from(await blob.arrayBuffer());
-        const base64Image = imageBuffer.toString("base64");
-        const dataUrl = `data:image/jpeg;base64,${base64Image}`;
-
-        console.log("✅ Stable Diffusion v1.5 marche!");
-        return res.status(200).json({ imageUrl: dataUrl });
-      } else {
-        const errorText = await sdResponse.text();
-        console.warn("⚠️ SD v1.5 erreur:", sdResponse.status, errorText);
-      }
-    } catch (err) {
-      console.warn("⚠️ SD v1.5 échoué:", err.message);
-    }
-
-    // ======================================
-    // Test 3 : Prompt simple
-    // ======================================
-    console.log("📤 Essai 3 : Simple prompt");
-
-    try {
-      const simpleResponse = await fetch(
-        "https://router.huggingface.co/models/stabilityai/stable-diffusion-3.5-medium",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${hfToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            inputs: "braids",
-          }),
-        }
-      );
-
-      if (simpleResponse.ok) {
-        const blob = await simpleResponse.blob();
-        const imageBuffer = Buffer.from(await blob.arrayBuffer());
-        const base64Image = imageBuffer.toString("base64");
-        const dataUrl = `data:image/jpeg;base64,${base64Image}`;
-
-        console.log("✅ Simple prompt marche!");
-        return res.status(200).json({ imageUrl: dataUrl });
-      } else {
-        const errorText = await simpleResponse.text();
-        console.error("❌ Simple prompt erreur:", simpleResponse.status, errorText);
-      }
-    } catch (err) {
-      console.error("❌ Simple prompt échoué:", err.message);
-    }
-
-    return res.status(500).json({
-      error: "Impossible de générer l'image avec HuggingFace",
-    });
 
   } catch (err) {
     console.error("❌ Erreur générale:", err.message);
