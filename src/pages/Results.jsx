@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createClient } from '@supabase/supabase-js';
@@ -27,6 +27,9 @@ const RESULT_MSGS = [
   "Le style parfait pour toi. 👑",
 ]
 
+// Nombre de styles affichés par "génération"
+const PAGE_SIZE = 3;
+
 export default function Results() {
   const navigate = useNavigate();
   const [zoomImage, setZoomImage]     = useState(null);
@@ -36,26 +39,73 @@ export default function Results() {
   const [resultImage, setResultImage] = useState(null);
   const [resultStyleId, setResultStyleId] = useState(null);
   const [resultMsg, setResultMsg]     = useState("");
-  const [isFallback, setIsFallback]   = useState(false);
+  // const [isFallback, setIsFallback]   = useState(false); // Non utilisé dans le JSX fourni
   const [errorMsg, setErrorMsg]       = useState("");
   const resultRef                     = useRef(null);
   const errorRef                      = useRef(null);
   const [page, setPage]               = useState(0); // 0 = page 1, 1 = page 2...
+  
+  // État local pour forcer le rafraîchissement du useMemo
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const userName  = localStorage.getItem("afrotresse_user_name") || "Reine";
   const faceShape = localStorage.getItem("afrotresse_face_shape") || "oval";
   const selfieUrl = sessionStorage.getItem("afrotresse_photo") || localStorage.getItem("afrotresse_selfie");
 
+  // --- LOGIQUE MODIFIÉE POUR GARANTIR L'UNICITÉ STRICTE ---
   const allResults = useMemo(() => {
-    const seenIds   = getSeenStyleIds();
-    const available = BRAIDS_DB.filter(s => s.faceShapes.includes(faceShape));
-    return [...available].sort((a, b) => (seenIds.includes(a.id) ? 1 : -1) || 0.5 - Math.random());
-  }, [faceShape]);
+    const seenIds = getSeenStyleIds();
+    
+    // FILTRE STRICT : Forme du visage correspondante ET PAS ENCORE VU
+    const available = BRAIDS_DB.filter(s => 
+      s.faceShapes.includes(faceShape) && !seenIds.includes(s.id)
+    );
+    
+    // Mélange aléatoire des styles restants
+    return [...available].sort(() => 0.5 - Math.random());
+    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [faceShape, refreshTrigger]); // Se recalcule si la forme change ou si on force le refresh
 
-  const PAGE_SIZE   = 3;
   const totalPages  = Math.ceil(allResults.length / PAGE_SIZE);
-  const currentResults = allResults.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  // On prend toujours les PAGE_SIZE premiers car allResults exclut déjà les vus
+  const currentResults = allResults.slice(0, PAGE_SIZE);
 
+  // --- NOUVELLE FONCTION : GÉNÉRER 3 NOUVEAUX STYLES (1 CRÉDIT) ---
+  const handleGetNewStyles = useCallback(() => {
+    // 1. Vérification des crédits
+    if (credits < 1) {
+      navigate("/credits");
+      return;
+    }
+
+    // 2. Vérifier s'il reste assez de styles dans la DB
+    if (allResults.length <= PAGE_SIZE) {
+        setErrorMsg("Félicitations ! Tu as exploré tous les styles disponibles pour ton visage. Essaie une autre catégorie de tresse.");
+        setTimeout(() => {
+            errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 100);
+        return;
+    }
+
+    // 3. Consommer le crédit (Comme pour un nouveau selfie)
+    consumeCredits(1);
+    setCredits(getCredits()); // Mise à jour de l'affichage du solde
+    setErrorMsg(""); // Effacer les erreurs précédentes
+
+    // 4. Marquer les styles ACTUELLEMENT AFFICHÉS comme "vus"
+    currentResults.forEach(style => addSeenStyleId(style.id));
+
+    // 5. Forcer le useMemo à se recalculer (refreshTrigger change)
+    // Cela va exclure les styles vus et en piocher 3 nouveaux.
+    setRefreshTrigger(prev => prev + 1);
+    
+    // Petit feedback visuel : remonter en haut de la liste
+    window.scrollTo({ top: 300, behavior: "smooth" });
+
+  }, [credits, navigate, allResults.length, currentResults]);
+
+  // --- FONCTIONS EXISTANTES (CONSERVÉES) ---
   const handleSave = (imageUrl) => {
     if (credits < 1 && saveCount === 0) { 
       navigate("/credits");
@@ -86,11 +136,9 @@ export default function Results() {
     setLoadingId(style.id);
 
     try {
-      // 1. Préparation du fichier selfie (Blob)
       const blob = await fetch(selfieUrl).then(r => r.blob());
       const fileName = `selfie-${Date.now()}.jpg`;
 
-      // 2. Upload vers Supabase pour obtenir une URL publique
       const { data: upData, error: upError } = await supabase.storage
         .from('selfies')
         .upload(fileName, blob);
@@ -101,7 +149,6 @@ export default function Results() {
         .from('selfies')
         .getPublicUrl(fileName);
 
-      // 3. Appel de l'API de génération (Backend Replicate)
       const res = await fetch("/api/falGenerate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -122,7 +169,6 @@ export default function Results() {
         return;
       }
 
-      // 4. Succès et mise à jour de l'interface
       consumeTransform();
       addSeenStyleId(style.id);
       setCredits(getCredits());
@@ -156,6 +202,7 @@ export default function Results() {
     } catch {}
   };
 
+  // --- JSX (AVEC INTEGRATION DU NOUVEAU BOUTON) ---
   return (
     <div className="min-h-[100dvh] bg-[#2C1A0E] text-[#FAF4EC] p-4 sm:p-6 pb-40 overflow-x-hidden relative">
       
@@ -215,6 +262,21 @@ export default function Results() {
         )}
       </AnimatePresence>
 
+      {/* --- INTEGRATION DU BOUTON DE RAFRAÎCHISSEMENT (1 CRÉDIT) --- */}
+      <div className="mb-10 px-2">
+        <button 
+          onClick={handleGetNewStyles}
+          className="w-full py-5 rounded-3xl font-black text-sm uppercase tracking-tighter flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-2xl border-2 border-[#C9963A]"
+          style={{ background: "linear-gradient(180deg, rgba(201,150,58,0.2) 0%, rgba(201,150,58,0.05) 100%)", color: "#C9963A" }}
+        >
+          <span className="text-xs opacity-80 font-body">Garder ma photo actuelle et</span>
+          <span className="text-lg font-display">Générer 3 NOUVEAUX styles ✨</span>
+          <span className="text-[9px] bg-[#C9963A] text-[#2C1A0E] px-2.5 py-1 rounded-full mt-1 font-black">
+            COÛT : 1 CRÉDIT
+          </span>
+        </button>
+      </div>
+
       {/* LISTE DES STYLES */}
       <div className="space-y-12">
         {currentResults.map((style) => (
@@ -261,8 +323,8 @@ export default function Results() {
         ))}
       </div>
 
-      {/* PAGINATION */}
-      {totalPages > 1 && (
+      {/* PAGINATION (CONSERVÉE mais cachée si allResults est vide) */}
+      {totalPages > 1 && currentResults.length > 0 && (
         <div className="flex items-center justify-center gap-4 mt-8 mb-4">
           <button
             onClick={() => { setPage(p => p - 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
@@ -327,4 +389,3 @@ export default function Results() {
     </div>
   );
 }
-
