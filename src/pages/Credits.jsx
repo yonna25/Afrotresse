@@ -23,104 +23,56 @@ const KEY_USED          = 'afrotresse_used_tests'
 const KEY_REVIEW        = 'afrotresse_review_done'
 const KEY_REF_CODE      = 'afrotresse_ref_code'
 const KEY_REF_BY        = 'afrotresse_ref_by'
-const KEY_REFERRALS     = 'afrotresse_referrals'
-const KEY_SEEN_STYLES   = 'afrotresse_seen_styles'
-const KEY_SAVED_STYLES  = 'afrotresse_saved_styles' // localStorage permanent
+const KEY_SAVED_STYLES  = 'afrotresse_saved_styles'
 
-// ─── Lecture / écriture crédits ──────────────────────────────────
+// ─── Gestion des Crédits ────────────────────────────────────────
 export function getCredits() {
-  const raw = localStorage.getItem(KEY_CREDITS)
-  if (raw !== null) return parseInt(raw, 10)
-  // Première visite : créditer les tests gratuits
-  setCredits(PRICING.freeCredits)
-  return PRICING.freeCredits
+  const c = localStorage.getItem(KEY_CREDITS)
+  if (c === null) {
+    localStorage.setItem(KEY_CREDITS, PRICING.freeCredits.toString())
+    return PRICING.freeCredits
+  }
+  return parseInt(c, 10) || 0
 }
 
-export function setCredits(n) {
-  localStorage.setItem(KEY_CREDITS, String(Math.max(0, n)))
+export function addCredits(amount) {
+  const current = getCredits()
+  localStorage.setItem(KEY_CREDITS, (current + amount).toString())
 }
 
-export function addCredits(n) {
-  setCredits(getCredits() + n)
-}
-
-export function consumeCredits(amount) {
+export function useCredits(amount) {
   const current = getCredits()
   if (current < amount) return false
-  setCredits(current - amount)
+  localStorage.setItem(KEY_CREDITS, (current - amount).toString())
   return true
 }
 
-// ─── Vérifications capacités ────────────────────────────────────
-export function canAnalyze() {
-  return getCredits() >= PRICING.analysisCost
-}
-
-export function canTransform() {
-  return getCredits() >= PRICING.transformCost
-}
-
-export function hasCredits() {
-  return getCredits() > 0
-}
-
-// ─── Consommation spécifique ────────────────────────────────────
-export function consumeAnalysis() {
-  return consumeCredits(PRICING.analysisCost)
-}
-
-export function consumeTransform() {
-  return consumeCredits(PRICING.transformCost)
-}
-
-// ─── Vérifier si c'est un crédit payant ────────────────────────
-export function isPaidCredit() {
-  return getCredits() > PRICING.freeCredits
-}
-
+// ─── Gestion des Analyses (Le Compteur) ─────────────────────────
 export function getTotalUsed() {
-  return parseInt(localStorage.getItem(KEY_USED) || '0', 10)
+  const u = localStorage.getItem(KEY_USED)
+  return parseInt(u, 10) || 0
 }
 
-// ─── Gestion des styles vus (anti-répétition) ────────────────────
-export function getSeenStyleIds() {
-  const raw = localStorage.getItem(KEY_SEEN_STYLES)
-  return raw ? JSON.parse(raw) : []
+/**
+ * ACTION : Appeler cette fonction à chaque analyse réussie
+ * pour incrémenter le compteur sur le profil.
+ */
+export function incrementAnalyses() {
+  const current = getTotalUsed()
+  localStorage.setItem(KEY_USED, (current + 1).toString())
 }
 
-export function addSeenStyleId(styleId) {
-  const seen = getSeenStyleIds()
-  if (!seen.includes(styleId)) {
-    seen.push(styleId)
-    localStorage.setItem(KEY_SEEN_STYLES, JSON.stringify(seen))
-  }
-}
-
-export function resetSeenStyles() {
-  localStorage.removeItem(KEY_SEEN_STYLES)
-}
-
-// ─── Gestion styles sauvegardés (localStorage permanent) ─────────
+// ─── Sauvegarde des Styles ──────────────────────────────────────
 export function getSavedStyles() {
-  const raw = localStorage.getItem(KEY_SAVED_STYLES)
-  return raw ? JSON.parse(raw) : []
+  const s = localStorage.getItem(KEY_SAVED_STYLES)
+  return s ? JSON.parse(s) : []
 }
 
-export function saveStyle(style) {
-  // Sauvegarder seulement si crédit payant
-  if (!isPaidCredit()) return false
-
+export function saveStyle(braid) {
   const saved = getSavedStyles()
-  const exists = saved.find(s => s.id === style.id)
-  
-  if (!exists) {
-    saved.push({
-      ...style,
-      savedAt: new Date().toISOString(),
-    })
-    localStorage.setItem(KEY_SAVED_STYLES, JSON.stringify(saved))
-  }
-  return true
+  if (saved.find(s => s.id === braid.id)) return
+  saved.push(braid)
+  localStorage.setItem(KEY_SAVED_STYLES, JSON.stringify(saved))
 }
 
 export function unsaveStyle(styleId) {
@@ -161,9 +113,5 @@ export function applyReferralCode(code) {
   if (localStorage.getItem(KEY_REF_BY)) return { success: false, message: 'Tu as déjà utilisé un code parrain.' }
   localStorage.setItem(KEY_REF_BY, code)
   addCredits(PRICING.referral.receiver)
-  return { success: true, message: `+${PRICING.referral.receiver} crédits offerts grâce au parrainage !` }
-}
-
-export function getReferralCount() {
-  return parseInt(localStorage.getItem(KEY_REFERRALS) || '0', 10)
+  return { success: true, message: `Code validé ! +${PRICING.referral.receiver} crédits offerts.` }
 }
