@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import Home     from './pages/Home.jsx'
@@ -38,28 +38,32 @@ function WelcomePopup({ onDone }) {
         className="w-full max-w-sm rounded-t-3xl p-6 pb-10 overflow-y-auto"
         style={{ background: '#2C1A0E', border: '1px solid rgba(201,150,58,0.3)', maxHeight: '90vh' }}
       >
+        {/* Logo */}
         <div className="flex justify-center mb-4">
           <img src="/logo.png" alt="AfroTresse" className="h-28 w-auto object-contain"
             onError={e => { e.target.style.display='none' }}/>
         </div>
 
+        {/* Titre accrocheur */}
         <h2 className="font-display text-center font-bold mb-2"
           style={{ color: '#FAF4EC', fontSize: 'clamp(1.2rem, 5vw, 1.6rem)', lineHeight: '1.3' }}>
-          Stop à l'hésitation ! ✋
+          Stop a l'hesitation ! ✋
         </h2>
 
+        {/* Phrase emotionnelle */}
         <p className="font-body text-center text-sm mb-4 leading-relaxed"
           style={{ color: 'rgba(250,244,236,0.8)' }}>
-          Trouve ta tresse idéale en 10 secondes.
+          Trouve ta tresse ideale en 10 secondes.
         </p>
 
+        {/* Champ prénom */}
         <label className="font-body text-xs uppercase tracking-widest mb-2 block"
           style={{ color: '#C9963A' }}>
           Comment tu t'appelles ?
         </label>
         <input
           type="text"
-          placeholder="Ton prénom, Reine..."
+          placeholder="Ton prenom, Reine..."
           value={name}
           onChange={e => setName(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleSubmit()}
@@ -73,6 +77,7 @@ function WelcomePopup({ onDone }) {
           autoFocus
         />
 
+        {/* Bouton principal */}
         <button
           onClick={handleSubmit}
           className="w-full py-4 rounded-2xl font-display font-bold text-base"
@@ -81,6 +86,7 @@ function WelcomePopup({ onDone }) {
           C'est parti ! 🚀
         </button>
 
+        {/* Urgence */}
         <p className="font-body text-xs text-center mt-2 font-semibold"
           style={{ color: '#E8B96A' }}>
           🎁 3 essais gratuits aujourd'hui seulement !
@@ -98,17 +104,17 @@ function AnimatedRoutes() {
     <>
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-          <Route path="/"                element={<Home    />} />
-          <Route path="/camera"          element={<Camera  />} />
-          <Route path="/analyze"         element={<Analyze />} />
-          <Route path="/results"         element={<Results />} />
-          <Route path="/library"         element={<Library />} />
-          <Route path="/profile"         element={<Profile />} />
+          <Route path="/"        element={<Home    />} />
+          <Route path="/camera"  element={<Camera  />} />
+          <Route path="/analyze" element={<Analyze />} />
+          <Route path="/results" element={<Results />} />
+          <Route path="/library" element={<Library />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/credits"         element={<Credits />} />
-          <Route path="/privacy-policy"  element={<PrivacyPolicy  />} />
+          <Route path="/privacy-policy"  element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
-          <Route path="/cookie-policy"   element={<CookiePolicy   />} />
-          <Route path="/magic-link"      element={<MagicLink      />} />
+          <Route path="/cookie-policy"   element={<CookiePolicy />} />
+          <Route path="/magic-link"      element={<MagicLink />} />
         </Routes>
       </AnimatePresence>
       {!hideNav && <BottomNav />}
@@ -117,6 +123,7 @@ function AnimatedRoutes() {
 }
 
 export default function App() {
+  // Afficher le popup seulement au premier lancement
   const [showWelcome, setShowWelcome] = useState(false)
 
   useEffect(() => {
