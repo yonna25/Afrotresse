@@ -1,24 +1,15 @@
-export default function App() {
-  const [showWelcome, setShowWelcome] = useState(false);
+import React, { useState, useEffect } from 'react'; // AJOUT CRUCIAL : { useState, useEffect }
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 
-  useEffect(() => {
-    console.log("LOG APP : Composant App monté");
-    console.log("LOG APP : LocalStorage Name ->", localStorage.getItem('afrotresse_user_name'));
-    
-    if (!localStorage.getItem('afrotresse_user_name')) {
-      setShowWelcome(true);
-    }
-  }, []);
+// Imports des pages
+import Home from './pages/Home.jsx';
+import Camera from './pages/Camera.jsx';
+import Analyze from './pages/Analyze.jsx';
+import Results from './pages/Results.jsx';
+import Library from './pages/Library.jsx';
+import Profile from './pages/Profile.jsx';
+import Credits from './pages/Credits.jsx';
+import BottomNav from './components/BottomNav.jsx';
 
-  // Capture d'erreur rudimentaire
-  if (typeof Results === 'undefined') {
-    return <div style={{background: 'blue', color: 'white', p: 20}}>Erreur : Le composant Results n'est pas importé correctement.</div>
-  }
-
-  return (
-    <BrowserRouter>
-      {showWelcome && <WelcomePopup onDone={() => setShowWelcome(false)} />}
-      <AnimatedRoutes />
-    </BrowserRouter>
-  )
-}
+// ... (Gardez le reste de votre code WelcomePopup et AnimatedRoutes tel quel)
