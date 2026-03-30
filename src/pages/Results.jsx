@@ -8,20 +8,20 @@ const FACE_SHAPE_TEXTS = {
   oval:    "Ton visage est de forme Ovale. C\u2019est une structure tr\u00e8s \u00e9quilibr\u00e9e qui s\u2019adapte \u00e0 presque tous les styles.",
   round:   "Ton visage est de forme Ronde. Pour allonger et affiner visuellement tes traits, les tresses hautes sont parfaites.",
   square:  "Ton visage est de forme Carr\u00e9e. Les tresses avec du volume adoucissent ta m\u00e2choire.",
-  heart:   "Ton visage est en forme de C\u0153ur. Les tresses avec du volume en bas \u00e9quilibrent ton menton.",
+  heart:   "Ton visage est en forme de Coeur. Les tresses avec du volume en bas \u00e9quilibrent ton menton.",
   long:    "Ton visage est de forme Longue. Les tresses lat\u00e9rales cr\u00e9ent l\u2019harmonie parfaite.",
   diamond: "Ton visage est de forme Diamant. Les tresses qui encadrent le visage te subliment.",
 };
 
 const WAITING_MSGS = [
-  "Pr\u00e9paration de ton nouveau look... \u2728",
-  "On ajuste la tresse \u00e0 ton visage... \uD83D\uDC51",
-  "Presque l\u00e0... Pr\u00e9pare-toi \u00e0 briller !",
+  "Pr\u00e9paration de ton nouveau look...",
+  "On ajuste la tresse \u00e0 ton visage...",
+  "Presque l\u00e0, pr\u00e9pare-toi \u00e0 briller !",
 ];
 
 const RESULT_MSGS = [
   "Waouh, tu es splendide !",
-  "Regarde cette Reine ! \u2728",
+  "Regarde cette Reine !",
   "Le style parfait pour toi.",
 ];
 
@@ -152,7 +152,7 @@ export default function Results() {
       setPage(0);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      alert("Tu as explor\u00e9 tous les styles disponibles ! \u2728");
+      alert("Tu as explor\u00e9 tous les styles disponibles !");
     }
   };
 
@@ -173,7 +173,7 @@ export default function Results() {
     return (
       <div className="min-h-screen bg-[#2C1A0E] flex items-center justify-center">
         <div className="text-center px-6">
-          <p className="text-4xl mb-4">{"💆🏾‍♀️"}</p>
+          <p className="text-4xl mb-4">{"😊"}</p>
           <p className="text-white text-xl font-bold mb-2">{"Quelle tresse aujourd\u2019hui ?"}</p>
           <p className="text-gray-400 text-sm mb-6">{"Prends un selfie pour d\u00e9couvrir les styles qui te conviennent."}</p>
           <button
@@ -211,7 +211,7 @@ export default function Results() {
         <div className="flex flex-col flex-1">
           <h1 className="font-bold text-3xl text-[#C9963A]">
             {"Tes r\u00e9sultats"}<br/>
-            <span className="text-[#FAF4EC]">{userName} {"\u2728"}</span>
+            <span className="text-[#FAF4EC]">{userName}</span>
           </h1>
           <p className="text-[11px] opacity-80 font-body leading-tight mt-1 max-w-xs">{faceText}</p>
         </div>
@@ -328,7 +328,7 @@ export default function Results() {
                             </svg>
                             {WAITING_MSGS[waitingMsgIdx]}
                           </span>
-                        ) : "Essayer virtuellement ce style \u2728"}
+                        ) : "Essayer virtuellement ce style"}
                       </button>
                     </div>
                   </motion.div>
@@ -342,14 +342,14 @@ export default function Results() {
                   onClick={() => { setPage(p => p - 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                   disabled={page === 0}
                   className="px-5 py-3 rounded-2xl font-bold text-sm bg-white/10 text-white/70 border border-white/10 disabled:opacity-30 active:scale-95 transition-all">
-                  {"← Pr\u00e9c\u00e9dent"}
+                  {"<- Pr\u00e9c\u00e9dent"}
                 </button>
                 <span className="text-[#C9963A] font-black text-sm">{page + 1} / {totalPages}</span>
                 <button
                   onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                   disabled={page >= totalPages - 1}
                   className="px-5 py-3 rounded-2xl font-bold text-sm bg-white/10 text-white/70 border border-white/10 disabled:opacity-30 active:scale-95 transition-all">
-                  {"Suivant \u2192"}
+                  {"Suivant ->"}
                 </button>
               </div>
             )}
@@ -376,7 +376,7 @@ export default function Results() {
             onClick={handleGetNewStyles}
             className="w-14 h-14 rounded-full bg-[#3D2616] border-2 border-[#C9963A] shadow-[0_0_20px_rgba(201,150,58,0.3)] flex flex-col items-center justify-center text-[#C9963A] relative overflow-hidden">
             <motion.span animate={isSparkling ? { rotate: 360 } : {}} className="text-xl">
-              {"\u2728"}
+              *
             </motion.span>
             <span className="text-[8px] font-black uppercase mt-0.5">Nouveaux</span>
             <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
