@@ -1,6 +1,25 @@
 import { analyzeFaceWithAI } from '../hooks/useFaceAnalysis.js'
 import { detectFaceShape, calculateConfidence } from '../utils/faceShapeDetector.js'
 
+// --- CONSTANTES EXPORTÉES ---
+export const FACE_SHAPE_NAMES = {
+  oval: "Ovale",
+  round: "Ronde",
+  square: "Carrée",
+  heart: "Coeur",
+  long: "Longue",
+  diamond: "Diamant"
+};
+
+export const FACE_SHAPE_DESCRIPTIONS = {
+  oval: "Visage équilibré — la plupart des styles te conviennent à merveille.",
+  round: "Visage doux et rond — les styles allongés te mettront en valeur.",
+  square: "Visage anguleux — les styles avec du volume adoucissent tes traits.",
+  heart: "Visage pointu en bas — les styles avec du volume équilibrent ta silhouette.",
+  long: "Visage allongé — les styles avec du volume sur les côtés créent l'harmonie.",
+  diamond: "Pommettes larges — les styles qui encadrent le visage sont parfaits."
+};
+
 export const BRAIDS_DB = [
   {
     id: "box-braids",
@@ -10,11 +29,7 @@ export const BRAIDS_DB = [
     faceShapes: ["oval", "round", "square", "heart", "diamond"],
     duration: "4-6h",
     difficulty: "Intermédiaire",
-    views: {
-      face: "/styles/boxbraids-face.jpg",
-      back: "/styles/boxbraids-back.jpg",
-      top: "/styles/boxbraids-top.jpg"
-    },
+    views: { face: "/styles/boxbraids-face.jpg" },
     matchScore: 98
   },
   {
@@ -25,11 +40,7 @@ export const BRAIDS_DB = [
     faceShapes: ["round", "square", "heart"],
     duration: "5-7h",
     difficulty: "Intermédiaire",
-    views: {
-      face: "/styles/cocotwists-face.jpg",
-      back: "/styles/cocotwists-back.jpg",
-      top: "/styles/cocotwists-top.jpg"
-    },
+    views: { face: "/styles/cocotwists-face.jpg" },
     matchScore: 92
   },
   {
@@ -40,11 +51,7 @@ export const BRAIDS_DB = [
     faceShapes: ["oval", "long", "square"],
     duration: "2-4h",
     difficulty: "Avancée",
-    views: {
-      face: "/styles/cornrows-face.jpg",
-      back: "/styles/cornrows-back.jpg",
-      top: "/styles/cornrows-top.jpg"
-    },
+    views: { face: "/styles/cornrows-face.jpg" },
     matchScore: 95
   },
   {
@@ -55,11 +62,7 @@ export const BRAIDS_DB = [
     faceShapes: ["oval", "round", "heart", "square"],
     duration: "2-3h",
     difficulty: "Intermédiaire",
-    views: {
-      face: "/styles/crochetbraids-face.jpg",
-      back: "/styles/crochetbraids-back.jpg",
-      top: "/styles/crochetbraids-top.jpg"
-    },
+    views: { face: "/styles/crochetbraids-face.jpg" },
     matchScore: 79
   },
   {
@@ -70,11 +73,7 @@ export const BRAIDS_DB = [
     faceShapes: ["oval", "heart", "diamond"],
     duration: "3-5h",
     difficulty: "Avancée",
-    views: {
-      face: "/styles/fanbraids-face.jpg",
-      back: "/styles/fanbraids-back.jpg",
-      top: "/styles/fanbraids-top.jpg"
-    },
+    views: { face: "/styles/fanbraids-face.jpg" },
     matchScore: 88
   },
   {
@@ -85,11 +84,7 @@ export const BRAIDS_DB = [
     faceShapes: ["oval", "heart", "diamond"],
     duration: "3-5h",
     difficulty: "Avancée",
-    views: {
-      face: "/styles/fulani-face.jpg",
-      back: "/styles/fulani-back.jpg",
-      top: "/styles/fulani-top.jpg"
-    },
+    views: { face: "/styles/fulani-face.jpg" },
     matchScore: 88
   },
   {
@@ -100,48 +95,22 @@ export const BRAIDS_DB = [
     faceShapes: ["oval", "long", "square", "diamond"],
     duration: "3-5h",
     difficulty: "Avancée",
-    views: {
-      face: "/styles/stitchbraids-face.jpg",
-      back: "/styles/stitchbraids-back.jpg",
-      top: "/styles/stitchbraids-top.jpg"
-    },
+    views: { face: "/styles/stitchbraids-face.jpg" },
     matchScore: 86
   }
 ];
 
-const FACE_SHAPE_NAMES = {
-  oval: "Ovale",
-  round: "Ronde",
-  square: "Carrée",
-  heart: "Coeur",
-  long: "Longue",
-  diamond: "Diamant"
-};
-
-const FACE_SHAPE_DESCRIPTIONS = {
-  oval: "Visage équilibré — la plupart des styles te conviennent à merveille.",
-  round: "Visage doux et rond — les styles allongés te mettront en valeur.",
-  square: "Visage anguleux — les styles avec du volume adoucissent tes traits.",
-  heart: "Visage pointu en bas — les styles avec du volume équilibrent ta silhouette.",
-  long: "Visage allongé — les styles avec du volume sur les côtés créent l'harmonie.",
-  diamond: "Pommettes larges — les styles qui encadrent le visage sont parfaits."
-};
-
+// --- LOGIQUE D'ANALYSE ---
 export async function analyzeFace(photoBlob) {
   try {
-    // ✅ appel de la fonction corrigée
     const result = await analyzeFaceWithAI(photoBlob, 8000)
-
     const faceShape = detectFaceShape(result.landmarks)
     const confidence = calculateConfidence(result.landmarks)
 
     return buildRecommendations(faceShape, "", confidence)
   } catch (err) {
     console.error("Face analysis error:", err)
-
-    // fallback intelligent
     await new Promise(r => setTimeout(r, 1500))
-
     return buildRecommendations("oval", "Analyse par défaut (fallback)", 0.75)
   }
 }
@@ -164,5 +133,3 @@ function buildRecommendations(faceShape, reason = "", confidence = 0.85) {
     recommendations: matching
   }
 }
-
-export { FACE_SHAPE_NAMES }
