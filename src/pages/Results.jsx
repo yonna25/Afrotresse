@@ -1,234 +1,172 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { createClient } from '@supabase/supabase-js';
-import { getCredits, consumeCredits, consumeTransform, canTransform, addSeenStyleId, getSeenStyleIds } from "../services/credits.js";
-import { BRAIDS_DB } from "../services/faceAnalysis.js";
-import { addShare } from "../services/stats.js";
-
-// Initialisation de Supabase
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
-
-const FACE_SHAPE_TEXTS = {
-  oval:    "Ton visage est de forme Ovale. C'est une structure très équilibrée qui s'adapte à presque tous les styles.",
-  round:   "Ton visage est de forme Ronde. Pour allonger et affiner visuellement tes traits, les tresses hautes sont parfaites.",
-  square:  "Ton visage est de forme Carrée. Les tresses avec du volume adoucissent ta mâchoire.",
-  heart:   "Ton visage est en forme de Cœur. Les tresses avec du volume en bas équilibrent ton menton.",
-  long:    "Ton visage est de forme Longue. Les tresses latérales créent l'harmonie parfaite.",
-  diamond: "Ton visage est de forme Diamant. Les tresses qui encadrent le visage te subliment.",
-}
-
-const RESULT_MSGS = [
-  "Waouh 😍, tu es splendide !",
-  "Regarde cette Reine ! ✨",
-  "Le style parfait pour toi. 👑",
-]
+import { getCredits, consumeCredits, addSeenStyleId, getSeenStyleIds } from "../services/credits.js";
+import { BRAIDS_DB, FACE_SHAPE_NAMES } from "../services/faceAnalysis.js";
 
 const PAGE_SIZE = 3;
 
 export default function Results() {
   const navigate = useNavigate();
-  const [zoomImage, setZoomImage]     = useState(null);
-  const [credits, setCredits]         = useState(getCredits());
-  const [saveCount, setSaveCount]     = useState(0);
-  const [loadingId, setLoadingId]     = useState(null);
-  const [resultImage, setResultImage] = useState(null);
-  const [resultMsg, setResultMsg]     = useState("");
-  const [errorMsg, setErrorMsg]       = useState("");
-  const resultRef                     = useRef(null);
-  
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [zoomStyle, setZoomStyle] = useState(null);
+  const [credits, setCredits] = useState(getCredits());
+  const [saveCount, setSaveCount] = useState(0);
+  const [notification, setNotification] = useState("");
+  const notifRef = useRef(null);
 
-  const userName  = localStorage.getItem("afrotresse_user_name") || "Reine";
+  const userName = localStorage.getItem("afrotresse_user_name") || "Reine";
   const faceShape = localStorage.getItem("afrotresse_face_shape") || "oval";
   const selfieUrl = sessionStorage.getItem("afrotresse_photo") || localStorage.getItem("afrotresse_selfie");
 
-  const allResults = useMemo(() => {
-    const seenIds = getSeenStyleIds();
-    const available = BRAIDS_DB.filter(s => 
-      s.faceShapes.includes(faceShape) && !seenIds.includes(s.id)
-    );
-    return [...available].sort(() => 0.5 - Math.random());
-  }, [faceShape, refreshTrigger]);
+  // --- LOGIQUE DE FILTRAGE ET PAGINATION ---
+  const filteredStyles = useMemo(() => {
+    return BRAIDS_DB.filter(s => s.faceShapes.includes(faceShape));
+  }, [faceShape]);
 
-  const currentResults = allResults.slice(0, PAGE_SIZE);
+  const totalPages = Math.ceil(filteredStyles.length / PAGE_SIZE);
+  const currentStyles = filteredStyles.slice(currentPage * PAGE_SIZE, (currentPage * PAGE_SIZE) + PAGE_SIZE);
 
-  const handleGetNewStyles = useCallback(() => {
-    if (credits < 1) {
+  // --- NOTIFICATIONS AVEC SCROLL ---
+  const showNotif = (msg) => {
+    setNotification(msg);
+    setTimeout(() => {
+      notifRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+    setTimeout(() => setNotification(""), 3000);
+  };
+
+  // --- GESTION DES CRÉDITS (AFFICHAGE) ---
+  useEffect(() => {
+    if (currentPage > 0) {
+      if (credits < 1) {
+        navigate("/credits");
+      } else {
+        consumeCredits(1);
+        setCredits(getCredits());
+        showNotif("1 crédit utilisé pour de nouveaux styles");
+      }
+    }
+  }, [currentPage]);
+
+  // --- SAUVEGARDE / TÉLÉCHARGEMENT ---
+  const handleSave = (style) => {
+    if (credits < 1 && saveCount === 0) {
       navigate("/credits");
       return;
     }
-    if (allResults.length <= PAGE_SIZE) {
-        setErrorMsg("Tu as exploré tous les styles disponibles pour ton visage !");
-        return;
-    }
-    consumeCredits(1);
-    setCredits(getCredits());
-    setErrorMsg("");
-    currentResults.forEach(style => addSeenStyleId(style.id));
-    setRefreshTrigger(prev => prev + 1);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [credits, navigate, allResults.length, currentResults]);
-
-  const handleSave = (imageUrl) => {
-    if (credits < 1 && saveCount === 0) { navigate("/credits"); return; }
+    
     const link = document.createElement("a");
-    link.href = imageUrl;
-    link.download = "afrotresse-" + Date.now() + ".jpg";
+    link.href = `/styles/${style.views?.face || style.image}`;
+    link.download = `afrotresse-${style.id}.jpg`;
     link.click();
-    const next = saveCount + 1;
-    if (next >= 3) { consumeCredits(1); setCredits(getCredits()); setSaveCount(0); }
-    else setSaveCount(next);
-  };
 
-  const handleTryStyle = async (style) => {
-    if (!canTransform()) { navigate("/credits"); return; }
-    setErrorMsg("");
-    setResultImage(null);
-    setLoadingId(style.id);
-    try {
-      const blob = await fetch(selfieUrl).then(r => r.blob());
-      const fileName = `selfie-${Date.now()}.jpg`;
-      const { error: upError } = await supabase.storage.from('selfies').upload(fileName, blob);
-      if (upError) throw new Error("Échec de l'upload du selfie.");
-      
-      const { data: { publicUrl } } = supabase.storage.from('selfies').getPublicUrl(fileName);
-      
-      const res = await fetch("/api/falGenerate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          selfieUrl: publicUrl, 
-          stylePath: "/styles/" + (style.localImage || style.image) 
-        }),
-      });
-      
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "La génération a échoué.");
-      
-      consumeTransform();
-      addSeenStyleId(style.id);
+    const nextCount = saveCount + 1;
+    if (nextCount >= 3) {
+      consumeCredits(1);
       setCredits(getCredits());
-      setResultImage(data.imageUrl);
-      setResultMsg(RESULT_MSGS[Math.floor(Math.random() * RESULT_MSGS.length)]);
-      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth" }), 400);
-    } catch (err) {
-      setErrorMsg(err.message);
-    } finally { setLoadingId(null); }
+      setSaveCount(0);
+      showNotif("3 images sauvegardées : 1 crédit utilisé");
+    } else {
+      setSaveCount(nextCount);
+      showNotif(`Image sauvegardée (${nextCount}/3)`);
+    }
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#2C1A0E] text-[#FAF4EC] p-4 sm:p-6 pb-40 overflow-x-hidden relative">
+    <div className="min-h-screen bg-[#2C1A0E] text-[#FAF4EC] p-4 pb-32">
       
-      {/* BOUTON GÉNÉRER NOUVEAUX STYLES */}
-      <div className="fixed top-24 left-0 right-0 z-[60] flex justify-center pointer-events-none">
-        <motion.button 
-          initial={{ y: -50, opacity: 0 }} 
-          animate={{ y: 0, opacity: 1 }}
-          onClick={handleGetNewStyles}
-          className="pointer-events-auto flex items-center gap-3 px-5 py-2.5 rounded-full border border-[#C9963A]/50 bg-[#2C1A0E]/90 backdrop-blur-xl shadow-[0_15px_40px_rgba(0,0,0,0.6)] active:scale-95 transition-all"
-        >
-          <span className="text-base">✨</span>
-          <div className="flex flex-col items-start leading-none">
-            <span className="text-[10px] font-black text-[#C9963A] uppercase tracking-widest">3 autres styles</span>
-            <span className="text-[8px] opacity-60 font-bold mt-1">1 crédit</span>
-          </div>
-          <div className="bg-[#C9963A] text-[#2C1A0E] text-[9px] font-black h-5 w-5 flex items-center justify-center rounded-full ml-1">-1</div>
-        </motion.button>
+      {/* 1. RÉSULTAT DE L'ANALYSE */}
+      <header className="mb-8 p-6 bg-white/5 rounded-[2rem] border border-white/10 shadow-xl">
+        <h1 className="text-[#C9963A] font-bold text-xl mb-1">Analyse terminée</h1>
+        <p className="text-sm opacity-80">
+          Forme de visage détectée : <span className="font-bold text-[#E8B96A]">{FACE_SHAPE_NAMES[faceShape]}</span>
+        </p>
+      </header>
+
+      {/* NOTIFICATION INTELLIGENTE */}
+      <div ref={notifRef}>
+        <AnimatePresence>
+          {notification && (
+            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              className="mb-4 p-3 bg-[#C9963A] text-[#2C1A0E] rounded-xl text-center font-bold text-sm shadow-lg">
+              {notification}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* HEADER */}
-      <div className="mb-10 flex flex-row gap-5 items-center bg-white/5 p-5 rounded-[2.5rem] border border-white/10 shadow-2xl relative">
-        <div className="relative shrink-0">
-          <img src={selfieUrl} className="w-20 h-20 rounded-2xl border-2 border-[#C9963A] object-cover" alt="Moi" />
-          <div className="absolute -bottom-2 -right-2 bg-[#C9963A] text-[#2C1A0E] text-[10px] font-black px-2 py-1 rounded-md shadow-lg">MOI</div>
-        </div>
-        <div className="flex flex-col flex-1">
-          <h1 className="font-display font-bold text-2xl text-[#C9963A]">Résultats pour <span className="text-[#FAF4EC]">{userName}</span></h1>
-          <p className="text-[10px] opacity-70 italic leading-tight">{FACE_SHAPE_TEXTS[faceShape]}</p>
-        </div>
-      </div>
-
-      {errorMsg && (
-        <div className="mb-4 bg-red-900/30 border border-red-500/50 rounded-xl p-3 text-red-200 text-sm">{errorMsg}</div>
-      )}
-
-      {/* RÉSULTAT IA */}
-      <AnimatePresence>
-        {resultImage && (
-          <motion.div ref={resultRef} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
-            className="mb-8 bg-[#3D2616] rounded-[2.5rem] overflow-hidden border-2 border-[#C9963A] shadow-2xl">
-            <div className="p-5">
-              <h3 className="text-[#C9963A] font-bold text-xl">{resultMsg}</h3>
-              <p className="text-[11px] mt-1 opacity-70 font-body">Sublime ! Partage ce style avec ta coiffeuse.</p>
-            </div>
-            <img src={resultImage} alt="Résultat" className="w-full object-cover"/>
-            <div className="p-5 space-y-2">
-              <button onClick={() => addShare("Style AfroTresse", resultImage)} className="w-full py-4 rounded-2xl font-bold bg-gradient-to-r from-[#C9963A] to-[#E8B96A] text-[#2C1A0E]">Envoyer à ma coiffeuse</button>
-              <button onClick={() => setResultImage(null)} className="w-full py-3 rounded-2xl text-sm font-semibold bg-white/10">Fermer</button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* LISTE DES STYLES */}
-      <div className="space-y-12">
-        {currentResults.map((style) => (
-          <div key={style.id} className="bg-[#3D2616] rounded-[2.5rem] overflow-hidden border border-[#C9963A]/20 shadow-2xl relative">
-            <div className="grid grid-cols-3 gap-0.5 h-72 bg-black/40">
-              <div className="col-span-2 h-full overflow-hidden">
-                <img 
-                  src={style.views?.face || "/styles/" + (style.localImage || style.image)} 
-                  className="w-full h-full object-cover object-top cursor-pointer" 
-                  onClick={() => setZoomImage(style.views?.face || "/styles/" + (style.localImage || style.image))} 
-                  alt={style.name} 
-                />
-              </div>
-              <div className="col-span-1 grid grid-rows-2 gap-0.5">
-                <img 
-                  src={style.views?.back || "/styles/" + (style.localImage || style.image)} 
-                  className="w-full h-full object-cover cursor-pointer" 
-                  onClick={() => setZoomImage(style.views?.back || "/styles/" + (style.localImage || style.image))} 
-                />
-                <img 
-                  src={style.views?.top || "/styles/" + (style.localImage || style.image)} 
-                  className="w-full h-full object-cover cursor-pointer" 
-                  onClick={() => setZoomImage(style.views?.top || "/styles/" + (style.localImage || style.image))} 
-                />
+      {/* 2. GRILLE DE RECOMMANDATIONS */}
+      <div className="grid gap-8">
+        {currentStyles.map((style) => (
+          <motion.div key={style.id} layout
+            className="bg-[#3D2616] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
+            <div className="grid grid-cols-3 gap-1 h-64 bg-black/20 cursor-pointer" onClick={() => setZoomStyle(style)}>
+              <img src={`/styles/${style.views?.face}`} className="col-span-2 w-full h-full object-cover" alt={style.name} />
+              <div className="grid grid-rows-2 gap-1">
+                <img src={`/styles/${style.views?.back}`} className="w-full h-full object-cover" />
+                <img src={`/styles/${style.views?.top}`} className="w-full h-full object-cover" />
               </div>
             </div>
             <div className="p-6">
-              <div className="flex justify-between items-start mb-3">
-                <h3 className="font-display font-bold text-xl leading-none">{style.name}</h3>
-                <span className="text-[10px] bg-[#C9963A] text-[#2C1A0E] px-2.5 py-1 rounded-md font-black uppercase">{style.duration}</span>
-              </div>
-              <p className="text-[11px] opacity-70 mb-6 font-body leading-relaxed">{style.description}</p>
-              <button onClick={() => handleTryStyle(style)} disabled={loadingId === style.id} className="w-full py-4 rounded-2xl font-display font-bold text-base shadow-xl bg-gradient-to-r from-[#C9963A] to-[#E8B96A] text-[#2C1A0E] disabled:opacity-50">
-                {loadingId === style.id ? "Génération... ⏳" : "Essayer virtuellement ✨"}
+              <h3 className="text-xl font-bold text-[#E8B96A] mb-2">{style.name}</h3>
+              <p className="text-xs opacity-70 line-clamp-2 mb-4">{style.description}</p>
+              <button onClick={() => setZoomStyle(style)} className="w-full py-4 bg-white/5 border border-[#C9963A]/30 rounded-2xl font-bold text-sm">
+                Voir les détails
               </button>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
-      {/* BOUTON CRÉDITS FLOTTANT */}
-      <motion.div onClick={() => navigate("/credits")} className="fixed bottom-28 right-5 z-40 bg-[#C9963A] text-[#2C1A0E] w-14 h-14 rounded-2xl flex flex-col items-center justify-center shadow-2xl border-2 border-[#2C1A0E]/20 active:scale-95 transition-all">
-        <div className="text-[7px] font-black uppercase opacity-60">Solde</div>
-        <div className="text-3xl font-display font-black leading-none">{credits}</div>
-        <div className="text-[7px] font-bold tracking-tight">CRÉDITS</div>
-      </motion.div>
+      {/* 3. PAGINATION */}
+      <div className="flex justify-between items-center mt-10 px-2">
+        <button disabled={currentPage === 0} onClick={() => setCurrentPage(prev => prev - 1)}
+          className="px-6 py-3 bg-white/5 rounded-xl disabled:opacity-30 font-bold"> Précédent </button>
+        <span className="text-xs font-bold opacity-50">Page {currentPage + 1} / {totalPages}</span>
+        <button disabled={currentPage >= totalPages - 1} onClick={() => setCurrentPage(prev => prev + 1)}
+          className="px-6 py-3 bg-[#C9963A] text-[#2C1A0E] rounded-xl disabled:opacity-30 font-bold"> Suivant </button>
+      </div>
 
-      {/* LIGHTBOX ZOOM */}
+      {/* 4. BOUTON FLOTTANT CRÉDITS */}
+      <div onClick={() => navigate("/credits")} 
+        className="fixed bottom-24 right-5 bg-[#C9963A] text-[#2C1A0E] p-4 rounded-2xl shadow-2xl border-2 border-[#2C1A0E] flex flex-col items-center">
+        <span className="text-[10px] font-black leading-none">CRÉDITS</span>
+        <span className="text-2xl font-black">{credits}</span>
+      </div>
+
+      {/* 5. VUE ZOOM ET ESSAI VIRTUEL */}
       <AnimatePresence>
-        {zoomImage && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/98 flex flex-col items-center justify-center p-6 backdrop-blur-xl" onClick={() => setZoomImage(null)}>
-            <motion.img initial={{ scale: 0.9 }} animate={{ scale: 1 }} src={zoomImage} className="max-w-full max-h-[70vh] rounded-3xl shadow-2xl border border-white/10 object-contain" />
-            <div className="mt-10 flex gap-4 w-full max-w-xs">
-              <button onClick={(e) => { e.stopPropagation(); handleSave(zoomImage); }} className="flex-1 py-4 bg-[#C9963A] text-[#2C1A0E] rounded-2xl font-black shadow-xl">📥 Sauvegarder</button>
-              <button onClick={() => setZoomImage(null)} className="px-8 py-4 bg-white/10 text-white rounded-2xl font-bold backdrop-blur-md">✕</button>
+        {zoomStyle && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-[#2C1A0E] flex flex-col p-6 overflow-y-auto">
+            
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-[#C9963A]">{zoomStyle.name}</h2>
+              <button onClick={() => setZoomStyle(null)} className="p-3 bg-white/10 rounded-full text-xl">✕</button>
+            </div>
+
+            {/* Aperçu Essai Virtuel Rapide */}
+            <div className="relative aspect-[3/4] w-full rounded-[3rem] overflow-hidden border-2 border-[#C9963A] mb-6 shadow-2xl">
+              <img src={selfieUrl} className="absolute inset-0 w-full h-full object-cover grayscale-[30%]" />
+              <img src={`/styles/${zoomStyle.views?.face}`} className="absolute inset-0 w-full h-full object-contain mix-blend-multiply opacity-80 scale-110 translate-y-[-5%]" />
+              <div className="absolute bottom-4 left-0 right-0 text-center text-[10px] bg-black/40 backdrop-blur-md py-2 uppercase tracking-widest font-bold">
+                Simulation visuelle
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <button onClick={() => navigate(`/try-on?id=${zoomStyle.id}`)}
+                className="w-full py-5 bg-gradient-to-r from-[#C9963A] to-[#E8B96A] text-[#2C1A0E] rounded-2xl font-black shadow-xl">
+                Essayer virtuellement ✨
+              </button>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={() => handleSave(zoomStyle)} className="py-4 bg-white/10 rounded-2xl text-sm font-bold border border-white/10">Sauvegarder 📥</button>
+                <button className="py-4 bg-white/10 rounded-2xl text-sm font-bold border border-white/10">Partager 🤳</button>
+              </div>
+              
+              <button onClick={() => setZoomStyle(null)} className="w-full py-4 text-sm opacity-50">Fermer</button>
             </div>
           </motion.div>
         )}
