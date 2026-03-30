@@ -144,6 +144,7 @@ export default function Camera() {
                 type="file"
                 accept="image/*"
                 className="hidden"
+                onClick={e => { e.target.value = "" }}
                 onChange={handleFileUpload}
               />
             </div>
