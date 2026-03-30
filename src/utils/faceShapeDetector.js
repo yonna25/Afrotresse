@@ -35,28 +35,24 @@ export function detectFaceShape(landmarks) {
     // Déterminer la forme basée sur les ratios
     let shape = 'oval' // Fallback
 
-    if (heightWidthRatio > 1.4) {
+    if (heightWidthRatio > 1.35) {
       // Visage très allongé
       shape = 'long'
-    } else if (jawFaceRatio < 0.7) {
-      // Mâchoire fine comparée au visage
-      if (heightWidthRatio < 0.85) {
-        shape = 'round'
-      } else {
-        shape = 'heart'
-      }
+    } else if (heightWidthRatio < 1.05) {
+      // Visage court/large → rond
+      shape = 'round'
+    } else if (jawFaceRatio < 0.75) {
+      // Mâchoire fine → cœur
+      shape = 'heart'
     } else if (jawFaceRatio > 0.9) {
-      // Mâchoire proéminente (carrée ou diamant)
+      // Mâchoire proéminente → carré ou diamant
       if (cheekWidth > faceWidth * 0.6) {
         shape = 'diamond'
       } else {
         shape = 'square'
       }
-    } else if (heightWidthRatio < 0.9) {
-      // Visage plus rond
-      shape = 'round'
-    } else if (heightWidthRatio < 1.05) {
-      // Bien équilibré
+    } else if (heightWidthRatio < 1.2) {
+      // Bien équilibré → ovale
       shape = 'oval'
     } else {
       // Allongé mais pas extrême
