@@ -2,18 +2,11 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 
-// Import des pages
+// Import des pages ESSENTIELLES
 import Home from './pages/Home.jsx'
 import Camera from './pages/Camera.jsx'
 import Analyze from './pages/Analyze.jsx'
 import Results from './pages/Results.jsx'
-import Library from './pages/Library.jsx'
-import Profile from './pages/Profile.jsx'
-import Credits from './pages/Credits.jsx'
-import PrivacyPolicy from './pages/PrivacyPolicy.jsx'
-import TermsOfService from './pages/TermsOfService.jsx'
-import CookiePolicy from './pages/CookiePolicy.jsx'
-import MagicLink from './pages/MagicLink.jsx'
 
 // Import de la navigation
 import BottomNav from './components/BottomNav.jsx'
@@ -45,7 +38,7 @@ function WelcomePopup({ onDone }) {
         style={{ background: '#2C1A0E', border: '1px solid rgba(201,150,58,0.3)', maxHeight: '90vh' }}
       >
         <div className="flex justify-center mb-4">
-          <img src="/logo.png" alt="AfroTresse" className="h-28 w-auto object-contain" />
+          <img src="/logo.png" alt="AfroTresse" className="h-28 w-auto object-contain" onError={(e) => e.target.style.display = 'none'} />
         </div>
         
         <h2 className="font-bold text-center mb-2 text-3xl" style={{ color: '#FAF4EC' }}>
@@ -85,7 +78,7 @@ function AnimatedRoutes() {
   const location = useLocation()
   
   // Routes où la BottomNav doit être CACHÉE
-  const hideNav = ['/camera', '/analyze', '/credits', '/privacy-policy', '/terms-of-service', '/cookie-policy', '/magic-link'].includes(location.pathname)
+  const hideNav = ['/camera', '/analyze'].includes(location.pathname)
 
   return (
     <>
@@ -95,13 +88,6 @@ function AnimatedRoutes() {
           <Route path="/camera" element={<Camera />} />
           <Route path="/analyze" element={<Analyze />} />
           <Route path="/results" element={<Results />} />
-          <Route path="/library" element={<Library />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/credits" element={<Credits />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/terms-of-service" element={<TermsOfService />} />
-          <Route path="/cookie-policy" element={<CookiePolicy />} />
-          <Route path="/magic-link" element={<MagicLink />} />
         </Routes>
       </AnimatePresence>
       
