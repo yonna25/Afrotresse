@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from 'react'
+
 export default function Results() {
   return (
     <div className="min-h-screen bg-[#2C1A0E] text-[#FAF4EC] flex items-center justify-center">
