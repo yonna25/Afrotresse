@@ -98,7 +98,7 @@ export async function analyzeFaceWithAI(photoBlob, timeoutMs = 15000) {
             faceMesh.close();
             reject(
               new Error(
-                `Timeout: MediaPipe n'a pas détecté de visage après ${timeoutMs}ms`
+                `Timeout: MediaPipe n'a pas d\u00e9tect\u00e9 de visage apr\u00e8s ${timeoutMs}ms`
               )
             );
           }, timeoutMs);
@@ -111,15 +111,23 @@ export async function analyzeFaceWithAI(photoBlob, timeoutMs = 15000) {
         reject(new Error("Impossible de charger l'image"));
       };
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        img.src = e.target.result;
-      };
-      reader.onerror = () => {
-        reject(new Error('Erreur lecture du fichier'));
-      };
+      // ✅ FIX : photoBlob peut être une string base64 (depuis sessionStorage)
+      // ou un vrai Blob/File (depuis un upload direct)
+      if (typeof photoBlob === 'string' && photoBlob.startsWith('data:')) {
+        // Déjà une data URL — utiliser directement
+        img.src = photoBlob;
+      } else {
+        // C'est un Blob ou File — convertir via FileReader
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          img.src = e.target.result;
+        };
+        reader.onerror = () => {
+          reject(new Error('Erreur lecture du fichier'));
+        };
+        reader.readAsDataURL(photoBlob);
+      }
 
-      reader.readAsDataURL(photoBlob);
     } catch (err) {
       reject(new Error(`Erreur: ${err.message}`));
     }
