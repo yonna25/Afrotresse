@@ -51,7 +51,7 @@ export default function Results() {
         const parsed = JSON.parse(raw);
         setFaceShape(parsed.faceShape || 'oval');
         setFaceShapeName(parsed.faceShapeName || '');
-        const recs = parsed.recommendations || [];
+        const recs = (parsed.recommendations || []).slice(0, 3);
         setStyles(recs);
       } catch (e) {
         console.error('Error parsing results:', e);
