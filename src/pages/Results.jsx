@@ -15,17 +15,16 @@ const FACE_SHAPE_TEXTS = {
 
 const WAITING_MSGS = [
   "Pr\u00e9paration de ton nouveau look... \u2728",
-  "On ajuste la tresse \u00e0 ton visage... \ud83d\udc51",
-  "Presque l\u00e0... Pr\u00e9pare-toi \u00e0 briller ! \ud83d\ude0d",
+  "On ajuste la tresse \u00e0 ton visage... \uD83D\uDC51",
+  "Presque l\u00e0... Pr\u00e9pare-toi \u00e0 briller !",
 ];
 
 const RESULT_MSGS = [
-  "Waouh \ud83d\ude0d, tu es splendide !",
+  "Waouh, tu es splendide !",
   "Regarde cette Reine ! \u2728",
-  "Le style parfait pour toi. \ud83d\udc51",
+  "Le style parfait pour toi.",
 ];
 
-// --- COMPOSANT SPARKLE ---
 const SparkleEffect = ({ active }) => (
   <AnimatePresence>
     {active && [...Array(6)].map((_, i) => (
@@ -102,7 +101,7 @@ export default function Results() {
       const selfieBase64 = selfieUrl?.split(',')[1] || null;
       const selfieType = selfieUrl?.match(/:(.*?);/)?.[1] || 'image/jpeg';
       const styleKey = style.id?.replace(/-/g, '') || style.id;
-      const refImage = `${window.location.origin}/styles/${styleKey}-top.jpg`;
+      const refImage = window.location.origin + '/styles/' + styleKey + '-top.jpg';
 
       const res = await fetch('/api/falGenerate', {
         method: 'POST',
@@ -153,7 +152,7 @@ export default function Results() {
       setPage(0);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      alert("Tu as explor\u00e9 tous les styles pour le moment ! \u2728");
+      alert("Tu as explor\u00e9 tous les styles disponibles ! \u2728");
     }
   };
 
@@ -174,14 +173,14 @@ export default function Results() {
     return (
       <div className="min-h-screen bg-[#2C1A0E] flex items-center justify-center">
         <div className="text-center px-6">
-          <p className="text-4xl mb-4">\ud83d\udc86\ud83c\udffe\u200d\u2640\ufe0f</p>
-          <p className="text-white text-xl font-bold mb-2">Quelle tresse aujourd\u2019hui ?</p>
-          <p className="text-gray-400 text-sm mb-6">Prends un selfie pour d\u00e9couvrir les styles qui te conviennent.</p>
+          <p className="text-4xl mb-4">{"💆🏾‍♀️"}</p>
+          <p className="text-white text-xl font-bold mb-2">{"Quelle tresse aujourd\u2019hui ?"}</p>
+          <p className="text-gray-400 text-sm mb-6">{"Prends un selfie pour d\u00e9couvrir les styles qui te conviennent."}</p>
           <button
             onClick={() => navigate('/')}
             className="px-6 py-3 rounded-full font-bold text-sm text-[#2C1A0E]"
             style={{ background: 'linear-gradient(135deg, #C9963A, #E8B96A)' }}>
-            D\u00e9couvrir ma tresse parfaite
+            {"D\u00e9couvrir ma tresse parfaite"}
           </button>
         </div>
       </div>
@@ -211,8 +210,8 @@ export default function Results() {
         </div>
         <div className="flex flex-col flex-1">
           <h1 className="font-bold text-3xl text-[#C9963A]">
-            Tes r\u00e9sultats<br/>
-            <span className="text-[#FAF4EC]">{userName} \u2728</span>
+            {"Tes r\u00e9sultats"}<br/>
+            <span className="text-[#FAF4EC]">{userName} {"\u2728"}</span>
           </h1>
           <p className="text-[11px] opacity-80 font-body leading-tight mt-1 max-w-xs">{faceText}</p>
         </div>
@@ -224,7 +223,7 @@ export default function Results() {
           <motion.div
             initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
             className="mb-4 bg-red-900/30 border border-red-500/50 rounded-xl p-3">
-            <p className="text-red-200 text-sm">\ud83d\udcf7 {errorMsg}</p>
+            <p className="text-red-200 text-sm">{errorMsg}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -239,15 +238,15 @@ export default function Results() {
             style={{ boxShadow: '0 0 40px rgba(201,150,58,0.2)' }}>
             <div className="px-5 pt-5 pb-3">
               <h3 className="text-[#C9963A] font-bold text-xl">{resultMsg || "Magnifique !"}</h3>
-              <p className="text-[11px] mt-1 opacity-70">Ce style te met vraiment en valeur. Montre-le \u00e0 ta coiffeuse !</p>
+              <p className="text-[11px] mt-1 opacity-70">{"Ce style te met vraiment en valeur. Montre-le \u00e0 ta coiffeuse !"}</p>
             </div>
-            <img src={resultImage} alt="R\u00e9sultat" className="w-full object-cover"/>
+            <img src={resultImage} alt="Resultat" className="w-full object-cover"/>
             <div className="p-5 space-y-2">
               <button
                 onClick={() => handleShare("Regarde le style que j\u2019ai choisi avec AfroTresse !", resultImage)}
                 className="w-full py-4 rounded-2xl font-bold text-base shadow-xl text-[#2C1A0E]"
                 style={{ background: 'linear-gradient(135deg, #C9963A, #E8B96A)' }}>
-                Envoyer \u00e0 ma coiffeuse
+                {"Envoyer \u00e0 ma coiffeuse"}
               </button>
               <button
                 onClick={() => setResultImage(null)}
@@ -259,7 +258,7 @@ export default function Results() {
         )}
       </AnimatePresence>
 
-      {/* STYLES PAGINÉS */}
+      {/* STYLES PAGINES */}
       {(() => {
         const PAGE_SIZE = 3;
         const totalPages = Math.ceil(styles.length / PAGE_SIZE);
@@ -270,9 +269,9 @@ export default function Results() {
               {paged.map((style, index) => {
                 const globalIndex = page * PAGE_SIZE + index;
                 const styleKey = style.id?.replace(/-/g, '') || style.id;
-                const faceImg = style.views?.face || `/styles/${styleKey}-face.jpg`;
-                const backImg = style.views?.back || `/styles/${styleKey}-back.jpg`;
-                const topImg  = style.views?.top  || `/styles/${styleKey}-top.jpg`;
+                const faceImg = style.views?.face || '/styles/' + styleKey + '-face.jpg';
+                const backImg = style.views?.back || '/styles/' + styleKey + '-back.jpg';
+                const topImg  = style.views?.top  || '/styles/' + styleKey + '-top.jpg';
                 const isLoading = loadingIdx === globalIndex;
 
                 return (
@@ -297,8 +296,8 @@ export default function Results() {
                     </div>
 
                     <div className="px-6 py-3 flex gap-5 text-[10px] font-black uppercase tracking-widest text-[#C9963A]/80 border-b border-white/5">
-                      <span>\ud83d\udc41\ufe0f 2.4K vues</span>
-                      <span>\u2764\ufe0f 892 likes</span>
+                      <span>2.4K vues</span>
+                      <span>892 likes</span>
                     </div>
 
                     <div className="p-6">
@@ -343,14 +342,14 @@ export default function Results() {
                   onClick={() => { setPage(p => p - 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                   disabled={page === 0}
                   className="px-5 py-3 rounded-2xl font-bold text-sm bg-white/10 text-white/70 border border-white/10 disabled:opacity-30 active:scale-95 transition-all">
-                  \u2190 Pr\u00e9c\u00e9dent
+                  {"← Pr\u00e9c\u00e9dent"}
                 </button>
                 <span className="text-[#C9963A] font-black text-sm">{page + 1} / {totalPages}</span>
                 <button
                   onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                   disabled={page >= totalPages - 1}
                   className="px-5 py-3 rounded-2xl font-bold text-sm bg-white/10 text-white/70 border border-white/10 disabled:opacity-30 active:scale-95 transition-all">
-                  Suivant \u2192
+                  {"Suivant \u2192"}
                 </button>
               </div>
             )}
@@ -361,17 +360,15 @@ export default function Results() {
       {/* FLOATING BUTTONS */}
       <div className="fixed bottom-28 right-5 z-40 flex flex-col items-center gap-3">
 
-        {/* CRÉDITS */}
         <motion.div
           initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
           onClick={() => navigate('/credits')}
           className="bg-[#C9963A] text-[#2C1A0E] w-14 h-14 rounded-2xl flex flex-col items-center justify-center shadow-2xl border-2 border-[#2C1A0E]/20 active:scale-95 transition-all cursor-pointer">
           <div className="text-[7px] font-black uppercase opacity-60">Solde</div>
           <div className="text-2xl font-black leading-none">{credits}</div>
-          <div className="text-[7px] font-bold tracking-tight">CR\u00c9DITS</div>
+          <div className="text-[7px] font-bold tracking-tight">{"CR\u00c9DITS"}</div>
         </motion.div>
 
-        {/* NOUVEAUX STYLES */}
         <div className="relative">
           <SparkleEffect active={isSparkling} />
           <motion.button
@@ -379,7 +376,7 @@ export default function Results() {
             onClick={handleGetNewStyles}
             className="w-14 h-14 rounded-full bg-[#3D2616] border-2 border-[#C9963A] shadow-[0_0_20px_rgba(201,150,58,0.3)] flex flex-col items-center justify-center text-[#C9963A] relative overflow-hidden">
             <motion.span animate={isSparkling ? { rotate: 360 } : {}} className="text-xl">
-              \u2728
+              {"\u2728"}
             </motion.span>
             <span className="text-[8px] font-black uppercase mt-0.5">Nouveaux</span>
             <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
@@ -406,19 +403,18 @@ export default function Results() {
                   e.stopPropagation();
                   const link = document.createElement('a');
                   link.href = zoomImage;
-                  link.download = `afrotresse-${Date.now()}.jpg`;
+                  link.download = 'afrotresse-' + Date.now() + '.jpg';
                   link.click();
                 }}
                 className="flex-1 py-4 bg-[#C9963A] text-[#2C1A0E] rounded-2xl font-black shadow-xl">
-                \ud83d\udce5 Sauvegarder
+                Sauvegarder
               </button>
               <button
                 onClick={() => setZoomImage(null)}
                 className="px-8 py-4 bg-white/10 text-white rounded-2xl font-bold backdrop-blur-md border border-white/10">
-                \u2715
+                X
               </button>
             </div>
-            <p className="text-[10px] text-white/40 mt-4 uppercase font-bold tracking-widest">3 saves = 1 cr\u00e9dit</p>
           </motion.div>
         )}
       </AnimatePresence>
