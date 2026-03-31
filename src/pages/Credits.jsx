@@ -1,23 +1,68 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { getCredits, addCredits, PRICING } from '../services/credits.js'
+
+// Charge le script FedaPay depuis le CDN
+function loadFedaPay() {
+  return new Promise((resolve, reject) => {
+    if (window.FedaPay) { resolve(window.FedaPay); return; }
+    const script = document.createElement('script')
+    script.src = 'https://cdn.fedapay.com/checkout.js?v=1.1.7'
+    script.onload = () => window.FedaPay ? resolve(window.FedaPay) : reject(new Error('FedaPay non disponible'))
+    script.onerror = () => reject(new Error('Impossible de charger FedaPay'))
+    document.head.appendChild(script)
+  })
+}
 
 export default function Credits() {
   const navigate = useNavigate()
   const [credits, setCredits] = useState(getCredits())
   const [selected, setSelected] = useState(null)
+  const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
 
-  const handleBuy = (pack) => {
-    // Simulation achat — à remplacer par ton vrai système de paiement
-    addCredits(pack.credits)
-    setCredits(getCredits())
-    setSuccess(true)
-    setTimeout(() => {
-      setSuccess(false)
-      navigate('/results')
-    }, 2000)
+  const userName = localStorage.getItem('afrotresse_user_name') || 'Reine'
+
+  const handleBuy = async () => {
+    const pack = PRICING.packs.find(p => p.id === selected)
+    if (!pack) return
+
+    setLoading(true)
+    setErrorMsg('')
+
+    try {
+      const FedaPay = await loadFedaPay()
+
+      FedaPay.init({
+        public_key: import.meta.env.VITE_FEDAPAY_PUBLIC_KEY,
+        transaction: {
+          amount: pack.price,
+          description: `AfroTresse — ${pack.label} (${pack.credits} crédits)`,
+        },
+        customer: {
+          firstname: userName,
+        },
+        environment: 'sandbox',
+        onComplete: (response) => {
+          setLoading(false)
+          if (response.reason === FedaPay.CHECKOUT_COMPLETED) {
+            addCredits(pack.credits)
+            setCredits(getCredits())
+            setSuccess(true)
+            setTimeout(() => navigate(-1), 2500)
+          } else {
+            setErrorMsg('Paiement annulé ou échoué. Réessaie.')
+          }
+        },
+      }).open()
+
+    } catch (err) {
+      setLoading(false)
+      setErrorMsg('Impossible de charger le paiement. Réessaie.')
+      console.error('FedaPay error:', err)
+    }
   }
 
   return (
@@ -78,32 +123,59 @@ export default function Credits() {
                 <p className="text-xs opacity-50">{PRICING.currency}</p>
               </div>
             </div>
+
+            {selected === pack.id && (
+              <div className="absolute top-4 right-4 w-5 h-5 rounded-full bg-[#C9963A] flex items-center justify-center">
+                <svg viewBox="0 0 24 24" className="w-3 h-3" fill="none" stroke="#1A0A00" strokeWidth="3">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+            )}
           </motion.div>
         ))}
       </div>
+
+      {/* Erreur */}
+      <AnimatePresence>
+        {errorMsg && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+            className="mx-6 mt-4 p-4 rounded-2xl bg-red-900/30 border border-red-500/50">
+            <p className="text-red-200 text-sm text-center">{errorMsg}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Bouton acheter */}
       <div className="px-6 mt-8">
         <motion.button
           whileTap={{ scale: 0.97 }}
-          onClick={() => {
-            const pack = PRICING.packs.find(p => p.id === selected)
-            if (pack) handleBuy(pack)
-          }}
-          disabled={!selected}
-          className="w-full py-5 rounded-2xl font-black text-lg disabled:opacity-30 transition-all text-[#1A0A00]"
+          onClick={handleBuy}
+          disabled={!selected || loading || success}
+          className="w-full py-5 rounded-2xl font-black text-lg disabled:opacity-30 transition-all text-[#1A0A00] flex items-center justify-center gap-2"
           style={{ background: 'linear-gradient(135deg, #C9963A, #E8B96A)' }}>
-          {success ? '✅ Crédits ajoutés !' : 'Acheter maintenant'}
+          {success
+            ? '✅ Crédits ajoutés !'
+            : loading
+            ? <><svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+              </svg> Chargement...</>
+            : 'Payer avec FedaPay 💳'}
         </motion.button>
       </div>
 
-      {/* Info crédits gratuits */}
+      {/* Info */}
       <div className="mx-6 mt-6 p-4 rounded-2xl bg-white/5 border border-white/5">
         <p className="text-xs opacity-50 text-center leading-relaxed">
           🎁 {PRICING.freeCredits} crédits offerts à l'inscription · 
           Parrainage : +{PRICING.referral.receiver} crédits · 
           Avis : +{PRICING.reviewBonus} crédits
         </p>
+      </div>
+
+      <div className="mx-6 mt-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+        <p className="text-xs opacity-50 text-center mb-2 uppercase tracking-widest">Paiements acceptés</p>
+        <p className="text-xs opacity-70 text-center">📱 Mobile Money · 💳 Carte bancaire · 🏦 Virement</p>
       </div>
 
     </div>
