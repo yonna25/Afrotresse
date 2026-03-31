@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { BRAIDS_DB, FACE_SHAPE_NAMES } from "../services/faceAnalysis.js";
-import { getCredits, consumeTransform, hasCredits, canTransform, addSeenStyleId, getSeenStyleIds, PRICING } from "../services/credits.js";
+import { getCredits, consumeTransform, consumeCredits, canTransform, hasCredits, addSeenStyleId, getSeenStyleIds, PRICING } from "../services/credits.js";
 
 const FACE_SHAPE_TEXTS = {
   oval:    "Ton visage est de forme Ovale. C'est une structure très équilibrée qui s'adapte à presque tous les styles.",
@@ -39,6 +39,7 @@ export default function Results() {
   const [waitingMsgIdx, setWaitingMsgIdx] = useState(0);
   const [zoomImage, setZoomImage] = useState(null);
   const [shownIds, setShownIds] = useState([]);
+  const [savesCount, setSavesCount] = useState(0);
   const resultRef = useRef(null);
   const errorRef = useRef(null);
   const waitingIntervalRef = useRef(null);
@@ -136,6 +137,52 @@ export default function Results() {
     } catch (e) {}
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HANDLE SAVE — Tracking des sauvegardes (3 = 1 crédit)
+  // ═══════════════════════════════════════════════════════════════════════════
+  const handleSave = () => {
+    const newCount = savesCount + 1;
+    setSavesCount(newCount);
+
+    // Tous les 3 saves, déduire 1 crédit
+    if (newCount % 3 === 0) {
+      const debited = consumeCredits(1);
+      if (debited) {
+        setCredits(getCredits());
+        setErrorMsg("✅ 3 sauvegardes = 1 crédit débité!");
+      } else {
+        setErrorMsg("❌ Pas assez de crédits pour sauvegarder.");
+      }
+    } else {
+      setErrorMsg(`💾 Sauvegarde ${newCount % 3}/3 avant déduction`);
+    }
+    setTimeout(() => errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HANDLE GENERATE MORE STYLES
+  // ═══════════════════════════════════════════════════════════════════════════
+  const handleGenerateMore = () => {
+    if (!hasCredits()) { 
+      navigate('/credits'); 
+      return; 
+    }
+
+    // Ajouter les styles affichés aux "vus"
+    const newShown = [...shownIds, ...displayedStyles.map(s => s.id)];
+    setShownIds(newShown);
+    
+    // Consommer 1 crédit
+    consumeCredits(1);
+    setCredits(getCredits());
+    
+    // Message de confirmation
+    setErrorMsg("✨ Nouveaux styles chargés!");
+    
+    // Scroll vers le haut
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const faceText = FACE_SHAPE_TEXTS[faceShape] || '';
 
   if (!styles.length) {
@@ -179,12 +226,12 @@ export default function Results() {
         </div>
       </motion.div>
 
-      {/* ERROR */}
+      {/* ERROR / MESSAGE */}
       <AnimatePresence>
         {errorMsg && (
           <motion.div ref={errorRef} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-            className="mb-4 bg-red-900/30 border border-red-500/50 rounded-xl p-3">
-            <p className="text-red-200 text-sm">📷 {errorMsg}</p>
+            className={`mb-4 border rounded-xl p-3 ${errorMsg.includes('✅') ? 'bg-green-900/30 border-green-500/50' : 'bg-red-900/30 border-red-500/50'}`}>
+            <p className={errorMsg.includes('✅') ? 'text-green-200 text-sm' : 'text-red-200 text-sm'}>{errorMsg}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -287,15 +334,9 @@ export default function Results() {
       {canGenerateMore && (
         <div className="mt-8 mb-4 px-2">
           <button
-            onClick={() => {
-              if (!canAnalyze()) { navigate('/credits'); return; }
-              const newShown = [...shownIds, ...displayedStyles.map(s => s.id)];
-              setShownIds(newShown);
-              consumeAnalysis();
-              setCredits(getCredits());
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className="w-full py-4 rounded-2xl font-bold text-base border-2 border-[#C9963A] text-[#C9963A] bg-transparent active:scale-[0.98] transition-all">
+            onClick={handleGenerateMore}
+            disabled={!hasCredits()}
+            className="w-full py-4 rounded-2xl font-bold text-base border-2 border-[#C9963A] text-[#C9963A] bg-transparent active:scale-[0.98] transition-all disabled:opacity-50">
             ✨ Générer 3 autres styles — 1 crédit
           </button>
         </div>
@@ -321,7 +362,14 @@ export default function Results() {
               className="max-w-full max-h-[70vh] rounded-3xl shadow-2xl border border-white/10 object-contain"
               onClick={e => e.stopPropagation()} alt="Zoom"/>
             <div className="mt-10 flex gap-4 w-full max-w-xs">
-              <button onClick={e => { e.stopPropagation(); const l = document.createElement('a'); l.href = zoomImage; l.download = `afrotresse-${Date.now()}.jpg`; l.click(); }}
+              <button onClick={e => { 
+                e.stopPropagation(); 
+                handleSave();
+                const l = document.createElement('a'); 
+                l.href = zoomImage; 
+                l.download = `afrotresse-${Date.now()}.jpg`; 
+                l.click(); 
+              }}
                 className="flex-1 py-4 bg-[#C9963A] text-[#2C1A0E] rounded-2xl font-black shadow-xl">
                 📥 Sauvegarder
               </button>
