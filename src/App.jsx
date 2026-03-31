@@ -9,6 +9,9 @@ import Analyze from './pages/Analyze.jsx'
 import Results from './pages/Results.jsx'
 import Profile from './pages/Profile.jsx'
 import Credits from './pages/Credits.jsx'
+import PrivacyPolicy from './pages/PrivacyPolicy.jsx'
+import TermsOfService from './pages/TermsOfService.jsx'
+import CookiePolicy from './pages/CookiePolicy.jsx'
 
 // Import de la navigation
 import BottomNav from './components/BottomNav.jsx'
@@ -92,6 +95,9 @@ function AnimatedRoutes() {
           <Route path="/results" element={<Results />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/credits" element={<Credits />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/cookie-policy" element={<CookiePolicy />} />
         </Routes>
       </AnimatePresence>
       
