@@ -8,6 +8,7 @@ import Camera from './pages/Camera.jsx'
 import Analyze from './pages/Analyze.jsx'
 import Results from './pages/Results.jsx'
 import Profile from './pages/Profile.jsx'
+import Credits from './pages/Credits.jsx'
 
 // Import de la navigation
 import BottomNav from './components/BottomNav.jsx'
@@ -90,6 +91,7 @@ function AnimatedRoutes() {
           <Route path="/analyze" element={<Analyze />} />
           <Route path="/results" element={<Results />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/credits" element={<Credits />} />
         </Routes>
       </AnimatePresence>
       
