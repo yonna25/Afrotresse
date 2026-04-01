@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getCredits, getTotalUsed, getSavedStyles } from "../services/credits.js";
 
@@ -13,14 +14,22 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState("styles");
 
   useEffect(() => {
-    setCredits(getCredits());
-    setAnalyses(getTotalUsed());
-    setFavoris(getSavedStyles().length);
+    // Charger les données au montage ET chaque fois qu'on revient sur la page
+    const loadData = () => {
+      setCredits(getCredits());
+      setAnalyses(getTotalUsed());
+      setFavoris(getSavedStyles().length);
+      const savedName = localStorage.getItem("afrotresse_user_name");
+      if (savedName) setUserName(savedName);
+      const photo = sessionStorage.getItem("afrotresse_photo");
+      if (photo) setSelfieUrl(photo);
+    };
 
-    const savedName = localStorage.getItem("afrotresse_user_name");
-    if (savedName) setUserName(savedName);
-    const photo = sessionStorage.getItem("afrotresse_photo");
-    if (photo) setSelfieUrl(photo);
+    loadData();
+
+    // Écouter les changements de focus (revenir de Results)
+    window.addEventListener("focus", loadData);
+    return () => window.removeEventListener("focus", loadData);
   }, []);
 
   return (
@@ -62,7 +71,7 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* ONGLETS */}
+      {/* ONGLETS — 3 tabs dont Résultats */}
       <div className="flex bg-[#2a1a14] rounded-2xl mt-10 p-1 w-full max-w-sm border border-white/5">
         <button
           onClick={() => setActiveTab("styles")}
@@ -89,13 +98,17 @@ export default function Profile() {
         {activeTab === "styles" ? (
           <div className="text-center px-10">
             <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 mx-auto border border-white/10 text-xl">🔖</div>
-            <p className="text-gray-300 font-medium text-sm">Aucun style enregistré</p>
+            <p className="text-gray-300 font-medium text-sm">
+              {favoris > 0 ? `${favoris} style(s) enregistré(s)` : "Aucun style enregistré"}
+            </p>
             <p className="text-[10px] text-gray-500 mt-2">Enregistre tes tresses préférées pour les retrouver ici.</p>
           </div>
         ) : (
           <div className="text-center px-10">
             <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 mx-auto border border-white/10 text-xl">📸</div>
-            <p className="text-gray-300 font-medium text-sm">Pas encore de transformations</p>
+            <p className="text-gray-300 font-medium text-sm">
+              {analyses > 0 ? `${analyses} analyse(s) effectuée(s)` : "Pas encore de transformations"}
+            </p>
             <p className="text-[10px] text-gray-500 mt-2 mb-6">Tes essayages virtuels avec l'IA apparaîtront ici.</p>
             <button
               onClick={() => navigate("/")}
@@ -110,14 +123,23 @@ export default function Profile() {
       {/* INFORMATIONS LÉGALES */}
       <div className="mt-auto pt-20 pb-4 flex flex-col items-center gap-2 opacity-30">
         <div className="flex gap-4 text-[9px] font-medium uppercase tracking-tighter">
-          <button onClick={() => navigate("/terms-of-service")}>CGU</button>
+          <button onClick={() => navigate("/mentions-legales")}>Mentions Légales</button>
           <span>•</span>
-          <button onClick={() => navigate("/privacy-policy")}>Confidentialité</button>
+          <button onClick={() => navigate("/cgu")}>CGU</button>
           <span>•</span>
-          <button onClick={() => navigate("/cookie-policy")}>Cookies</button>
+          <button onClick={() => navigate("/privacy")}>Confidentialité</button>
         </div>
         <p className="text-[8px]">© 2026 AfroTresse - Tous droits réservés</p>
       </div>
+
+      {/* BOUTON FLOTTANT 📸 — bottom-24 pour ne pas être masqué par la navbar */}
+      <motion.button
+        whileTap={{ scale: 0.85 }}
+        onClick={() => navigate("/")}
+        className="fixed bottom-24 bg-[#C9963A] text-[#1a0f0a] w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl text-2xl border-4 border-[#1a0f0a] z-50"
+      >
+        📸
+      </motion.button>
 
     </div>
   );
