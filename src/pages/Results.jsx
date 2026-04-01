@@ -316,7 +316,7 @@ export default function Results() {
                 </div>
                 <button
                   onClick={() => handleTransform(style, index)}
-                  disabled={isLoading || !hasCredits() || !canTransform()}
+                  disabled={isLoading}
                   className="w-full py-4 rounded-2xl font-bold text-base shadow-xl active:scale-[0.98] transition-all disabled:opacity-60 text-[#2C1A0E]"
                   style={{ background: 'linear-gradient(135deg, #C9963A, #E8B96A)' }}>
                   {isLoading ? (
@@ -369,11 +369,11 @@ export default function Results() {
 
       {/* ═══════════════════════════════════════════════════════════════════════════
           BOUTONS FLOTTANTS — Positionnés à droite en bas
-          Solde (haut) + Générer (bas)
+          ✅ Bouton Solde (haut) + Bouton Générer (bas) — IDENTIQUES en forme
           ═══════════════════════════════════════════════════════════════════════════ */}
       <div className="fixed bottom-8 right-5 z-40 flex flex-col items-center gap-4">
         
-        {/* BOUTON SOLDE (HAUT) */}
+        {/* BOUTON SOLDE (HAUT) — w-16 h-16 rounded-2xl */}
         <motion.div
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -384,7 +384,7 @@ export default function Results() {
           <div className="text-[7px] font-bold tracking-tight">CRÉDITS</div>
         </motion.div>
 
-        {/* BOUTON GÉNÉRER (BAS) — Sous le bouton Solde */}
+        {/* BOUTON GÉNÉRER (BAS) — MÊME TAILLE: w-16 h-16 rounded-2xl */}
         {canGenerateMore && (
           <motion.button
             initial={{ y: 100, opacity: 0 }}
@@ -392,14 +392,13 @@ export default function Results() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleGenerateMore}
-            disabled={!hasCredits()}
-            className="w-16 h-16 rounded-2xl flex flex-col items-center justify-center shadow-2xl relative border border-white/10 disabled:opacity-50"
+            className="w-16 h-16 rounded-2xl flex flex-col items-center justify-center shadow-2xl relative border border-white/10 active:scale-95 transition-all"
             style={{ background: 'linear-gradient(135deg, #C9963A, #E8B96A)' }}>
             <span className="text-[9px] font-black text-[#2C1A0E] mb-1 uppercase leading-none">Générer</span>
             <span className="text-xl">✨</span>
             {/* Badge "-1 crédit" */}
             <div className="absolute -top-2 -right-2 bg-[#2C1A0E] text-[#C9963A] text-[9px] px-2 py-1 rounded-full font-bold border border-[#C9963A] whitespace-nowrap">
-              -1 crédit
+              -1
             </div>
           </motion.button>
         )}
