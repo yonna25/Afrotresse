@@ -1,0 +1,137 @@
+import { useNavigate, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
+
+const LEGAL_CONTENT = {
+  "/mentions-legales": {
+    title: "Mentions Légales",
+    sections: [
+      {
+        heading: "Éditeur du site",
+        body: "AfroTresse est une application web éditée par une entreprise individuelle. Toute correspondance peut être adressée via le formulaire de contact disponible dans l'application.",
+      },
+      {
+        heading: "Hébergement",
+        body: "L'application est hébergée par Vercel Inc., 340 Pine Street, Suite 700, San Francisco, CA 94104, États-Unis.",
+      },
+      {
+        heading: "Propriété intellectuelle",
+        body: "L'ensemble des contenus présents sur AfroTresse (textes, images, logos, interface) sont protégés par le droit d'auteur. Toute reproduction sans autorisation est interdite.",
+      },
+      {
+        heading: "Responsabilité",
+        body: "AfroTresse met tout en œuvre pour fournir des informations exactes. Cependant, nous ne pouvons garantir l'exactitude, la complétude ou l'actualité des contenus générés par intelligence artificielle.",
+      },
+    ],
+  },
+  "/cgu": {
+    title: "Conditions Générales d'Utilisation",
+    sections: [
+      {
+        heading: "Objet",
+        body: "Les présentes CGU régissent l'utilisation de l'application AfroTresse, service de recommandation de coiffures par intelligence artificielle.",
+      },
+      {
+        heading: "Accès au service",
+        body: "L'accès à AfroTresse est conditionné à l'acceptation des présentes CGU. L'utilisateur doit être âgé d'au moins 13 ans pour utiliser le service.",
+      },
+      {
+        heading: "Crédits et paiements",
+        body: "Les crédits AfroTresse sont achetés définitivement et ne sont pas remboursables. Chaque transformation IA consomme des crédits selon le tarif affiché au moment de l'achat.",
+      },
+      {
+        heading: "Utilisation acceptable",
+        body: "Il est interdit d'utiliser AfroTresse à des fins illicites, de tenter de contourner le système de crédits, ou de reproduire les images générées à des fins commerciales sans autorisation.",
+      },
+      {
+        heading: "Modification des CGU",
+        body: "AfroTresse se réserve le droit de modifier les présentes CGU à tout moment. Les utilisateurs seront informés de toute modification substantielle.",
+      },
+    ],
+  },
+  "/privacy": {
+    title: "Politique de Confidentialité",
+    sections: [
+      {
+        heading: "Données collectées",
+        body: "AfroTresse collecte uniquement les données nécessaires au fonctionnement du service : photos de selfie (traitées en temps réel, non stockées), prénom choisi par l'utilisateur, et données d'utilisation anonymisées.",
+      },
+      {
+        heading: "Utilisation des photos",
+        body: "Tes selfies sont transmis à notre partenaire d'IA (fal.ai) uniquement pour générer la transformation. Ils ne sont ni stockés ni conservés au-delà du traitement immédiat.",
+      },
+      {
+        heading: "Stockage local",
+        body: "Tes préférences et crédits sont stockés localement sur ton appareil (localStorage/sessionStorage). AfroTresse n'a pas accès à ces données.",
+      },
+      {
+        heading: "Partage des données",
+        body: "Nous ne vendons ni ne partageons tes données personnelles avec des tiers à des fins publicitaires. Nos partenaires techniques (Vercel, fal.ai) sont soumis à leurs propres politiques de confidentialité.",
+      },
+      {
+        heading: "Tes droits",
+        body: "Conformément au RGPD, tu disposes d'un droit d'accès, de rectification et de suppression de tes données. Contacte-nous via l'application pour exercer ces droits.",
+      },
+    ],
+  },
+};
+
+export default function LegalPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const content = LEGAL_CONTENT[location.pathname];
+
+  if (!content) {
+    return (
+      <div className="min-h-screen bg-[#1a0f0a] flex items-center justify-center text-white">
+        <div className="text-center">
+          <p className="text-4xl mb-4">📄</p>
+          <p className="text-lg font-bold">Page introuvable</p>
+          <button onClick={() => navigate(-1)} className="mt-4 text-[#C9963A] text-sm underline">
+            Retour
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#1a0f0a] text-white px-5 py-8 pb-24">
+
+      {/* HEADER */}
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-[#C9963A] text-sm font-bold mb-6"
+        >
+          ← Retour
+        </button>
+        <h1 className="text-2xl font-black text-[#C9963A]">{content.title}</h1>
+        <p className="text-[10px] text-white/30 mt-1 uppercase tracking-widest">AfroTresse • 2026</p>
+      </motion.div>
+
+      {/* SECTIONS */}
+      <div className="flex flex-col gap-6">
+        {content.sections.map((section, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.07 }}
+            className="bg-white/5 border border-white/10 rounded-2xl p-5"
+          >
+            <h2 className="text-sm font-black text-[#C9963A] mb-2 uppercase tracking-wide">
+              {section.heading}
+            </h2>
+            <p className="text-[12px] text-white/70 leading-relaxed">{section.body}</p>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* FOOTER */}
+      <div className="mt-10 text-center text-[9px] text-white/20 uppercase tracking-widest">
+        © 2026 AfroTresse — Tous droits réservés
+      </div>
+
+    </div>
+  );
+}
