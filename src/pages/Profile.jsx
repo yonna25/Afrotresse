@@ -1,35 +1,22 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { getCredits, getTotalUsed, getSavedStyles } from "../services/credits.js";
+import { getCredits } from "../services/credits.js";
 
 export default function Profile() {
   const navigate = useNavigate();
 
   const [credits, setCredits] = useState(0);
-  const [analyses, setAnalyses] = useState(0);
-  const [favoris, setFavoris] = useState(0);
   const [userName, setUserName] = useState("Ma Reine");
   const [selfieUrl, setSelfieUrl] = useState(null);
   const [activeTab, setActiveTab] = useState("styles");
 
   useEffect(() => {
-    // Charger les données au montage ET chaque fois qu'on revient sur la page
-    const loadData = () => {
-      setCredits(getCredits());
-      setAnalyses(getTotalUsed());
-      setFavoris(getSavedStyles().length);
-      const savedName = localStorage.getItem("afrotresse_user_name");
-      if (savedName) setUserName(savedName);
-      const photo = sessionStorage.getItem("afrotresse_photo");
-      if (photo) setSelfieUrl(photo);
-    };
-
-    loadData();
-
-    // Écouter les changements de focus (revenir de Results)
-    window.addEventListener("focus", loadData);
-    return () => window.removeEventListener("focus", loadData);
+    setCredits(getCredits());
+    const savedName = localStorage.getItem("afrotresse_user_name");
+    if (savedName) setUserName(savedName);
+    const photo = sessionStorage.getItem("afrotresse_photo");
+    if (photo) setSelfieUrl(photo);
   }, []);
 
   return (
@@ -58,11 +45,11 @@ export default function Profile() {
       {/* STATS */}
       <div className="grid grid-cols-3 w-full max-w-sm mt-8 bg-white/5 border border-white/10 rounded-[2rem] p-5 text-center backdrop-blur-sm">
         <div>
-          <p className="text-xl font-black text-[#C9963A]">{analyses}</p>
+          <p className="text-xl font-black text-[#C9963A]">0</p>
           <p className="text-[9px] uppercase font-bold opacity-40">Analyses</p>
         </div>
         <div className="border-x border-white/10">
-          <p className="text-xl font-black text-[#C9963A]">{favoris}</p>
+          <p className="text-xl font-black text-[#C9963A]">0</p>
           <p className="text-[9px] uppercase font-bold opacity-40">Favoris</p>
         </div>
         <div>
@@ -98,17 +85,13 @@ export default function Profile() {
         {activeTab === "styles" ? (
           <div className="text-center px-10">
             <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 mx-auto border border-white/10 text-xl">🔖</div>
-            <p className="text-gray-300 font-medium text-sm">
-              {favoris > 0 ? `${favoris} style(s) enregistré(s)` : "Aucun style enregistré"}
-            </p>
+            <p className="text-gray-300 font-medium text-sm">Aucun style enregistré</p>
             <p className="text-[10px] text-gray-500 mt-2">Enregistre tes tresses préférées pour les retrouver ici.</p>
           </div>
         ) : (
           <div className="text-center px-10">
             <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 mx-auto border border-white/10 text-xl">📸</div>
-            <p className="text-gray-300 font-medium text-sm">
-              {analyses > 0 ? `${analyses} analyse(s) effectuée(s)` : "Pas encore de transformations"}
-            </p>
+            <p className="text-gray-300 font-medium text-sm">Pas encore de transformations</p>
             <p className="text-[10px] text-gray-500 mt-2 mb-6">Tes essayages virtuels avec l'IA apparaîtront ici.</p>
             <button
               onClick={() => navigate("/")}
