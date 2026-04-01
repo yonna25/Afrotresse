@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getCredits } from "../services/credits.js";
 
@@ -58,7 +57,7 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* ONGLETS — 3 tabs dont Résultats */}
+      {/* ONGLETS */}
       <div className="flex bg-[#2a1a14] rounded-2xl mt-10 p-1 w-full max-w-sm border border-white/5">
         <button
           onClick={() => setActiveTab("styles")}
@@ -106,23 +105,14 @@ export default function Profile() {
       {/* INFORMATIONS LÉGALES */}
       <div className="mt-auto pt-20 pb-4 flex flex-col items-center gap-2 opacity-30">
         <div className="flex gap-4 text-[9px] font-medium uppercase tracking-tighter">
-          <button onClick={() => navigate("/mentions-legales")}>Mentions Légales</button>
+          <button onClick={() => navigate("/terms-of-service")}>CGU</button>
           <span>•</span>
-          <button onClick={() => navigate("/cgu")}>CGU</button>
+          <button onClick={() => navigate("/privacy-policy")}>Confidentialité</button>
           <span>•</span>
-          <button onClick={() => navigate("/privacy")}>Confidentialité</button>
+          <button onClick={() => navigate("/cookie-policy")}>Cookies</button>
         </div>
         <p className="text-[8px]">© 2026 AfroTresse - Tous droits réservés</p>
       </div>
-
-      {/* BOUTON FLOTTANT 📸 — bottom-24 pour ne pas être masqué par la navbar */}
-      <motion.button
-        whileTap={{ scale: 0.85 }}
-        onClick={() => navigate("/")}
-        className="fixed bottom-24 bg-[#C9963A] text-[#1a0f0a] w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl text-2xl border-4 border-[#1a0f0a] z-50"
-      >
-        📸
-      </motion.button>
 
     </div>
   );
