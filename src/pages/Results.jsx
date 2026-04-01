@@ -67,7 +67,7 @@ export default function Results() {
       navigate('/credits');
       return; 
     }
-    // Logique de transformation FAL...
+    // Logique de transformation ici
   };
 
   const totalPages = Math.ceil(unlockedStyles.length / PAGE_SIZE);
@@ -80,14 +80,14 @@ export default function Results() {
       
       {/* HEADER */}
       <div className="mb-10 flex gap-5 items-center bg-white/5 p-5 rounded-[2.5rem] border border-white/10">
-        <img src={selfieUrl} className="w-20 h-20 rounded-2xl border-2 border-[#C9963A] object-cover" />
+        <img src={selfieUrl} className="w-20 h-20 rounded-2xl border-2 border-[#C9963A] object-cover" alt="Selfie" />
         <div>
           <h1 className="font-bold text-2xl text-[#C9963A]">{userName} ✨</h1>
           <p className="text-[11px] opacity-80">{FACE_SHAPE_TEXTS[faceShape]}</p>
         </div>
       </div>
 
-      {/* GRILLE D'IMAGES (TA STRUCTURE D'ORIGINE) */}
+      {/* LISTE DES STYLES */}
       <div className="flex flex-col gap-8">
         {currentBatch.map((style) => (
           <div key={style.id} className="bg-[#3D2616] rounded-[2.5rem] overflow-hidden border border-[#C9963A]/20">
@@ -96,10 +96,10 @@ export default function Results() {
                 
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <div className="col-span-2">
-                    <img src={style.views.face} className="w-full h-64 object-cover rounded-[2rem]" alt="Vue face" />
+                    <img src={style.views.face} className="w-full h-64 object-cover rounded-[2rem]" alt="Face" />
                   </div>
-                  <img src={style.views.back} className="w-full h-40 object-cover rounded-[1.5rem]" alt="Vue arrière" />
-                  <img src={style.views.top} className="w-full h-40 object-cover rounded-[1.5rem]" alt="Vue dessus" />
+                  <img src={style.views.back} className="w-full h-40 object-cover rounded-[1.5rem]" alt="Back" />
+                  <img src={style.views.top} className="w-full h-40 object-cover rounded-[1.5rem]" alt="Top" />
                 </div>
 
                 <button 
@@ -112,7 +112,7 @@ export default function Results() {
         ))}
       </div>
 
-      {/* PAGINATION CENTRALE (CONSERVÉE) */}
+      {/* PAGINATION CENTRALE */}
       <div className="mt-10 flex flex-col items-center gap-6">
         <div className="flex items-center gap-6">
           <button 
@@ -127,16 +127,15 @@ export default function Results() {
             onClick={() => setPage(p => p + 1)}
             className="p-4 bg-white/5 rounded-2xl disabled:opacity-20 text-[#C9963A]">→</button>
         </div>
-
         <button onClick={() => navigate('/')} className="text-xs opacity-40 underline mb-4">
           Refaire un scan complet
         </button>
       </div>
 
-      {/* ACTIONS FLOTTANTES À DROITE (EMPILÉES) */}
+      {/* ACTIONS FLOTTANTES À DROITE */}
       <div className="fixed bottom-8 right-5 flex flex-col items-center gap-4 z-50">
         
-        {/* SOLDE (EN HAUT) */}
+        {/* SOLDE (HAUT) */}
         <div 
           onClick={() => navigate('/credits')} 
           className="w-16 h-16 bg-[#2C1A0E] border-2 border-[#C9963A] text-[#FAF4EC] rounded-2xl flex flex-col items-center justify-center shadow-2xl cursor-pointer"
@@ -145,14 +144,14 @@ export default function Results() {
           <span className="font-black text-lg text-[#C9963A]">{credits}</span>
         </div>
 
-        {/* GÉNÉRER (EN BAS) */}
+        {/* GÉNÉRER (BAS) */}
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={handleUnlockMore}
           className="w-16 h-16 rounded-2xl flex flex-col items-center justify-center shadow-2xl relative border border-white/10"
           style={{ background: 'linear-gradient(135deg, #C9963A, #E8B96A)' }}
         >
-          <span className="text-[9px] font-black text-[#2C1A0E] mb-1 leading-none text-center uppercase">Générer</span>
+          <span className="text-[9px] font-black text-[#2C1A0E] mb-1 uppercase">Générer</span>
           <span className="text-xl">✨</span>
           <div className="absolute -top-1 -right-1 bg-[#2C1A0E] text-[#C9963A] text-[9px] px-1.5 py-0.5 rounded-full font-bold border border-[#C9963A]">
             -1
