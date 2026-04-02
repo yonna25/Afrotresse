@@ -224,23 +224,19 @@ export default function App() {
     }
   }, [])
 
-  // Popup félicitation — détecte le flag posé par Credits.jsx après paiement
+  // Popup félicitation — polling toutes les 500ms, fiable sur mobile
   useEffect(() => {
-    const checkCreditSuccess = () => {
+    const interval = setInterval(() => {
       const raw = sessionStorage.getItem('afrotresse_credit_success')
       if (raw) {
         try {
           const data = JSON.parse(raw)
-          sessionStorage.removeItem('afrotresse_credit_success') // consommé une seule fois
+          sessionStorage.removeItem('afrotresse_credit_success')
           setCreditSuccess(data)
         } catch (e) {}
       }
-    }
-
-    // Vérifie au montage et à chaque changement de focus (retour depuis Credits)
-    checkCreditSuccess()
-    window.addEventListener('focus', checkCreditSuccess)
-    return () => window.removeEventListener('focus', checkCreditSuccess)
+    }, 500)
+    return () => clearInterval(interval)
   }, [])
 
   return (
