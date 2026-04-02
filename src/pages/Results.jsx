@@ -158,7 +158,9 @@ export default function Results() {
 
   // ── Pagination ──────────────────────────────────────────────────────────
   const [currentPage, setCurrentPage] = useState(1);
-  // totalPages calculé dynamiquement selon le nb de styles
+  // unlockedPages grandit à chaque fois que l'utilisatrice génère de nouveaux styles
+  // Il n'est PAS limité par styles.length — la pagination est infinie tant qu'il y a des crédits
+  const [unlockedPages, setUnlockedPages] = useState(1);
 
   const resultRef = useRef(null);
   const errorRef = useRef(null);
@@ -200,23 +202,36 @@ export default function Results() {
   }, []);
 
   // ── Pagination helpers ──────────────────────────────────────────────────
-  const totalPages = Math.ceil(styles.length / STYLES_PER_PAGE);
-  const displayedStyles = styles.slice(
-    (currentPage - 1) * STYLES_PER_PAGE,
-    currentPage * STYLES_PER_PAGE
-  );
+  // Les styles affichés tournent en boucle sur les styles disponibles
+  const getPageStyles = (page) => {
+    const total = styles.length;
+    if (total === 0) return [];
+    const start = ((page - 1) * STYLES_PER_PAGE) % total;
+    const result = [];
+    for (let i = 0; i < STYLES_PER_PAGE; i++) {
+      result.push(styles[(start + i) % total]);
+    }
+    return result;
+  };
+
+  const displayedStyles = getPageStyles(currentPage);
 
   const goToPage = (page) => {
-    if (!hasCredits() && page > 1) {
+    setCurrentPage(page);
+    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  // Générer une nouvelle page de styles (coûte 1 crédit)
+  const handleGenerateMore = () => {
+    if (!hasCredits()) {
       navigate("/credits");
       return;
     }
-    // Consomme 1 crédit pour chaque nouvelle page (page > 1)
-    if (page > currentPage && page > 1) {
-      consumeCredits(1);
-      setCredits(getCredits());
-    }
-    setCurrentPage(page);
+    consumeCredits(1);
+    setCredits(getCredits());
+    const nextPage = unlockedPages + 1;
+    setUnlockedPages(nextPage);
+    setCurrentPage(nextPage);
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -463,20 +478,17 @@ export default function Results() {
         })}
       </div>
 
-      {/* ── PAGINATION ── visible seulement si plus de 3 styles ── */}
-      {totalPages > 1 && (
+      {/* ── PAGINATION ── visible dès qu'une page a été débloquée ── */}
+      {unlockedPages > 1 && (
         <motion.div
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
           className="mt-10 flex flex-col items-center gap-4"
         >
-          {/* Info page */}
           <p className="text-[11px] text-white/40 uppercase tracking-widest">
-            Page {currentPage} / {totalPages} · {styles.length} styles
+            Page {currentPage} / {unlockedPages}
           </p>
 
-          {/* Boutons de page */}
-          <div className="flex items-center gap-2">
-            {/* Précédent */}
+          <div className="flex items-center gap-2 flex-wrap justify-center">
             <button
               onClick={() => goToPage(currentPage - 1)}
               disabled={currentPage === 1}
@@ -487,8 +499,7 @@ export default function Results() {
               </svg>
             </button>
 
-            {/* Numéros de page */}
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            {Array.from({ length: unlockedPages }, (_, i) => i + 1).map((page) => (
               <button
                 key={page}
                 onClick={() => goToPage(page)}
@@ -503,10 +514,9 @@ export default function Results() {
               </button>
             ))}
 
-            {/* Suivant */}
             <button
               onClick={() => goToPage(currentPage + 1)}
-              disabled={currentPage === totalPages}
+              disabled={currentPage === unlockedPages}
               className="w-10 h-10 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center disabled:opacity-30 transition-all active:scale-95"
             >
               <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -515,12 +525,9 @@ export default function Results() {
             </button>
           </div>
 
-          {/* Badge coût si page > 1 */}
-          {currentPage < totalPages && (
-            <p className="text-[10px] text-[#C9963A]/60">
-              Page suivante = 1 crédit · Solde : {credits} crédits
-            </p>
-          )}
+          <p className="text-[10px] text-[#C9963A]/60">
+            Solde : {credits} crédit{credits > 1 ? "s" : ""}
+          </p>
         </motion.div>
       )}
 
@@ -584,24 +591,22 @@ export default function Results() {
           <div className="text-xl font-black leading-none">{credits}</div>
         </motion.div>
 
-        {/* BOUTON GÉNÉRER — page suivante si dispo */}
-        {currentPage < totalPages && (
-          <motion.button
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => goToPage(currentPage + 1)}
-            className="w-12 h-12 rounded-lg flex flex-col items-center justify-center shadow-lg relative border border-white/10 active:scale-95 transition-all"
-            style={{ background: "linear-gradient(135deg, #C9963A, #E8B96A)" }}
-          >
-            <span className="text-[6px] font-black text-[#2C1A0E] uppercase leading-none">Gen</span>
-            <span className="text-base">✨</span>
-            <div className="absolute -top-1 -right-1 bg-[#2C1A0E] text-[#C9963A] text-[7px] px-1 py-0 rounded-full font-bold border border-[#C9963A]">
-              -1
-            </div>
-          </motion.button>
-        )}
+        {/* BOUTON GÉNÉRER — toujours visible, génère une nouvelle page */}
+        <motion.button
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleGenerateMore}
+          className="w-12 h-12 rounded-lg flex flex-col items-center justify-center shadow-lg relative border border-white/10 active:scale-95 transition-all"
+          style={{ background: "linear-gradient(135deg, #C9963A, #E8B96A)" }}
+        >
+          <span className="text-[6px] font-black text-[#2C1A0E] uppercase leading-none">Gen</span>
+          <span className="text-base">✨</span>
+          <div className="absolute -top-1 -right-1 bg-[#2C1A0E] text-[#C9963A] text-[7px] px-1 py-0 rounded-full font-bold border border-[#C9963A]">
+            -1
+          </div>
+        </motion.button>
       </div>
 
     </div>
