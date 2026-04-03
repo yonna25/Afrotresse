@@ -104,8 +104,6 @@ export default function Credits() {
     }
   }
 
-  const currentPack = PACKS_CONFIG[selected]
-
   return (
     <div className="min-h-screen bg-[#1A0A00] text-[#FAF4EC] pb-32">
 
@@ -200,7 +198,7 @@ export default function Credits() {
         )}
       </AnimatePresence>
 
-      {/* Bouton acheter avec CTA personnalisé */}
+      {/* Bouton acheter */}
       <div className="px-6 mt-8">
         <motion.button
           whileTap={{ scale: 0.97 }}
@@ -215,7 +213,7 @@ export default function Credits() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
               </svg> Chargement...</>
-            : currentPack.cta}
+            : 'Payer avec FedaPay 💳'}
         </motion.button>
       </div>
 
