@@ -258,27 +258,40 @@ export default function Results() {
     return () => clearInterval(interval);
   }, []);
 
-  // ── Pagination helpers — SANS DOUBLONS ──────────────────────────────────
-  // Chaque page reçoit 3 styles distincts. On mélange avec un seed par page
-  // pour que chaque page soit différente mais reproductible (stable au reload).
-  const getPageStyles = (page) => {
-    const total = styles.length;
-    if (total === 0) return [];
-
-    // Mélange déterministe basé sur la page (Fisher-Yates avec seed)
+  // ── Pagination helpers — ZÉRO DOUBLON GARANTI ───────────────────────────
+  // On mélange UNE FOIS la liste complète avec un seed fixe (basé sur userName)
+  // puis chaque page prend une tranche de 3 styles strictement distincts.
+  // Si on dépasse la liste, on refait un mélange avec un seed différent.
+  const getShuffledStyles = (shuffleSeed) => {
     const seeded = (seed) => {
       let s = seed;
       return () => { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 0xffffffff; };
     };
+    const rand = seeded(shuffleSeed);
+    const arr = [...styles];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
 
-    const rand = seeded(page * 7919); // nombre premier pour varier le seed
-    const shuffled = [...styles].sort(() => rand() - 0.5);
+  const getPageStyles = (page) => {
+    const total = styles.length;
+    if (total === 0) return [];
 
-    // Prendre les 3 styles de cette page dans la liste mélangée (rotation)
-    const start = ((page - 1) * STYLES_PER_PAGE) % total;
+    // Seed de base basé sur le userName pour être stable au reload
+    const baseSeed = userName.split("").reduce((acc, c) => acc + c.charCodeAt(0), 12345);
+
+    // Quelle "série" de mélange ? (tous les N pages on recrée un mélange différent)
+    const stylesPerShuffle = Math.floor(total / STYLES_PER_PAGE) * STYLES_PER_PAGE || STYLES_PER_PAGE;
+    const shuffleIndex = Math.floor(((page - 1) * STYLES_PER_PAGE) / stylesPerShuffle);
+    const positionInShuffle = ((page - 1) * STYLES_PER_PAGE) % stylesPerShuffle;
+
+    const shuffled = getShuffledStyles(baseSeed + shuffleIndex * 9973);
     const result = [];
     for (let i = 0; i < STYLES_PER_PAGE; i++) {
-      result.push(shuffled[(start + i) % total]);
+      result.push(shuffled[(positionInShuffle + i) % total]);
     }
     return result;
   };
