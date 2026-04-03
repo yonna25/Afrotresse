@@ -361,6 +361,9 @@ export default function Results() {
       consumeTransform();
       addSeenStyleId(style.id);
       setCredits(getCredits());
+      // Incrémenter le compteur styles générés (affiché sur Profil)
+      const prev = parseInt(localStorage.getItem("afrotresse_styles_generated") || "0", 10);
+      localStorage.setItem("afrotresse_styles_generated", String(prev + 1));
       setResultImage(data.imageUrl);
       setResultMsg(RESULT_MSGS[Math.floor(Math.random() * RESULT_MSGS.length)]);
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 400);
