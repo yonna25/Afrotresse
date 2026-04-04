@@ -521,7 +521,7 @@ export default function Results() {
 
             {/* Mosaïque hero floutée - CENTRÉE */}
             <div className="relative h-80 overflow-hidden flex items-center justify-center">
-              <div className="grid grid-cols-3 h-full gap-0.5 max-w-md">
+              <div className="grid grid-cols-3 h-full gap-0.5 w-full">
                 {TEASER_STYLES.map((s, i) => (
                   <div key={s.key} className="relative overflow-hidden">
                     <img src={`/styles/${s.key}-face.jpg`} alt={s.label}
