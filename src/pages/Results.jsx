@@ -519,18 +519,8 @@ export default function Results() {
           /* ── OPTION A — Aucune photo, teaser mosaïque ── */
           <div className="flex flex-col min-h-[100dvh]">
 
-            {/* Mosaïque hero floutée */}
-            <div className="relative h-80 overflow-hidden">
-              <div className="grid grid-cols-3 w-full h-full gap-0.5">
-                {TEASER_STYLES.map((s, i) => (
-                  <div key={s.key} className="relative overflow-hidden">
-                    <img src={`/styles/${s.key}-face.jpg`} alt={s.label}
-                      className="w-full h-full object-cover"
-                      style={{ filter: "brightness(0.35) blur(2px)", transform: "scale(1.05)" }}
-                      draggable={false} onContextMenu={e => e.preventDefault()} />
-                  </div>
-                ))}
-              </div>
+            {/* Mosaïque hero - FOND UNI */}
+            <div className="relative h-80 overflow-hidden bg-[#2C1A0E] flex items-center justify-center">
 
               {/* Overlay doré */}
               <div className="absolute inset-0 flex flex-col items-center justify-center"
