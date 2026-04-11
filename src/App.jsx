@@ -14,6 +14,7 @@ import Credits from './pages/Credits.jsx'
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx'
 import TermsOfService from './pages/TermsOfService.jsx'
 import CookiePolicy from './pages/CookiePolicy.jsx'
+import FAQ from './pages/FAQ.jsx'
 
 import BottomNav from './components/BottomNav.jsx'
 
@@ -142,6 +143,7 @@ function AnimatedRoutes() {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/cookie-policy" element={<CookiePolicy />} />
+          <Route path="/faq" element={<FAQ />} />
         </Routes>
       </AnimatePresence>
       {!hideNav && <BottomNav />}
