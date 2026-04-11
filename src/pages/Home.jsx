@@ -13,33 +13,33 @@ const SLIDES = [
 ];
 
 const TICKER_MESSAGES = [
-  '\uD83C\uDF89 Offre sp\u00e9ciale : 3 essais virtuels au prix de 2',
-  '\uD83D\uDC51 Rejoins +500 reines qui ont trouv\u00e9 leur tresse parfaite',
-  '\uD83D\uDC9B -20% sur ton premier pack avec le code AFRO20',
-  '\u2728 Nouveau style disponible : Butterfly Locs',
-  '\uD83C\uDF81 Parraine une amie et gagne 2 essais gratuits',
+  '🎉 Offre spéciale : 3 essais virtuels au prix de 2',
+  '👑 Rejoins +500 reines qui ont trouvé leur tresse parfaite',
+  '💛 -20% sur ton premier pack avec le code AFRO20',
+  '✨ Nouveau style disponible : Butterfly Locs',
+  '🎁 Parraine une amie et gagne 2 essais gratuits',
 ];
 
 const INTERVAL = 3500;
 
 function TickerBar() {
-  const text = TICKER_MESSAGES.join('   \u273A   ');
+  const text = TICKER_MESSAGES.join("   ✺   ");
   const innerRef = useRef(null);
   const [offset, setOffset] = useState(-2000);
   useEffect(() => {
     if (innerRef.current) setOffset(-(innerRef.current.scrollWidth / 3));
   }, []);
   return (
-    <div className="w-full overflow-hidden z-50 relative" style={{ background: '#C9963A', height: '28px' }}>
+    <div className="w-full overflow-hidden z-50 relative" style={{ background: "#C9963A", height: "28px" }}>
       <div className="flex items-center h-full">
         <motion.div
           ref={innerRef}
           animate={{ x: [0, offset] }}
-          transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
           className="flex items-center whitespace-nowrap"
         >
           {[0, 1, 2].map(i => (
-            <span key={i} className="font-body text-xs font-semibold px-8" style={{ color: '#2C1A0E' }}>
+            <span key={i} className="font-body text-xs font-semibold px-8" style={{ color: "#2C1A0E" }}>
               {text}
             </span>
           ))}
@@ -55,31 +55,37 @@ export default function Home() {
   const timerRef = useRef(null);
   const inputRef = useRef(null);
 
-  const storedName = localStorage.getItem('afrotresse_user_name');
-  const userName   = storedName || 'Reine';
+  const storedName = localStorage.getItem("afrotresse_user_name");
+  const userName   = storedName || "Reine";
 
-  // Popup visible uniquement premiere visite
-  const [showPopup, setShowPopup] = useState(!storedName);
-  const [nameInput, setNameInput] = useState('');
-  // Fleche visible juste apres fermeture popup
+  const [showPopup, setShowPopup] = useState(false);
+  const [nameInput, setNameInput] = useState("");
   const [showArrow, setShowArrow] = useState(false);
+
+  // Popup apres 5 secondes si premiere visite
+  useEffect(() => {
+    if (!storedName) {
+      const t = setTimeout(() => setShowPopup(true), 5000);
+      return () => clearTimeout(t);
+    }
+  }, []);
 
   useEffect(() => {
     if (showPopup && inputRef.current) {
-      const t = setTimeout(() => inputRef.current && inputRef.current.focus(), 400);
+      const t = setTimeout(() => inputRef.current && inputRef.current.focus(), 300);
       return () => clearTimeout(t);
     }
   }, [showPopup]);
 
   const handleSubmit = () => {
-    const finalName = nameInput.trim() || 'Reine';
-    localStorage.setItem('afrotresse_user_name', finalName);
-    if (!localStorage.getItem('afrotresse_credits')) setCredits(PRICING.freeCredits);
+    const finalName = nameInput.trim() || "Reine";
+    localStorage.setItem("afrotresse_user_name", finalName);
+    if (!localStorage.getItem("afrotresse_credits")) setCredits(PRICING.freeCredits);
     setShowPopup(false);
     setShowArrow(true);
   };
 
-  const handleStart = () => navigate('/camera');
+  const handleStart = () => navigate("/camera");
 
   const next = useCallback(() => setCurrent(prev => (prev + 1) % SLIDES.length), []);
   useEffect(() => {
@@ -90,7 +96,7 @@ export default function Home() {
   const slide = SLIDES[current];
 
   return (
-    <div className="flex flex-col w-full overflow-hidden" style={{ height: '100dvh', background: '#2C1A0E' }}>
+    <div className="flex flex-col w-full overflow-hidden" style={{ height: "100dvh", background: "#2C1A0E" }}>
       <TickerBar />
 
       <div className="relative flex-1 overflow-hidden">
@@ -105,9 +111,9 @@ export default function Home() {
 
         {/* Gradients */}
         <div className="absolute inset-x-0 top-0 h-40 z-10"
-          style={{ background: 'linear-gradient(to bottom, rgba(44,26,14,0.85), transparent)' }} />
+          style={{ background: "linear-gradient(to bottom, rgba(44,26,14,0.85), transparent)" }} />
         <div className="absolute inset-x-0 bottom-0 h-1/2 z-10"
-          style={{ background: 'linear-gradient(to top, rgba(44,26,14,0.98), transparent)' }} />
+          style={{ background: "linear-gradient(to top, rgba(44,26,14,0.98), transparent)" }} />
 
         {/* Logo */}
         <div className="absolute inset-x-0 top-0 z-30 px-5 pt-4 flex items-center gap-3">
@@ -119,7 +125,7 @@ export default function Home() {
               <span className="text-white font-bold">Afro</span>
               <span className="text-[#C9963A] font-bold">Tresse</span>
             </span>
-            <span className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.75)' }}>
+            <span className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.75)" }}>
               Chaque visage a sa tresse
             </span>
           </div>
@@ -128,18 +134,18 @@ export default function Home() {
         {/* Texte bas */}
         <div className="absolute inset-x-0 bottom-0 z-30 px-5 pb-36">
           <h1 className="font-display text-2xl text-white font-bold leading-tight">
-            Pr\u00eate pour ton nouveau look,
+            Prête pour ton nouveau look,
           </h1>
-          <h1 className="font-display text-2xl font-bold leading-tight" style={{ color: '#C9963A' }}>
-            {userName} ? \u2728
+          <h1 className="font-display text-2xl font-bold leading-tight" style={{ color: "#C9963A" }}>
+            {userName} ? ✨
           </h1>
-          <p className="mt-3 text-sm font-body leading-snug" style={{ color: 'rgba(255,255,255,0.55)' }}>
-            D\u00e9couvre les coiffures qui te vont vraiment en quelques secondes.
+          <p className="mt-3 text-sm font-body leading-snug" style={{ color: "rgba(255,255,255,0.55)" }}>
+            Découvre les coiffures qui te vont vraiment en quelques secondes.
           </p>
           <div className="mt-4 flex gap-1.5">
             {SLIDES.map((_, i) => (
-              <div key={i} className={'h-1 rounded-full transition-all duration-300 ' +
-                (i === current ? 'w-8 bg-[#C9963A]' : 'w-2 bg-white/30')} />
+              <div key={i} className={"h-1 rounded-full transition-all duration-300 " +
+                (i === current ? "w-8 bg-[#C9963A]" : "w-2 bg-white/30")} />
             ))}
           </div>
         </div>
@@ -149,13 +155,10 @@ export default function Home() {
           <AnimatePresence>
             {showArrow && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="flex flex-col items-center pointer-events-none"
-              >
+                initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="flex flex-col items-center pointer-events-none">
                 <p className="text-white/80 text-xs font-bold mb-1">Appuie ici pour commencer</p>
-                <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}>
+                <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}>
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
                     <path d="M12 5v14M5 12l7 7 7-7" stroke="#C9963A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
@@ -163,76 +166,73 @@ export default function Home() {
               </motion.div>
             )}
           </AnimatePresence>
-
           <div className="pointer-events-auto">
-            <button
-              onClick={handleStart}
+            <button onClick={handleStart}
               className="px-10 py-4 rounded-full font-display font-bold text-lg shadow-2xl active:scale-95 transition-transform"
-              style={{ background: 'linear-gradient(135deg,#C9963A,#E8B96A)', color: '#2C1A0E' }}
-            >
-              Analyser mon visage \uD83E\uDD33\uD83C\uDFFE
+              style={{ background: "linear-gradient(135deg,#C9963A,#E8B96A)", color: "#2C1A0E" }}>
+              Analyser mon visage 🤳🏾
             </button>
           </div>
         </div>
 
-        {/* MINI POPUP NOM — premiere visite uniquement */}
+        {/* MINI POPUP NOM — glisse de droite, apres 5s, premiere visite */}
         <AnimatePresence>
           {showPopup && (
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="absolute inset-0 z-50 flex items-center justify-center px-6"
-              style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)' }}
+              style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}
             >
               <motion.div
-                initial={{ scale: 0.85, y: 30, opacity: 0 }}
-                animate={{ scale: 1, y: 0, opacity: 1 }}
-                exit={{ scale: 0.9, y: 20, opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-                className="w-full max-w-xs rounded-[2rem] p-6"
+                initial={{ x: "100%", opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: "100%", opacity: 0 }}
+                transition={{ type: "spring", stiffness: 220, damping: 26 }}
+                className="w-full rounded-[1.75rem] p-5"
                 style={{
-                  background: 'linear-gradient(160deg, #2C1A0E 0%, #3D2616 100%)',
-                  border: '1.5px solid rgba(201,150,58,0.5)',
-                  boxShadow: '0 24px 60px rgba(0,0,0,0.75), 0 0 0 1px rgba(232,185,106,0.1)',
+                  maxWidth: 300,
+                  background: "linear-gradient(160deg, #2C1A0E 0%, #3D2616 100%)",
+                  border: "1.5px solid rgba(201,150,58,0.5)",
+                  boxShadow: "0 24px 60px rgba(0,0,0,0.75)",
                 }}
               >
-                <div className="text-center text-4xl mb-3">\uD83D\uDC4B\uD83C\uDFFE</div>
+                {/* Titre */}
                 <h2 className="text-center font-display font-black mb-1"
-                  style={{ color: '#FAF4EC', fontSize: 22 }}>
-                  Salut !
+                  style={{ color: "#FAF4EC", fontSize: 20 }}>
+                  Salut ! 👋🏾
                 </h2>
                 <p className="text-center text-xs mb-4 leading-relaxed"
-                  style={{ color: 'rgba(250,244,236,0.6)' }}>
-                  Appelle-moi <span style={{ color: '#C9963A', fontWeight: 700 }}>AfroTresse</span>.<br/>
-                  Je t\u2019aide \u00e0 trouver ta tresse parfaite en 10s \u23F1
+                  style={{ color: "rgba(250,244,236,0.65)" }}>
+                  Je t’aide en 10 secondes à trouver ta tresse parfaite ⏱
                 </p>
 
+                {/* Input */}
                 <input
                   ref={inputRef}
                   type="text"
-                  placeholder="Ton pr\u00e9nom..."
+                  placeholder="Ton prénom..."
                   value={nameInput}
                   onChange={e => setNameInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                  onKeyDown={e => e.key === "Enter" && handleSubmit()}
                   maxLength={20}
-                  className="w-full px-4 py-3 rounded-2xl mb-4 outline-none text-sm font-semibold"
+                  className="w-full px-4 py-3 rounded-2xl mb-3 outline-none text-sm font-semibold"
                   style={{
-                    background: 'rgba(92,51,23,0.6)',
-                    border: '1px solid rgba(201,150,58,0.4)',
-                    color: '#FAF4EC',
+                    background: "rgba(92,51,23,0.6)",
+                    border: "1px solid rgba(201,150,58,0.4)",
+                    color: "#FAF4EC",
                   }}
                 />
 
-                <button
-                  onClick={handleSubmit}
-                  className="w-full py-3.5 rounded-2xl font-display font-black text-base shadow-xl active:scale-95 transition-transform"
-                  style={{ background: 'linear-gradient(135deg,#C9963A,#E8B96A)', color: '#2C1A0E' }}
-                >
-                  C\u2019est parti ! \uD83D\uDE80
+                {/* Bouton */}
+                <button onClick={handleSubmit}
+                  className="w-full py-3 rounded-2xl font-display font-black text-base shadow-xl active:scale-95 transition-transform"
+                  style={{ background: "linear-gradient(135deg,#C9963A,#E8B96A)", color: "#2C1A0E" }}>
+                  C’est parti ! 🚀
                 </button>
 
-                <p className="text-center mt-3 font-semibold"
-                  style={{ color: 'rgba(201,150,58,0.7)', fontSize: 10 }}>
-                  \uD83C\uDF81 2 essais gratuits offerts
+                <p className="text-center mt-2 font-semibold"
+                  style={{ color: "rgba(201,150,58,0.7)", fontSize: 10 }}>
+                  🎁 2 essais gratuits offerts
                 </p>
               </motion.div>
             </motion.div>
