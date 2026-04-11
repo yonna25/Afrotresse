@@ -1,29 +1,66 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="192x192" href="/icons/favicon-192.png" />
 
     <!-- Viewport et thème -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#2C1A0E" />
 
-    <!-- Slogan / description -->
-    <meta name="description" content="Chaque visage a sa tresse"/>
+    <!-- SEO primaire -->
+    <title>AfroTresse — Trouve ta tresse parfaite</title>
+    <meta name="description" content="Chaque visage a sa tresse. Découvre le style qui te ressemble grâce à un selfie." />
+    <link rel="canonical" href="https://afrotresse.com/" />
+
+    <!-- Open Graph (partage réseaux sociaux) -->
+    <meta property="og:type"        content="website" />
+    <meta property="og:url"         content="https://afrotresse.com/" />
+    <meta property="og:title"       content="AfroTresse — Trouve ta tresse parfaite" />
+    <meta property="og:description" content="Chaque visage a sa tresse. Découvre le style qui te ressemble grâce à un selfie." />
+    <meta property="og:image"       content="https://afrotresse.com/og-image.jpg" />
+    <meta property="og:locale"      content="fr_FR" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card"        content="summary_large_image" />
+    <meta name="twitter:title"       content="AfroTresse — Trouve ta tresse parfaite" />
+    <meta name="twitter:description" content="Chaque visage a sa tresse." />
+    <meta name="twitter:image"       content="https://afrotresse.com/og-image.jpg" />
+
+    <!-- Sécurité -->
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="Permissions-Policy" content="camera=(self), microphone=()" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/favicon-192.png" />
 
     <!-- Apple / PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="AfroTresse" />
     <link rel="apple-touch-icon" href="/icons/favicon-192.png" />
 
-    <!-- Fonts -->
+    <!-- Performance : DNS prefetch domaines tiers -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+
+    <!-- Fonts — preconnect puis chargement non-bloquant -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet" />
-
-    <title>AfroTresse</title>
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Nunito:wght@300;400;600;700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Nunito:wght@300;400;600;700&display=swap"
+    />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet" />
+    </noscript>
   </head>
   <body>
     <div id="root"></div>
