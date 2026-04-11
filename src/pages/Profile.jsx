@@ -320,7 +320,28 @@ export default function Profile() {
         </motion.button>
       </div>
 
-      {/* ── INFORMATIONS LÉGALES ── */}
+
+      {/* ── FAQ ── */}
+      <div className="w-full max-w-sm px-5 mt-3">
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={() => navigate("/faq")}
+          className="w-full rounded-3xl p-5 flex items-center justify-between border border-white/10 bg-white/5"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#C9963A]/20 flex items-center justify-center text-xl">❓</div>
+            <div className="text-left">
+              <p className="font-black text-sm">FAQ — Aide & support</p>
+              <p className="text-[10px] text-[#C9963A] font-bold">Crédits, connexion, parrainage…</p>
+            </div>
+          </div>
+          <svg viewBox="0 0 24 24" className="w-4 h-4 text-white/40" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </motion.button>
+      </div>
+
+      {/* ── INFORMATIONS LÉGALES ── */
       <div className="mt-10 pb-4 flex flex-col items-center gap-2 opacity-30">
         <div className="flex gap-4 text-[9px] font-medium uppercase tracking-tighter">
           <button onClick={() => navigate("/privacy-policy")}>Mentions Légales</button>
