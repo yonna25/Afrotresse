@@ -368,3 +368,9 @@ export default function Profile() {
     </div>
   );
 }
+<button
+  onClick={() => navigate("/debug")}
+  className="text-2xl opacity-40 hover:opacity-80 transition-opacity mt-4"
+>
+  🔧
+</button>
