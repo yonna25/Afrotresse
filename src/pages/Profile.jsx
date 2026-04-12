@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getCredits, addCredits, PRICING } from "../services/credits.js";
+import SecureCredits from "../components/SecureCredits.jsx";
 
 // ── Helpers localStorage ─────────────────────────────────────────────────────
 const getAiTrials = () => parseInt(localStorage.getItem("afrotresse_ai_trials") || "0", 10);
@@ -183,6 +184,9 @@ export default function Profile() {
           </svg>
         </motion.button>
 
+        {/* Sécuriser mes crédits */}
+        <SecureCredits variant="button" />
+
         {/* Nouveau selfie */}
         <motion.button
           whileTap={{ scale: 0.97 }}
@@ -341,7 +345,7 @@ export default function Profile() {
         </motion.button>
       </div>
 
-      {/* ── INFORMATIONS LÉGALES ── */}
+      {/* ── INFORMATIONS LÉGALES ── */
       <div className="mt-10 pb-4 flex flex-col items-center gap-2 opacity-30">
         <div className="flex gap-4 text-[9px] font-medium uppercase tracking-tighter">
           <button onClick={() => navigate("/privacy-policy")}>Mentions Légales</button>
