@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getCredits, addCredits, PRICING } from '../services/credits.js'
 import { getCurrentUser, addSupabaseCredits } from '../services/useSupabaseCredits.js'
+import SecureCredits from '../components/SecureCredits.jsx'
 
 function loadFedaPay() {
   return new Promise((resolve, reject) => {
@@ -144,6 +145,9 @@ export default function Credits() {
         </div>
         <div className="text-5xl">💎</div>
       </div>
+
+      {/* Sécuriser mes crédits */}
+      <SecureCredits variant="card" />
 
       {/* Packs */}
       <div className="px-6 space-y-4">
