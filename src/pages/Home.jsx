@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { setCredits, PRICING } from '../services/credits.js';
 
 const SLIDES = [
   { id: 1, image: '/Afrotresse1.jpg', style: 'Knotless Braids' },
@@ -54,6 +55,9 @@ export default function Home() {
   const timerRef   = useRef(null);
   const storedName = localStorage.getItem('afrotresse_user_name');
   const userName   = storedName || 'Reine';
+
+  const [showPopup, setShowPopup] = useState(false);
+  const [nameInput, setNameInput] = useState('');
   const [showArrow, setShowArrow] = useState(false);
 
   const handleStart = () => navigate('/camera');
@@ -111,14 +115,8 @@ export default function Home() {
 
         <div className="absolute inset-x-0 bottom-0 z-30 px-5 pb-36">
           <h1 className="font-display text-2xl text-white font-bold leading-tight">
-            Prête pour ton nouveau look,
-          </h1>
-          <h1 className="font-display text-2xl font-bold leading-tight" style={{ color: '#C9963A' }}>
-            {userName} ? ✨
-          </h1>
-          <p className="mt-3 text-sm font-body leading-snug" style={{ color: 'rgba(255,255,255,0.55)' }}>
             Un selfie, et découvre ta meilleure coiffure.
-          </p>
+          </h1>
           <div className="mt-4 flex gap-1.5">
             {SLIDES.map((_, i) => (
               <div key={i} className={'h-1 rounded-full transition-all duration-300 ' +
