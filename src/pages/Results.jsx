@@ -724,16 +724,31 @@ export default function Results() {
                 {/* ── Virtual Try-On — Coming Soon ── */}
                 <button
                   onClick={() => setShowVirtualTryOnModal(true)}
-                  className="w-full py-4 rounded-2xl font-bold text-base shadow-xl active:scale-[0.98] transition-all relative overflow-hidden text-white/60 border border-white/15"
-                  style={{ background: "linear-gradient(135deg, rgba(201,150,58,0.12), rgba(201,150,58,0.05))" }}
+                  className="w-full py-4 rounded-2xl font-bold text-base active:scale-[0.98] transition-all relative overflow-hidden"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(201,150,58,0.08), rgba(201,150,58,0.03))",
+                    border: "1.5px solid rgba(201,150,58,0.25)",
+                  }}
                 >
-                  <span className="flex items-center justify-center gap-2">
-                    <span>🪞 Essayer virtuellement</span>
+                  {/* Shimmer effect */}
+                  <motion.div
+                    className="absolute inset-0 -skew-x-12 pointer-events-none"
+                    style={{ background: "linear-gradient(90deg, transparent 0%, rgba(201,150,58,0.08) 50%, transparent 100%)" }}
+                    animate={{ x: ["-100%", "200%"] }}
+                    transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 3, ease: "easeInOut" }}
+                  />
+                  <span className="flex items-center justify-center gap-2.5 relative">
+                    <span className="text-lg">🪞</span>
+                    <span className="text-white/50 font-bold text-sm">Essayer virtuellement</span>
                     <span
-                      className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
-                      style={{ background: "linear-gradient(135deg, #C9963A, #E8B96A)", color: "#2C1A0E" }}
+                      className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full"
+                      style={{
+                        background: "linear-gradient(135deg, #C9963A, #E8B96A)",
+                        color: "#2C1A0E",
+                        boxShadow: "0 0 10px rgba(201,150,58,0.4)",
+                      }}
                     >
-                      Bientôt
+                      ⏳ Bientôt
                     </span>
                   </span>
                 </button>
@@ -1009,6 +1024,23 @@ export default function Results() {
           <div className="text-[5px] font-black uppercase opacity-60 leading-tight">Solde</div>
           <div className="text-xl font-black leading-none">{credits}</div>
         </motion.div>
+
+        {/* BOUTON GÉNÉRER — génère une nouvelle page */}
+        <motion.button
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleGenerateMore}
+          className="w-12 h-12 rounded-lg flex flex-col items-center justify-center shadow-lg relative border border-white/10 active:scale-95 transition-all"
+          style={{ background: "linear-gradient(135deg, #C9963A, #E8B96A)" }}
+        >
+          <span className="text-[6px] font-black text-[#2C1A0E] uppercase leading-none">Gen</span>
+          <span className="text-base">✨</span>
+          <div className="absolute -top-1 -right-1 bg-[#2C1A0E] text-[#C9963A] text-[7px] px-1 py-0 rounded-full font-bold border border-[#C9963A]">
+            -1
+          </div>
+        </motion.button>
       </div>
 
     </div>
