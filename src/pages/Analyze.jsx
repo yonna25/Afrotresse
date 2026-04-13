@@ -43,6 +43,10 @@ export default function Analyze() {
         // 4. Consommer un crédit d'analyse
         consumeAnalysis();
         
+        // 5. Incrémenter le compteur d'analyses (affiché sur Profil)
+        const prevTrials = parseInt(localStorage.getItem('afrotresse_ai_trials') || '0', 10);
+        localStorage.setItem('afrotresse_ai_trials', String(prevTrials + 1));
+        
         // 5. Naviguer vers /results
         setShowResults(true);
         setTimeout(() => navigate("/results"), 2000);
