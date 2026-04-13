@@ -108,7 +108,8 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 z-30 px-5 pb-36">
+        {/* TEXTE REMONTÉ */}
+        <div className="absolute inset-x-0 bottom-0 z-30 px-5 pb-52">
           <h1 className="font-display text-2xl text-white font-bold leading-tight">
             Une selfie, et découvre<br />
             Ta meilleure coiffure
