@@ -55,10 +55,7 @@ export default function Home() {
   const timerRef   = useRef(null);
   const storedName = localStorage.getItem('afrotresse_user_name');
   const userName   = storedName || 'Reine';
-
-  const [showPopup, setShowPopup] = useState(false);
-  const [nameInput, setNameInput] = useState('');
-  const [showArrow, setShowArrow] = useState(false);
+  const [showArrow] = useState(true);
 
   const handleStart = () => navigate('/camera');
 
@@ -67,8 +64,6 @@ export default function Home() {
     timerRef.current = setInterval(next, INTERVAL);
     return () => clearInterval(timerRef.current);
   }, [next]);
-
-  const slide = SLIDES[current];
 
   return (
     <div className="flex flex-col w-full overflow-hidden" style={{ height: '100dvh', background: '#2C1A0E' }}>
@@ -129,10 +124,14 @@ export default function Home() {
           <AnimatePresence>
             {showArrow && (
               <motion.div
-                initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
                 className="flex flex-col items-center pointer-events-none">
                 <p className="text-white/80 text-xs font-bold mb-1">Appuie ici pour commencer</p>
-                <motion.div animate={{ y: [0, 10, 0] }} transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}>
+                <motion.div
+                  animate={{ y: [0, 10, 0] }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}>
                   <svg width="52" height="52" viewBox="0 0 24 24" fill="none">
                     <path d="M12 4v16M4 12l8 8 8-8" stroke="#C9963A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
@@ -140,8 +139,10 @@ export default function Home() {
               </motion.div>
             )}
           </AnimatePresence>
+
           <div className="pointer-events-auto">
-            <button onClick={handleStart}
+            <button
+              onClick={handleStart}
               className="px-10 py-4 rounded-full font-display font-bold text-lg shadow-2xl active:scale-95 transition-transform"
               style={{ background: 'linear-gradient(135deg,#C9963A,#E8B96A)', color: '#2C1A0E' }}>
               Découvrir mon style ✨
