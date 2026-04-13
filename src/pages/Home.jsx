@@ -53,36 +53,12 @@ export default function Home() {
   const navigate   = useNavigate();
   const [current, setCurrent] = useState(0);
   const timerRef   = useRef(null);
-  const inputRef   = useRef(null);
-  const storedName = localStorage.getItem('afrotresse_user_name');
-  const userName   = storedName || 'Reine';
+  
+  
+  
 
-  const [showPopup, setShowPopup] = useState(false);
-  const [nameInput, setNameInput] = useState('');
-  const [showArrow, setShowArrow] = useState(false);
+  const [showArrow, setShowArrow] = useState(true);
 
-  // Popup 5s apres montage si premiere visite
-  useEffect(() => {
-    if (!storedName) {
-      const t = setTimeout(() => setShowPopup(true), 5000);
-      return () => clearTimeout(t);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (showPopup && inputRef.current) {
-      const t = setTimeout(() => inputRef.current && inputRef.current.focus(), 300);
-      return () => clearTimeout(t);
-    }
-  }, [showPopup]);
-
-  const handleSubmit = () => {
-    const finalName = nameInput.trim() || 'Reine';
-    localStorage.setItem('afrotresse_user_name', finalName);
-    if (!localStorage.getItem('afrotresse_credits')) setCredits(PRICING.freeCredits);
-    setShowPopup(false);
-    setShowArrow(true);
-  };
 
   const handleStart = () => navigate('/camera');
 
@@ -143,13 +119,13 @@ export default function Home() {
         {/* Texte bas */}
         <div className="absolute inset-x-0 bottom-0 z-30 px-5 pb-36">
           <h1 className="font-display text-2xl text-white font-bold leading-tight">
-            Prête pour ton nouveau look,
+            Un selfie, et découvre
           </h1>
           <h1 className="font-display text-2xl font-bold leading-tight" style={{ color: '#C9963A' }}>
-            {userName} ? ✨
+            ta meilleure coiffure ✨
           </h1>
           <p className="mt-3 text-sm font-body leading-snug" style={{ color: 'rgba(255,255,255,0.55)' }}>
-            Découvre les coiffures qui te vont vraiment en quelques secondes.
+            En 10 secondes seulement.
           </p>
           <div className="mt-4 flex gap-1.5">
             {SLIDES.map((_, i) => (
@@ -179,73 +155,13 @@ export default function Home() {
             <button onClick={handleStart}
               className="px-10 py-4 rounded-full font-display font-bold text-lg shadow-2xl active:scale-95 transition-transform"
               style={{ background: 'linear-gradient(135deg,#C9963A,#E8B96A)', color: '#2C1A0E' }}>
-              Analyser mon visage 🤳🏾
+              Découvrir mon style ✨
             </button>
           </div>
         </div>
 
-        {/* MINI POPUP NOM — glisse droite->gauche, 5s, premiere visite */}
-        <AnimatePresence>
-          {showPopup && (
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 z-50 flex items-center justify-center px-6"
-              style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}
-            >
-              <motion.div
-                initial={{ x: '100%', opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: '100%', opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 220, damping: 26 }}
-                className="w-full rounded-[1.75rem] p-5"
-                style={{
-                  maxWidth: 290,
-                  background: 'linear-gradient(160deg, #2C1A0E 0%, #3D2616 100%)',
-                  border: '1.5px solid rgba(201,150,58,0.5)',
-                  boxShadow: '0 24px 60px rgba(0,0,0,0.75)',
-                }}
-              >
-                <p className="text-center font-semibold mb-1"
-                  style={{ color: 'rgba(250,244,236,0.5)', fontSize: 11 }}>
-                  Salut ! 👋🏾
-                </p>
-                <h2 className="text-center font-display font-black mb-4 leading-tight"
-                  style={{ color: '#FAF4EC', fontSize: 19 }}>
-                  10 secondes pour trouver ta tresse parfaite ! ⏱
-                </h2>
-
-                <input
-                  ref={inputRef}
-                  type="text"
-                  placeholder="Ton prénom..."
-                  value={nameInput}
-                  onChange={e => setNameInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-                  maxLength={20}
-                  className="w-full px-4 py-2.5 rounded-2xl mb-3 outline-none text-sm font-semibold"
-                  style={{
-                    background: 'rgba(92,51,23,0.6)',
-                    border: '1px solid rgba(201,150,58,0.4)',
-                    color: '#FAF4EC',
-                  }}
-                />
-
-                <button onClick={handleSubmit}
-                  className="w-full py-3 rounded-2xl font-display font-black text-base shadow-xl active:scale-95 transition-transform"
-                  style={{ background: 'linear-gradient(135deg,#C9963A,#E8B96A)', color: '#2C1A0E' }}>
-                  C’est parti ! 🚀
-                </button>
-
-                <p className="text-center mt-2 font-semibold"
-                  style={{ color: 'rgba(201,150,58,0.65)', fontSize: 10 }}>
-                  🎁 2 essais gratuits offerts
-                </p>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
       </div>
     </div>
   );
-}
+      }
+      
