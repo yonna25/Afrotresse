@@ -72,7 +72,7 @@ export default function Home() {
     <div className="flex flex-col w-full overflow-hidden" style={{ height: '100dvh', background: '#2C1A0E' }}>
       <TickerBar />
 
-      <div className="relative flex-1 overflow-hidden" style={{ background: '#2C1A0E' }}>
+      <div className="relative flex-1 overflow-hidden">
 
         {SLIDES.map((s, i) => (
           <motion.div
@@ -93,7 +93,7 @@ export default function Home() {
 
         <div className="absolute inset-x-0 top-0 h-40 z-10"
           style={{ background: 'linear-gradient(to bottom, rgba(44,26,14,0.85), transparent)' }} />
-        <div className="absolute inset-x-0 bottom-0 h-1/2 z-10" 
+        <div className="absolute inset-x-0 bottom-0 h-1/2 z-10"
           style={{ background: 'linear-gradient(to top, rgba(44,26,14,0.98), transparent)' }} />
 
         <div className="absolute inset-x-0 top-0 z-30 px-5 pt-4 flex items-center gap-3">
@@ -111,15 +111,17 @@ export default function Home() {
           </div>
         </div>
 
-        {/* TEXTE AVEC FOND CORRIGÉ */}
+        {/* TEXTE AVEC FOND + COULEUR CORRIGÉE */}
         <div className="absolute inset-x-0 bottom-0 z-30 px-5 pb-48">
 
-          {/* Fond lisibilité */}
           <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/50 to-transparent" />
 
-          <h1 className="relative font-display text-2xl font-bold leading-tight text-white"
-            <span style={{ color: '#C9963A' }}>Un selfie, et</span> découvre<br />
-ta meilleure coiffure
+          <h1 className="relative font-display text-2xl font-bold leading-tight text-white">
+            <span style={{ color: '#C9963A' }}>
+              Un selfie, et
+            </span>{' '}
+            découvre<br />
+            ta meilleure coiffure
           </h1>
 
           <div className="mt-4 flex gap-1.5 relative">
@@ -142,7 +144,7 @@ ta meilleure coiffure
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="flex flex-col items-center pointer-events-none"
+                className="flex flex-col items-center"
               >
                 <motion.div
                   animate={{ y: [0, 10, 0] }}
