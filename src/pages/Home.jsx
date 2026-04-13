@@ -26,9 +26,11 @@ function TickerBar() {
   const text = TICKER_MESSAGES.join('   ✺   ');
   const innerRef = useRef(null);
   const [offset, setOffset] = useState(-2000);
+
   useEffect(() => {
     if (innerRef.current) setOffset(-(innerRef.current.scrollWidth / 3));
   }, []);
+
   return (
     <div className="w-full overflow-hidden z-50 relative" style={{ background: '#C9963A', height: '28px' }}>
       <div className="flex items-center h-full">
@@ -50,11 +52,12 @@ function TickerBar() {
 }
 
 export default function Home() {
-  const navigate   = useNavigate();
+  const navigate = useNavigate();
   const [current, setCurrent] = useState(0);
-  const timerRef   = useRef(null);
+  const timerRef = useRef(null);
+
   const storedName = localStorage.getItem('afrotresse_user_name');
-  const userName   = storedName || 'Reine';
+  const userName = storedName || 'Reine';
   const [showArrow] = useState(true);
 
   const handleStart = () => navigate('/camera');
@@ -108,16 +111,22 @@ export default function Home() {
           </div>
         </div>
 
-        {/* TEXTE REMONTÉ */}
-        <div className="absolute inset-x-0 bottom-0 z-30 px-5 pb-40">
-          <h1 className="font-display text-2xl text-white font-bold leading-tight">
-            Une selfie, et découvre<br />
+        {/* TEXTE MODIFIÉ */}
+        <div className="absolute inset-x-0 bottom-0 z-30 px-5 pb-52">
+          <h1 className="font-display text-2xl font-bold leading-tight text-white">
+            <span style={{ color: '#C9963A' }}>Une selfie</span>, et découvre<br />
             Ta meilleure coiffure
           </h1>
+
           <div className="mt-4 flex gap-1.5">
             {SLIDES.map((_, i) => (
-              <div key={i} className={'h-1 rounded-full transition-all duration-300 ' +
-                (i === current ? 'w-8 bg-[#C9963A]' : 'w-2 bg-white/30')} />
+              <div
+                key={i}
+                className={
+                  'h-1 rounded-full transition-all duration-300 ' +
+                  (i === current ? 'w-8 bg-[#C9963A]' : 'w-2 bg-white/30')
+                }
+              />
             ))}
           </div>
         </div>
@@ -129,10 +138,12 @@ export default function Home() {
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="flex flex-col items-center pointer-events-none">
+                className="flex flex-col items-center pointer-events-none"
+              >
                 <motion.div
                   animate={{ y: [0, 10, 0] }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}>
+                  transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
+                >
                   <svg width="52" height="52" viewBox="0 0 24 24" fill="none">
                     <path d="M12 4v16M4 12l8 8 8-8" stroke="#C9963A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
@@ -145,7 +156,11 @@ export default function Home() {
             <button
               onClick={handleStart}
               className="px-10 py-4 rounded-full font-display font-bold text-lg shadow-2xl active:scale-95 transition-transform"
-              style={{ background: 'linear-gradient(135deg,#C9963A,#E8B96A)', color: '#2C1A0E' }}>
+              style={{
+                background: 'linear-gradient(135deg,#C9963A,#E8B96A)',
+                color: '#2C1A0E'
+              }}
+            >
               Découvrir mon style ✨
             </button>
           </div>
