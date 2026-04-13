@@ -110,7 +110,8 @@ export default function Home() {
 
         <div className="absolute inset-x-0 bottom-0 z-30 px-5 pb-36">
           <h1 className="font-display text-2xl text-white font-bold leading-tight">
-            Un selfie, et découvre ta meilleure coiffure.
+            Une selfie, et découvre<br />
+            Ta meilleure coiffure
           </h1>
           <div className="mt-4 flex gap-1.5">
             {SLIDES.map((_, i) => (
@@ -128,7 +129,6 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
                 className="flex flex-col items-center pointer-events-none">
-                <p className="text-white/80 text-xs font-bold mb-1">Appuie ici pour commencer</p>
                 <motion.div
                   animate={{ y: [0, 10, 0] }}
                   transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}>
