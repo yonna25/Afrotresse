@@ -140,7 +140,7 @@ function CreditSuccessPopup({ data, onClose }) {
   );
 }
 
-// ─── Feu d'artifice canvas ───────────────────────────────────────────────────
+// ─── Feu d'artifice canvas DOUX ─────────────────────────────────────────────
 function Fireworks({ onDone }) {
   const canvasRef = useRef(null);
 
@@ -158,17 +158,17 @@ function Fireworks({ onDone }) {
         this.x = x; this.y = y;
         this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
         const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 7 + 2;
+        const speed = Math.random() * 3 + 1; // Plus lent (3 au lieu de 7)
         this.vx = Math.cos(angle) * speed;
         this.vy = Math.sin(angle) * speed;
         this.life = 1;
-        this.decay = Math.random() * 0.018 + 0.008;
-        this.size = Math.random() * 3.5 + 1;
+        this.decay = Math.random() * 0.012 + 0.006; // Decay plus lent
+        this.size = Math.random() * 2 + 0.8; // Plus petit (2 au lieu de 3.5)
         this.trail = Math.random() > 0.5;
       }
       update() {
         this.x += this.vx; this.y += this.vy;
-        this.vy += 0.09; this.vx *= 0.98;
+        this.vy += 0.05; this.vx *= 0.98;
         this.life -= this.decay;
       }
       draw() {
@@ -189,16 +189,16 @@ function Fireworks({ onDone }) {
     const particles = [];
     const BURSTS = [
       { x: W * 0.2,  y: H * 0.28, delay: 0   },
-      { x: W * 0.8,  y: H * 0.22, delay: 180 },
-      { x: W * 0.5,  y: H * 0.15, delay: 350 },
-      { x: W * 0.15, y: H * 0.5,  delay: 520 },
-      { x: W * 0.85, y: H * 0.42, delay: 280 },
-      { x: W * 0.5,  y: H * 0.38, delay: 600 },
+      { x: W * 0.8,  y: H * 0.22, delay: 200 },
+      { x: W * 0.5,  y: H * 0.15, delay: 400 },
+      { x: W * 0.15, y: H * 0.5,  delay: 600 },
+      { x: W * 0.85, y: H * 0.42, delay: 300 },
+      { x: W * 0.5,  y: H * 0.38, delay: 700 },
     ];
 
     const timers = BURSTS.map(b =>
       setTimeout(() => {
-        for (let i = 0; i < 70; i++) particles.push(new Particle(b.x, b.y));
+        for (let i = 0; i < 40; i++) particles.push(new Particle(b.x, b.y)); // 40 au lieu de 70
       }, b.delay)
     );
 
@@ -219,8 +219,8 @@ function Fireworks({ onDone }) {
       }
     };
     animate();
-    // Marquer finished après le dernier burst + durée de vie max
-    const doneTimer = setTimeout(() => { finished = true; }, 3200);
+    // Marquer finished après le dernier burst + durée de vie max (plus long car particules plus lentes)
+    const doneTimer = setTimeout(() => { finished = true; }, 4000);
 
     return () => {
       timers.forEach(clearTimeout);
@@ -257,8 +257,7 @@ export default function Results() {
   const [showVirtualTryOnModal, setShowVirtualTryOnModal] = useState(false);
   const [showFireworks, setShowFireworks] = useState(false);
 
-  // ── Étape 2 : Bloc sauvegarde prénom/email ────────────────────────────────
-  const [savePrenom, setSavePrenom] = useState(() => localStorage.getItem("afrotresse_user_name") || "");
+  // ── Email uniquement ────────────────────────────
   const [saveEmail, setSaveEmail]   = useState(() => localStorage.getItem("afrotresse_email") || "");
   const [saveDone, setSaveDone]     = useState(() => !!localStorage.getItem("afrotresse_email"));
   const [displayName, setDisplayName] = useState(() => localStorage.getItem("afrotresse_user_name") || "");
@@ -271,7 +270,7 @@ export default function Results() {
     catch { return []; }
   });
 
-  // ── Pagination — persistée dans localStorage ───────────────────────────
+  // ── Pagination — persistée dans localStorage ───────────────────────
   const [currentPage, setCurrentPage] = useState(() => {
     return parseInt(localStorage.getItem("afrotresse_current_page") || "1", 10);
   });
@@ -301,7 +300,13 @@ export default function Results() {
         setFaceShape(parsed.faceShape || "oval");
         const recs = parsed.recommendations || [];
         setStyles(recs);
-        if (recs.length > 0) setShowFireworks(true);
+        
+        // Fireworks SEULEMENT si afrotresse_fresh_results = "1"
+        const isFresh = sessionStorage.getItem("afrotresse_fresh_results") === "1";
+        if (recs.length > 0 && isFresh) {
+          setShowFireworks(true);
+          sessionStorage.removeItem("afrotresse_fresh_results");
+        }
 
         // Initialiser les stats (vues/likes) pour chaque style si pas encore fait
         setStyleStats(prev => {
@@ -398,35 +403,28 @@ export default function Results() {
 
     // Seed de base basé sur le userName pour être stable au reload
     const baseSeed = userName.split("").reduce((acc, c) => acc + c.charCodeAt(0), 12345);
-
-    // Quelle "série" de mélange ? (tous les N pages on recrée un mélange différent)
-    const stylesPerShuffle = Math.floor(total / STYLES_PER_PAGE) * STYLES_PER_PAGE || STYLES_PER_PAGE;
-    const shuffleIndex = Math.floor(((page - 1) * STYLES_PER_PAGE) / stylesPerShuffle);
-    const positionInShuffle = ((page - 1) * STYLES_PER_PAGE) % stylesPerShuffle;
-
-    const shuffled = getShuffledStyles(baseSeed + shuffleIndex * 9973);
-    const result = [];
-    for (let i = 0; i < STYLES_PER_PAGE; i++) {
-      result.push(shuffled[(positionInShuffle + i) % total]);
-    }
-    return result;
+    const shuffled = getShuffledStyles(baseSeed);
+    const start = (page - 1) * STYLES_PER_PAGE;
+    const end = start + STYLES_PER_PAGE;
+    return shuffled.slice(start, end);
   };
 
   const displayedStyles = getPageStyles(currentPage);
 
   const goToPage = (page) => {
-    setCurrentPage(page);
-    localStorage.setItem("afrotresse_current_page", String(page));
-    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (page >= 1 && page <= unlockedPages) {
+      setCurrentPage(page);
+      localStorage.setItem("afrotresse_current_page", String(page));
+      topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
-  // Générer une nouvelle page de styles (coûte 1 crédit)
   const handleGenerateMore = () => {
-    if (!hasCredits()) {
+    if (!hasCredits() || getCredits() < 1) {
       navigate("/credits");
       return;
     }
-    consumeCredits(1);
+    consumeTransform();
     setCredits(getCredits());
     const nextPage = unlockedPages + 1;
     setUnlockedPages(nextPage);
@@ -504,11 +502,7 @@ export default function Results() {
   };
 
   const handleSaveProfile = () => {
-    if (!savePrenom.trim() && !saveEmail.trim()) return;
-    if (savePrenom.trim()) {
-      localStorage.setItem("afrotresse_user_name", savePrenom.trim());
-      setDisplayName(savePrenom.trim());
-    }
+    if (!saveEmail.trim()) return;
     if (saveEmail.trim()) {
       localStorage.setItem("afrotresse_email", saveEmail.trim());
     }
@@ -629,78 +623,6 @@ export default function Results() {
                 </p>
               </motion.div>
 
-              {/* CTA principal — relancer avec la même photo */}
-              <motion.button
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => navigate("/analyze")}
-                className="w-full py-5 rounded-2xl font-black text-lg text-[#2C1A0E] shadow-2xl mb-3"
-                style={{ background: "linear-gradient(135deg, #C9963A, #E8B96A)", boxShadow: "0 0 30px rgba(201,150,58,0.4)" }}
-              >
-                🔍 Relancer l'analyse
-              </motion.button>
-
-              {/* CTA secondaire — nouveau selfie */}
-              <motion.button
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => navigate("/camera")}
-                className="w-full py-4 rounded-2xl font-bold text-sm text-white/70 bg-white/5 border border-white/10"
-              >
-                📸 Prendre un nouveau selfie
-              </motion.button>
-
-              {/* Aperçu mosaïque des styles possibles */}
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
-                className="mt-8">
-                <p className="text-[10px] text-white/30 uppercase tracking-widest mb-3 text-center">Styles qui t'attendent</p>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {TEASER_STYLES.map((s, i) => (
-                    <motion.div key={s.key}
-                      initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.4 + i * 0.06 }}
-                      className="relative h-24 rounded-2xl overflow-hidden">
-                      <img src={`/styles/${s.key}-face.jpg`} alt={s.label}
-                        className="w-full h-full object-cover"
-                        style={{ filter: "brightness(0.5) blur(1px)" }}
-                        draggable={false} onContextMenu={e => e.preventDefault()} />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-white/60 text-lg">🔒</span>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            </div>
-          </div>
-
-        ) : (
-          /* ── OPTION A — Aucune photo, teaser mosaïque ── */
-          <div className="flex flex-col min-h-[100dvh]">
-
-            {/* Mosaïque hero - FOND UNI */}
-            <div className="relative h-52 overflow-hidden bg-[#2C1A0E] flex items-center justify-center">
-
-              {/* Overlay doré */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center"
-                style={{ background: "linear-gradient(160deg, rgba(201,150,58,0.15) 0%, rgba(44,26,14,0.7) 100%)" }}>
-                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 18 }}
-                  className="text-5xl mb-3">👑</motion.div>
-                <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-                  className="text-white font-black text-2xl text-center px-4 leading-tight">
-                  Tes styles parfaits<br /><span className="text-[#C9963A]">t'attendent</span>
-                </motion.p>
-              </div>
-
-              {/* Gradient bas */}
-              <div className="absolute bottom-0 left-0 right-0 h-24"
-                style={{ background: "linear-gradient(to bottom, transparent, #2C1A0E)" }} />
-            </div>
-
-            {/* Contenu */}
-            <div className="flex flex-col flex-1 px-5 pt-2 pb-32">
-
               {/* Message */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
                 className="mb-3">
@@ -756,7 +678,7 @@ export default function Results() {
   return (
     <div className="min-h-[100dvh] bg-[#2C1A0E] text-[#FAF4EC] p-4 sm:p-6 pb-40 relative">
 
-      {/* ── Feu d'artifice ── */}
+      {/* ── Feu d'artifice DOUX — seulement au 1er chargement ── */}
       {showFireworks && (
         <Fireworks onDone={() => setShowFireworks(false)} />
       )}
@@ -811,7 +733,7 @@ export default function Results() {
         </p>
       </motion.div>
 
-      {/* ── BLOC SAUVEGARDE PRÉNOM / EMAIL — pliable ── */}
+      {/* ── BLOC SAUVEGARDE EMAIL UNIQUEMENT — pliable ── */}
       {saveDone ? (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
@@ -843,7 +765,7 @@ export default function Results() {
             </motion.span>
           </button>
 
-          {/* Formulaire pliable */}
+          {/* Formulaire pliable — email uniquement */}
           <AnimatePresence initial={false}>
             {saveOpen && (
               <motion.div
@@ -857,14 +779,6 @@ export default function Results() {
                 <div className="px-5 pb-5">
                   <p className="text-[11px] text-white/50 mb-4">Retrouve tes favoris sur n&apos;importe quel appareil.</p>
                   <div className="flex flex-col gap-2 mb-3">
-                    <input
-                      type="text"
-                      placeholder="Ton prénom..."
-                      value={savePrenom}
-                      onChange={e => setSavePrenom(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold outline-none"
-                      style={{ background: "rgba(92,51,23,0.5)", border: "1px solid rgba(201,150,58,0.3)", color: "#FAF4EC" }}
-                    />
                     <input
                       type="email"
                       placeholder="Ton email..."
@@ -1109,28 +1023,6 @@ export default function Results() {
               </svg>
             </button>
           </div>
-
-          <p className="text-[10px] text-[#C9963A]/60">
-            Solde : {credits} crédit{credits > 1 ? "s" : ""}
-          </p>
-
-          {/* Bouton générer encore plus */}
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={handleGenerateMore}
-            className="mt-2 px-6 py-3 rounded-2xl font-bold text-sm relative overflow-hidden"
-            style={{
-              background: "linear-gradient(135deg, #3D2616, #4A2E1A)",
-              border: "1.5px solid rgba(201,150,58,0.4)",
-            }}
-          >
-            <span className="flex items-center gap-2 text-[#C9963A]">
-              ✨ Voir 3 autres styles
-              <span className="text-[9px] bg-[#C9963A]/20 border border-[#C9963A]/40 text-[#C9963A] px-1.5 py-0.5 rounded-full font-black">
-                -1 crédit
-              </span>
-            </span>
-          </motion.button>
         </motion.div>
       )}
 
@@ -1314,4 +1206,3 @@ export default function Results() {
     </div>
   );
 }
-
