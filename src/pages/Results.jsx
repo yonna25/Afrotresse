@@ -586,7 +586,7 @@ export default function Results() {
       <div className="min-h-[100dvh] bg-[#2C1A0E] text-[#FAF4EC] flex flex-col relative overflow-hidden">
 
         {/* ── OPTION C — Photo existante ── */}
-        {hasPreviousPhoto ? (
+        {hasPreviousPhoto && (
           <div className="flex flex-col min-h-[100dvh]">
 
             {/* Hero avec la photo de l'utilisatrice */}
