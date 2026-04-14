@@ -37,8 +37,7 @@ Trouve le tien aussi : https://afrotresse.com`;
           await navigator.share({ title: "AfroTresse — " + style.name, text, url: "https://afrotresse.com" });
         }
       } else {
-        await navigator.clipboard.writeText(text + "
-https://afrotresse.com");
+        await navigator.clipboard.writeText(text + "\nhttps://afrotresse.com");
         setShareToast("🔗 Lien copié !");
         setTimeout(() => setShareToast(""), 2500);
       }
