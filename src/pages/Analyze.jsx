@@ -96,11 +96,13 @@ export default function Analyze() {
         consumeAnalysis();
         const prevTrials = parseInt(localStorage.getItem('afrotresse_ai_trials') || '0', 10);
         localStorage.setItem('afrotresse_ai_trials', String(prevTrials + 1));
+        sessionStorage.setItem("afrotresse_fresh_results", "1");
         navigate("/results");
       } catch (err) {
         console.error("Analysis error:", err);
         const fallback = { faceShape: "oval", faceShapeName: "Ovale", recommendations: [] };
         sessionStorage.setItem("afrotresse_results", JSON.stringify(fallback));
+        sessionStorage.setItem("afrotresse_fresh_results", "1");
         navigate("/results");
       }
     };
