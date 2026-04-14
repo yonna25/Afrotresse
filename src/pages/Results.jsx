@@ -158,6 +158,19 @@ export default function Results() {
   const [creditPopup, setCreditPopup] = useState(null);
   const [showVirtualTryOnModal, setShowVirtualTryOnModal] = useState(false);
 
+  // ── Étape 2 : Bloc sauvegarde prénom/email ────────────────────────────────
+  const [savePrenom, setSavePrenom] = useState(() => localStorage.getItem("afrotresse_user_name") || "");
+  const [saveEmail, setSaveEmail]   = useState(() => localStorage.getItem("afrotresse_email") || "");
+  const [saveDone, setSaveDone]     = useState(() => !!localStorage.getItem("afrotresse_email"));
+  const [displayName, setDisplayName] = useState(() => localStorage.getItem("afrotresse_user_name") || "");
+
+  // ── Étape 4 : Favoris volatils — max 3 gratuits ────────────────────────────
+  const FREE_FAV_LIMIT = 3;
+  const [favorites, setFavorites] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem("afrotresse_session_favs") || "[]"); }
+    catch { return []; }
+  });
+
   // ── Pagination — persistée dans localStorage ───────────────────────────
   const [currentPage, setCurrentPage] = useState(() => {
     return parseInt(localStorage.getItem("afrotresse_current_page") || "1", 10);
@@ -387,6 +400,49 @@ export default function Results() {
         alert("Lien copié !");
       }
     } catch (e) {}
+  };
+
+  const handleSaveProfile = () => {
+    if (!savePrenom.trim() && !saveEmail.trim()) return;
+    if (savePrenom.trim()) {
+      localStorage.setItem("afrotresse_user_name", savePrenom.trim());
+      setDisplayName(savePrenom.trim());
+    }
+    if (saveEmail.trim()) {
+      localStorage.setItem("afrotresse_email", saveEmail.trim());
+    }
+    setSaveDone(true);
+  };
+
+  // ── Favoris volatils ───────────────────────────────────────────────────────
+  const isFav = (styleId) => favorites.some(f => f === styleId);
+
+  const handleToggleFav = (style) => {
+    const alreadyFav = isFav(style.id);
+    if (alreadyFav) {
+      const updated = favorites.filter(f => f !== style.id);
+      setFavorites(updated);
+      sessionStorage.setItem("afrotresse_session_favs", JSON.stringify(updated));
+      // Sync Library
+      const saved = JSON.parse(localStorage.getItem("afrotresse_saved_styles") || "[]");
+      localStorage.setItem("afrotresse_saved_styles", JSON.stringify(saved.filter(s => s.id !== style.id)));
+      return;
+    }
+    const creditsFree = !localStorage.getItem("afrotresse_email");
+    if (creditsFree && favorites.length >= FREE_FAV_LIMIT) {
+      setErrorMsg("💎 Limite de 3 favoris gratuits atteinte — sauvegarde ton compte pour en ajouter plus !");
+      setTimeout(() => errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
+      return;
+    }
+    const updated = [...favorites, style.id];
+    setFavorites(updated);
+    sessionStorage.setItem("afrotresse_session_favs", JSON.stringify(updated));
+    // Sync Library
+    const saved = JSON.parse(localStorage.getItem("afrotresse_saved_styles") || "[]");
+    if (!saved.find(s => s.id === style.id)) {
+      saved.push({ ...style, savedAt: new Date().toISOString() });
+      localStorage.setItem("afrotresse_saved_styles", JSON.stringify(saved));
+    }
   };
 
   const handleSave = () => {
@@ -626,12 +682,79 @@ export default function Results() {
         </div>
         <div className="flex flex-col flex-1">
           <h1 className="font-bold text-3xl text-[#C9963A]">
-            Tes résultats<br />
-            <span className="text-[#FAF4EC]">{userName} ✨</span>
+            {displayName ? (
+              <><span className="text-[#FAF4EC]">{displayName}</span>, voici tes résultats ✨</>
+            ) : (
+              <>Voici tes résultats ✨</>
+            )}
           </h1>
           <p className="text-[11px] opacity-80 leading-tight mt-1 max-w-xs">{faceText}</p>
         </div>
       </motion.div>
+
+      {/* ── ALERTE VOLATILITÉ ── */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        className="mb-4 px-4 py-3 rounded-2xl flex items-start gap-3"
+        style={{ background: "rgba(201,150,58,0.08)", border: "1px solid rgba(201,150,58,0.25)" }}
+      >
+        <span className="text-lg mt-0.5">⚠️</span>
+        <p className="text-[11px] text-white/60 leading-relaxed">
+          <span className="text-[#C9963A] font-bold">Tes résultats ne sont pas sauvegardés.</span>
+          {" "}Ajoute tes styles en favoris pour les conserver, ou sauvegarde ton compte ci-dessous.
+        </p>
+      </motion.div>
+
+      {/* ── BLOC SAUVEGARDE PRÉNOM / EMAIL ── */}
+      <AnimatePresence>
+        {!saveDone ? (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="mb-6 rounded-[2rem] p-5"
+            style={{ background: "linear-gradient(135deg, #3D2616, #2C1A0E)", border: "1.5px solid rgba(201,150,58,0.35)" }}
+          >
+            <p className="text-sm font-black text-white mb-1">Sauvegarder tes résultats 💾</p>
+            <p className="text-[11px] text-white/50 mb-4">Retrouve tes favoris sur n&apos;importe quel appareil.</p>
+            <div className="flex flex-col gap-2 mb-3">
+              <input
+                type="text"
+                placeholder="Ton prénom..."
+                value={savePrenom}
+                onChange={e => setSavePrenom(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold outline-none"
+                style={{ background: "rgba(92,51,23,0.5)", border: "1px solid rgba(201,150,58,0.3)", color: "#FAF4EC" }}
+              />
+              <input
+                type="email"
+                placeholder="Ton email..."
+                value={saveEmail}
+                onChange={e => setSaveEmail(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleSaveProfile()}
+                className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold outline-none"
+                style={{ background: "rgba(92,51,23,0.5)", border: "1px solid rgba(201,150,58,0.3)", color: "#FAF4EC" }}
+              />
+            </div>
+            <button
+              onClick={handleSaveProfile}
+              className="w-full py-3 rounded-xl font-black text-sm text-[#2C1A0E]"
+              style={{ background: "linear-gradient(135deg, #C9963A, #E8B96A)" }}
+            >
+              Sauvegarder mes résultats ✨
+            </button>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            className="mb-6 px-4 py-3 rounded-2xl flex items-center gap-3"
+            style={{ background: "rgba(39,174,96,0.1)", border: "1px solid rgba(39,174,96,0.3)" }}
+          >
+            <span className="text-lg">✅</span>
+            <p className="text-[12px] text-green-300 font-semibold">
+              Résultats sauvegardés pour <span className="font-black">{displayName || saveEmail}</span> !
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ERROR / MESSAGE */}
       <AnimatePresence>
@@ -713,7 +836,19 @@ export default function Results() {
               <div className="p-6">
                 <div className="flex justify-between items-start mb-3">
                   <h3 className="font-bold text-xl">{style.name}</h3>
-                  <span className="text-[10px] bg-[#C9963A] text-[#2C1A0E] px-2.5 py-1 rounded-md font-black uppercase">{style.duration || "3-5h"}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] bg-[#C9963A] text-[#2C1A0E] px-2.5 py-1 rounded-md font-black uppercase">{style.duration || "3-5h"}</span>
+                    <button
+                      onClick={() => handleToggleFav(style)}
+                      className="w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-90"
+                      style={{
+                        background: isFav(style.id) ? "rgba(201,150,58,0.25)" : "rgba(255,255,255,0.05)",
+                        border: isFav(style.id) ? "1.5px solid #C9963A" : "1.5px solid rgba(255,255,255,0.1)"
+                      }}
+                    >
+                      <span className="text-base">{isFav(style.id) ? "❤️" : "🤍"}</span>
+                    </button>
+                  </div>
                 </div>
                 <p className="text-[11px] opacity-70 mb-6 leading-relaxed">{style.description || "Un style unique adapté à ta morphologie"}</p>
                 <div className="flex gap-2 flex-wrap mb-4">
