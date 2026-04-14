@@ -28,6 +28,10 @@ const getTotalEarned = () => {
   return referralCredits + reviewCredits + extra;
 };
 const getReviewDone = () => localStorage.getItem("afrotresse_review_done") === "true";
+const getFavoritesCount = () => {
+  try { return JSON.parse(localStorage.getItem("afrotresse_saved_styles") || "[]").length; }
+  catch { return 0; }
+};
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -35,7 +39,7 @@ export default function Profile() {
   const [credits, setCredits] = useState(0);
   const [userName, setUserName] = useState("Ma Reine");
   const [selfieUrl, setSelfieUrl] = useState(null);
-  const [aiTrials, setAiTrials] = useState(0);
+  const [favoritesCount, setFavoritesCount] = useState(0);
   const [referralCode, setReferralCode] = useState("");
   const [referralCount, setReferralCount] = useState(0);
   const [totalEarned, setTotalEarned] = useState(0);
@@ -45,7 +49,7 @@ export default function Profile() {
 
   useEffect(() => {
     setCredits(getCredits());
-    setAiTrials(getAiTrials());
+    setFavoritesCount(getFavoritesCount());
     setReferralCode(getReferralCode());
     setReferralCount(getReferralCount());
     setTotalEarned(getTotalEarned());
@@ -167,12 +171,16 @@ export default function Profile() {
           <p className="text-[7px] text-[#2b1810]/50 mt-1">Appuie</p>
         </motion.div>
 
-        {/* Styles (Essais IA) - AFFICHAGE */}
-        <div className="bg-white/5 border border-white/10 rounded-3xl p-4 flex flex-col items-center">
-          <p className="text-2xl font-black text-[#C9963A]">{aiTrials}</p>
-          <p className="text-[8px] uppercase font-black opacity-40 tracking-widest mt-0.5">Styles</p>
-          <p className="text-[7px] opacity-30 mt-1">Essayés</p>
-        </div>
+        {/* Favoris - CLIQUABLE vers /library */}
+        <motion.div
+          whileTap={{ scale: 0.97 }}
+          onClick={() => navigate("/library")}
+          className="bg-white/5 border border-white/10 rounded-3xl p-4 flex flex-col items-center cursor-pointer"
+        >
+          <p className="text-2xl font-black text-[#C9963A]">{favoritesCount}</p>
+          <p className="text-[8px] uppercase font-black opacity-40 tracking-widest mt-0.5">Favoris</p>
+          <p className="text-[7px] text-[#C9963A]/50 mt-1">Voir</p>
+        </motion.div>
 
         {/* Gagnés (Referral) - AFFICHAGE */}
         <div className="bg-white/5 border border-white/10 rounded-3xl p-4 flex flex-col items-center">
@@ -356,7 +364,7 @@ export default function Profile() {
         </motion.button>
       </div>
 
-      {/* ── INFORMATIONS LÉGALES ── */}
+      {/* ── INFORMATIONS LÉGALES ── */}}
       <div className="mt-10 pb-4 flex flex-col items-center gap-2 opacity-30">
         <div className="flex gap-4 text-[9px] font-medium uppercase tracking-tighter">
           <button onClick={() => navigate("/privacy-policy")}>Mentions Légales</button>
