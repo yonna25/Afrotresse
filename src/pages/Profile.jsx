@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getCredits, addCredits, PRICING } from "../services/credits.js";
+import { getCurrentUser } from "../services/useSupabaseCredits.js";
+import { supabase } from "../services/supabase.js";
 
 // ── Helpers localStorage ─────────────────────────────────────────────────────
 const getAiTrials = () => {
@@ -39,17 +41,20 @@ export default function Profile() {
   const [credits, setCredits] = useState(0);
   const [userName, setUserName] = useState("Ma Reine");
   const [selfieUrl, setSelfieUrl] = useState(null);
-  const [favoritesCount, setFavoritesCount] = useState(0);
+  const [aiTrials, setAiTrials] = useState(0);
   const [referralCode, setReferralCode] = useState("");
   const [referralCount, setReferralCount] = useState(0);
   const [totalEarned, setTotalEarned] = useState(0);
   const [reviewDone, setReviewDone] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
   const [showReferralInfo, setShowReferralInfo] = useState(false);
+  const [favoritesCount, setFavoritesCount] = useState(0);
+  const [userEmail, setUserEmail] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     setCredits(getCredits());
-    setFavoritesCount(getFavoritesCount());
+    setAiTrials(getAiTrials());
     setReferralCode(getReferralCode());
     setReferralCount(getReferralCount());
     setTotalEarned(getTotalEarned());
@@ -60,7 +65,24 @@ export default function Profile() {
 
     const photo = sessionStorage.getItem("afrotresse_photo");
     if (photo) setSelfieUrl(photo);
+    setFavoritesCount(getFavoritesCount());
+    // Vérifier session Supabase
+    getCurrentUser().then(user => {
+      if (user) {
+        setIsLoggedIn(true);
+        setUserEmail(user.email || localStorage.getItem("afrotresse_email") || "");
+      } else {
+        setIsLoggedIn(false);
+        setUserEmail(localStorage.getItem("afrotresse_email") || "");
+      }
+    });
   }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setIsLoggedIn(false);
+    showToast("👋 Déconnectée avec succès");
+  };
 
   const showToast = (msg) => {
     setToastMsg(msg);
@@ -157,6 +179,54 @@ export default function Profile() {
         </p>
       </div>
 
+      {/* ── STATUT CONNEXION ── */}
+      <div className="w-full max-w-sm px-5 mt-4">
+        {isLoggedIn ? (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            className="w-full rounded-2xl px-4 py-3 flex items-center justify-between"
+            style={{ background: "rgba(39,174,96,0.1)", border: "1px solid rgba(39,174,96,0.25)" }}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-green-400 text-sm">✅</span>
+              <div>
+                <p className="text-xs font-bold text-green-300">Connectée</p>
+                <p className="text-[10px] text-white/40">{userEmail}</p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="text-[10px] font-semibold px-3 py-1.5 rounded-xl"
+              style={{ background: "rgba(255,255,255,0.08)", color: "rgba(250,244,236,0.5)" }}
+            >
+              Déconnexion
+            </button>
+          </motion.div>
+        ) : (
+          <motion.button
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => navigate("/magic-link")}
+            className="w-full rounded-2xl px-4 py-3 flex items-center justify-between"
+            style={{
+              background: "linear-gradient(135deg, rgba(201,150,58,0.15), rgba(201,150,58,0.05))",
+              border: "1.5px solid rgba(201,150,58,0.4)"
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🔐</span>
+              <div className="text-left">
+                <p className="text-xs font-black" style={{ color: "#C9963A" }}>Se connecter</p>
+                <p className="text-[10px] text-white/40">Retrouve tes crédits et favoris</p>
+              </div>
+            </div>
+            <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="#C9963A" strokeWidth="2.5">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </motion.button>
+        )}
+      </div>
+
       {/* ── STATS RÉELLES ── */}
       <div className="grid grid-cols-3 w-full max-w-sm mt-6 px-5 gap-3">
         {/* Solde (Crédits) - CLIQUABLE */}
@@ -171,7 +241,7 @@ export default function Profile() {
           <p className="text-[7px] text-[#2b1810]/50 mt-1">Appuie</p>
         </motion.div>
 
-        {/* Favoris - CLIQUABLE vers /library */}
+        {/* Favoris - CLIQUABLE */}
         <motion.div
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate("/library")}
