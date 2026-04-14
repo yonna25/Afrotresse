@@ -7,6 +7,7 @@ export default function Library() {
   const [savedStyles, setSavedStyles] = useState([]);
   const [loading, setLoading]         = useState(true);
   const [zoomImg, setZoomImg]         = useState(null); // URL de l'image en lightbox
+  const [shareToast, setShareToast]   = useState("");
 
   useEffect(() => {
     const saved = getSavedStyles();
@@ -19,8 +20,48 @@ export default function Library() {
     setSavedStyles(prev => prev.filter(s => s.id !== styleId));
   };
 
+  const handleShare = async (style, imgUrl) => {
+    const text = `👑 J'ai trouvé mon style de tresse parfait avec AfroTresse !
+✨ ${style.name}${style.duration ? " — " + style.duration : ""}
+Trouve le tien aussi : https://afrotresse.com`;
+    try {
+      if (navigator.share) {
+        // Partage natif avec image si possible
+        try {
+          const res = await fetch(imgUrl);
+          const blob = await res.blob();
+          const file = new File([blob], "afrotresse-style.jpg", { type: blob.type });
+          await navigator.share({ title: "AfroTresse — " + style.name, text, files: [file] });
+        } catch {
+          // Fallback sans image
+          await navigator.share({ title: "AfroTresse — " + style.name, text, url: "https://afrotresse.com" });
+        }
+      } else {
+        await navigator.clipboard.writeText(text + "
+https://afrotresse.com");
+        setShareToast("🔗 Lien copié !");
+        setTimeout(() => setShareToast(""), 2500);
+      }
+    } catch (e) {}
+  };
+
   return (
     <div className="min-h-screen pb-28" style={{ background: '#1A0A00' }}>
+
+      {/* TOAST PARTAGE */}
+      <AnimatePresence>
+        {shareToast && (
+          <motion.div
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            className="fixed top-5 left-1/2 -translate-x-1/2 z-[300] px-5 py-3 rounded-2xl font-black text-sm shadow-2xl"
+            style={{ background: '#C9963A', color: '#2C1A0E' }}
+          >
+            {shareToast}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* HEADER */}
       <motion.div
@@ -177,17 +218,29 @@ export default function Library() {
                     Appuie sur une photo pour zoomer 🔍
                   </p>
 
-                  <button
-                    onClick={() => handleRemove(style.id)}
-                    className="w-full py-2.5 rounded-xl text-sm font-semibold transition-colors"
-                    style={{
-                      background: 'rgba(180,40,40,0.15)',
-                      border: '1px solid rgba(180,40,40,0.3)',
-                      color: '#F87171',
-                    }}
-                  >
-                    Retirer des favoris
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleShare(style, faceImg)}
+                      className="flex-1 py-2.5 rounded-xl text-sm font-black transition-colors flex items-center justify-center gap-2"
+                      style={{
+                        background: 'linear-gradient(135deg, #C9963A, #E8B96A)',
+                        color: '#2C1A0E',
+                      }}
+                    >
+                      <span>✂️</span> Partager
+                    </button>
+                    <button
+                      onClick={() => handleRemove(style.id)}
+                      className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                      style={{
+                        background: 'rgba(180,40,40,0.15)',
+                        border: '1px solid rgba(180,40,40,0.3)',
+                        color: '#F87171',
+                      }}
+                    >
+                      Retirer
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             );
