@@ -17,6 +17,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy.jsx'
 import TermsOfService from './pages/TermsOfService.jsx'
 import CookiePolicy from './pages/CookiePolicy.jsx'
 import FAQ from './pages/FAQ.jsx'
+import MagicLink from './pages/MagicLink.jsx'
 import Library from './pages/Library.jsx'
 
 import BottomNav from './components/BottomNav.jsx'
@@ -131,7 +132,7 @@ function CreditSuccessPopup({ data, onClose }) {
 // ═══════════════════════════════════════════════════════════════════════════
 function AnimatedRoutes() {
   const location = useLocation()
-  const hideNav = ['/camera', '/analyze'].includes(location.pathname)
+  const hideNav = ['/camera', '/analyze', '/magic-link'].includes(location.pathname)
 
   return (
     <>
@@ -148,6 +149,7 @@ function AnimatedRoutes() {
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/cookie-policy" element={<CookiePolicy />} />
           <Route path="/faq" element={<FAQ />} />
+          <Route path="/magic-link" element={<MagicLink />} />
           <Route path="/library" element={<Library />} />
         </Routes>
       </AnimatePresence>
@@ -236,4 +238,4 @@ export default function App() {
       </div>
     </BrowserRouter>
   )
-}
+        }
