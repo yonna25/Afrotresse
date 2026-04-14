@@ -7,7 +7,6 @@ import { supabase } from "../services/supabase.js";
 
 // ── Helpers localStorage ─────────────────────────────────────────────────────
 const getAiTrials = () => {
-  // Combine analyses IA + styles générés (transformations)
   const trials = parseInt(localStorage.getItem("afrotresse_ai_trials") || "0", 10);
   const generated = parseInt(localStorage.getItem("afrotresse_styles_generated") || "0", 10);
   return trials + generated;
@@ -22,9 +21,8 @@ const getReferralCode = () => {
 };
 const getReferralCount = () => parseInt(localStorage.getItem("afrotresse_referral_count") || "0", 10);
 const getTotalEarned = () => {
-  // Crédits gagnés = parrainage + avis + credits_earned explicite
   const referrals = parseInt(localStorage.getItem("afrotresse_referral_count") || "0", 10);
-  const referralCredits = referrals * 2; // PRICING.referral.sender
+  const referralCredits = referrals * 2;
   const reviewCredits = localStorage.getItem("afrotresse_review_done") === "true" ? 2 : 0;
   const extra = parseInt(localStorage.getItem("afrotresse_credits_earned") || "0", 10);
   return referralCredits + reviewCredits + extra;
@@ -51,6 +49,8 @@ export default function Profile() {
   const [favoritesCount, setFavoritesCount] = useState(0);
   const [userEmail, setUserEmail] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Formulaire connexion : fermé par défaut
+  const [showLoginForm, setShowLoginForm] = useState(false);
 
   useEffect(() => {
     setCredits(getCredits());
@@ -119,9 +119,7 @@ export default function Profile() {
       showToast("👑 Avis déjà donné — merci !");
       return;
     }
-    // Ouvre le store (à adapter selon la plateforme)
     window.open("https://afrotresse.com", "_blank");
-    // Crédite après 2s (laisser le temps d'ouvrir)
     setTimeout(() => {
       addCredits(PRICING.reviewBonus || 1);
       setCredits(getCredits());
@@ -150,10 +148,7 @@ export default function Profile() {
 
       {/* ── HERO — Photo + Prénom ── */}
       <div className="w-full relative">
-        {/* Fond uniforme */}
         <div className="h-48 w-full bg-[#2b1810]" />
-
-        {/* Photo centrée chevauchant le fond */}
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2">
           <div className="relative">
             <div className="w-24 h-24 rounded-full border-4 border-[#C9963A] overflow-hidden bg-[#2a1a14] shadow-2xl">
@@ -203,27 +198,60 @@ export default function Profile() {
             </button>
           </motion.div>
         ) : (
-          <motion.button
+          <motion.div
             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => navigate("/magic-link")}
-            className="w-full rounded-2xl px-4 py-3 flex items-center justify-between"
+            className="w-full rounded-2xl overflow-hidden"
             style={{
               background: "linear-gradient(135deg, rgba(201,150,58,0.15), rgba(201,150,58,0.05))",
               border: "1.5px solid rgba(201,150,58,0.4)"
             }}
           >
-            <div className="flex items-center gap-2">
-              <span className="text-lg">🔐</span>
-              <div className="text-left">
-                <p className="text-xs font-black" style={{ color: "#C9963A" }}>Se connecter</p>
-                <p className="text-[10px] text-white/40">Retrouve tes crédits et favoris</p>
+            {/* Bouton toggle — toujours visible */}
+            <button
+              onClick={() => setShowLoginForm(prev => !prev)}
+              className="w-full px-4 py-3 flex items-center justify-between"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🔐</span>
+                <div className="text-left">
+                  <p className="text-xs font-black" style={{ color: "#C9963A" }}>Se connecter</p>
+                  <p className="text-[10px] text-white/40">Retrouve tes crédits et favoris</p>
+                </div>
               </div>
-            </div>
-            <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="#C9963A" strokeWidth="2.5">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </motion.button>
+              <motion.div animate={{ rotate: showLoginForm ? 90 : 0 }} transition={{ duration: 0.2 }}>
+                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="#C9963A" strokeWidth="2.5">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </motion.div>
+            </button>
+
+            {/* Formulaire expandable */}
+            <AnimatePresence>
+              {showLoginForm && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-4 pb-4 flex flex-col gap-2">
+                    <p className="text-[11px] text-white/40 mb-1">
+                      Connecte-toi avec un lien magique envoyé par email.
+                    </p>
+                    <motion.button
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => navigate("/magic-link")}
+                      className="w-full py-3 rounded-xl font-black text-sm text-[#2b1810]"
+                      style={{ background: "linear-gradient(135deg, #C9963A, #E8B96A)" }}
+                    >
+                      Continuer avec un lien magique ✨
+                    </motion.button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         )}
       </div>
 
