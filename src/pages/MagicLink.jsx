@@ -15,7 +15,7 @@ export default function MagicLink() {
     getCurrentUser().then(user => {
       if (user) {
         ensureUserExists(user.id, user.email)
-        navigate('/credits')
+        navigate('/profile')
       }
     })
   }, [navigate])
@@ -53,10 +53,10 @@ export default function MagicLink() {
         {!sent ? (
           <>
             <h2 className="font-display text-center text-lg mb-1" style={{ color: '#FAF4EC' }}>
-              Securise tes credits
+              Connexion à ton compte
             </h2>
             <p className="font-body text-center text-sm mb-6" style={{ color: 'rgba(250,244,236,0.6)' }}>
-              Entre ton email pour recuperer tes credits en cas de perte ou changement de telephone.
+              Entre ton email pour te connecter et retrouver tes crédits, favoris et résultats.
             </p>
 
             <input
@@ -80,7 +80,7 @@ export default function MagicLink() {
               {loading ? 'Envoi en cours...' : 'Recevoir mon lien de connexion'}
             </button>
 
-            <button onClick={() => navigate('/credits')}
+            <button onClick={() => navigate(-1)}
               className="w-full py-2 mt-2 font-body text-xs text-center"
               style={{ color: 'rgba(250,244,236,0.4)' }}>
               Pas maintenant
@@ -89,13 +89,13 @@ export default function MagicLink() {
         ) : (
           <>
             <h2 className="font-display text-center text-lg mb-2" style={{ color: '#FAF4EC' }}>
-              Verifie ta boite mail 📬
+              Vérifie ta boîte mail 📬
             </h2>
             <p className="font-body text-center text-sm mb-6" style={{ color: 'rgba(250,244,236,0.6)' }}>
-              Un lien de connexion a ete envoye a <span style={{ color: '#C9963A' }}>{email}</span>.
-              Clique dessus pour securiser tes credits.
+              Un lien de connexion a été envoyé à <span style={{ color: '#C9963A' }}>{email}</span>.
+              Clique dessus pour accéder à ton compte.
             </p>
-            <button onClick={() => navigate('/credits')}
+            <button onClick={() => navigate('/profile')}
               className="w-full py-3 rounded-2xl font-display font-semibold text-sm"
               style={{ background: 'rgba(201,150,58,0.15)', border: '1px solid rgba(201,150,58,0.3)', color: '#C9963A' }}>
               Retour
@@ -104,7 +104,7 @@ export default function MagicLink() {
         )}
 
         <p className="font-body text-xs text-center mt-4" style={{ color: 'rgba(250,244,236,0.3)' }}>
-          ✨ Ton email ne sera jamais partage
+          ✨ Ton email ne sera jamais partagé
         </p>
       </motion.div>
     </div>
