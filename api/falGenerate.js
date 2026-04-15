@@ -1,14 +1,38 @@
 import Replicate from "replicate";
 
-// Initialisation de Replicate avec ton Token API
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
 
+// ── RATE LIMIT ──
+const RATE_LIMIT = 5;
+const WINDOW_MS = 60 * 60 * 1000;
+const rateMap = new Map();
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const data = rateMap.get(ip) || { count: 0, start: now };
+
+  if (now - data.start > WINDOW_MS) {
+    rateMap.set(ip, { count: 1, start: now });
+    return true;
+  }
+
+  if (data.count >= RATE_LIMIT) return false;
+
+  data.count++;
+  rateMap.set(ip, data);
+  return true;
+}
+
 export default async function handler(req, res) {
-  // Sécurité : On n'accepte que les requêtes POST
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Méthode non autorisée" });
+  }
+
+  const ip = req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown";
+  if (!checkRateLimit(ip)) {
+    return res.status(429).json({ error: "Trop de requêtes. Réessaie plus tard." });
   }
 
   try {
@@ -18,32 +42,26 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Données manquantes (photo ou style)." });
     }
 
-    // On construit l'URL complète de l'image de coiffure hébergée sur ton site
     const host = req.headers.host;
     const protocol = host.includes("localhost") ? "http" : "https";
     const fullStyleUrl = `${protocol}://${host}${stylePath}`;
 
-    console.log("🚀 Lancement de la génération Replicate...");
-
-    // Appel au modèle FaceSwap de Replicate
     const output = await replicate.run(
       "lucataco/faceswap:9a42985484da3ec3912140e1e902636239126362391263623912636239126362",
       {
         input: {
-          target_image: fullStyleUrl, // L'image de la tresse (Destination)
-          source_image: selfieUrl,    // Ta photo (Source)
+          target_image: fullStyleUrl,
+          source_image: selfieUrl,
         },
       }
     );
 
-    // Succès : On renvoie l'URL de l'image générée par l'IA
     return res.status(200).json({ imageUrl: output });
 
   } catch (error) {
-    console.error("❌ Erreur Replicate détaillée :", error);
-    return res.status(500).json({ 
-      error: "L'IA n'a pas pu générer l'image.", 
-      details: error.message 
+    return res.status(500).json({
+      error: "L'IA n'a pas pu générer l'image.",
+      details: error.message
     });
   }
 }
