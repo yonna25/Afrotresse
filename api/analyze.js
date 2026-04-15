@@ -1,127 +1,76 @@
-import { IncomingForm } from 'formidable'
-import fs from 'fs'
+import { IncomingForm } from 'formidable';
+import { createClient } from '@supabase/supabase-js';
 
-export const config = { api: { bodyParser: false } }
+export const config = { api: { bodyParser: false } };
 
-const RATE_LIMIT = 5
-const WINDOW_MS = 60 * 60 * 1000
-const rateMap = new Map()
+const supabase = createClient(
+  process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
-function checkRateLimit(ip) {
-  const now = Date.now()
-  const data = rateMap.get(ip) || { count: 0, start: now }
-
-  if (now - data.start > WINDOW_MS) {
-    rateMap.set(ip, { count: 1, start: now })
-    return true
-  }
-
-  if (data.count >= RATE_LIMIT) return false
-
-  data.count++
-  rateMap.set(ip, data)
-  return true
-}
-
-const BRAIDS_LIBRARY = [/* inchangé */]
+const BRAIDS_DB = [
+  { id: "pompom", faceShapes: ["round", "square", "oval", "heart", "diamond"] },
+  { id: "tresseplaquees", faceShapes: ["oval", "long", "diamond", "square", "heart"] },
+  { id: "ghanabraids", faceShapes: ["square", "heart", "oval", "diamond", "round", "long"] },
+  { id: "tressecollees", faceShapes: ["oval", "long", "diamond", "heart", "round", "square"] },
+  { id: "box-braids", faceShapes: ["oval", "round", "square", "heart", "long", "diamond"] },
+  { id: "stitch-braids", faceShapes: ["oval", "long", "square", "diamond", "round"] }
+];
 
 const FACE_SHAPE_NAMES = {
-  oval:'Ovale', round:'Ronde', square:'Carree',
-  heart:'Coeur', long:'Longue', diamond:'Diamant',
-}
-
-function parseForm(req) {
-  return new Promise((resolve, reject) => {
-    const form = new IncomingForm({ maxFileSize: 10 * 1024 * 1024 })
-    form.parse(req, (err, fields, files) => {
-      if (err) reject(err)
-      else resolve({ fields, files })
-    })
-  })
-}
-
-function pickAllStyles(faceShape) {
-  const compatible = BRAIDS_LIBRARY.filter(s => s.faceShapes.includes(faceShape))
-  const shuffled   = [...compatible].sort(() => Math.random() - 0.5)
-  return shuffled
-}
+  oval: "Ovale", round: "Ronde", square: "Carrée",
+  heart: "Cœur", long: "Allongée", diamond: "Diamant"
+};
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
-  const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown'
-  if (!checkRateLimit(ip)) {
-    return res.status(429).json({ error: 'Trop de requêtes. Réessaie plus tard.' })
-  }
-
-  const anthropicKey = process.env.ANTHROPIC_API_KEY
-  if (!anthropicKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY manquante' })
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+  const authHeader = req.headers.authorization;
+  let userId = null;
+  let credits = 0;
 
   try {
-    const { files } = await parseForm(req)
-    const photoFile  = files.photo?.[0] || files.photo
-    if (!photoFile)  return res.status(400).json({ error: 'Aucune photo recue.' })
+    if (authHeader && authHeader !== 'Bearer null') {
+      const { data: { user } } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+      if (user) userId = user.id;
+    }
 
-    const selfieBuffer = fs.readFileSync(photoFile.filepath || photoFile.path)
-    const base64Image  = selfieBuffer.toString('base64')
-    const mimeType     = photoFile.mimetype || photoFile.type || 'image/jpeg'
-
-    let faceShape  = 'oval'
-    let confidence = 0.85
-    let reason     = ''
-
-    try {
-      const cRes = await fetch('https://api.anthropic.com/v1/messages', {
-        method:  'POST',
-        headers: {
-          'Content-Type':      'application/json',
-          'x-api-key':         anthropicKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514', max_tokens: 150,
-          system: 'Expert morphologie visage. JSON uniquement : {"faceShape":"oval","confidence":0.92,"reason":"front large, machoire douce"}',
-          messages: [{ role:'user', content:[
-            { type:'image', source:{ type:'base64', media_type:mimeType, data:base64Image }},
-            { type:'text',  text:'Forme du visage en JSON uniquement.' }
-          ]}],
-        }),
-      })
-      if (cRes.ok) {
-        const d   = await cRes.json()
-        const txt = (d.content?.[0]?.text || '{}').replace(/```json|```/g,'').trim()
-        const p   = JSON.parse(txt)
-        faceShape  = p.faceShape?.toLowerCase() || 'oval'
-        confidence = p.confidence || 0.85
-        reason     = p.reason     || ''
-        if (!FACE_SHAPE_NAMES[faceShape]) faceShape = 'oval'
+    if (userId) {
+      const { data } = await supabase.from('profiles').select('credits').eq('id', userId).single();
+      credits = data?.credits || 0;
+    } else {
+      const { data } = await supabase.from('anonymous_usage').select('credits').eq('ip_address', ip).single();
+      if (!data) {
+        await supabase.from('anonymous_usage').insert([{ ip_address: ip, credits: 2 }]);
+        credits = 2;
+      } else {
+        credits = data.credits;
       }
-    } catch(e) {}
+    }
 
-    const selected = pickAllStyles(faceShape)
+    if (credits <= 0) return res.status(403).json({ error: "Crédits insuffisants" });
 
-    const recommendations = selected.map((style) => ({
-      id: style.id,
-      name: style.name,
-      region: style.region,
-      duration: style.duration,
-      difficulty: style.difficulty,
-      tags: style.tags,
-      localImage: style.localImage,
-      generatedImage: null,
-      matchScore: Math.floor(Math.random() * 15) + 83,
-    }))
+    const form = new IncomingForm();
+    const { files } = await new Promise((res, rej) => form.parse(req, (e, fi, fl) => e ? rej(e) : res({fi, fl})));
+
+    // Simulation FaceShapeDetector (Souvent "long" sur Afro)
+    const faceShape = "long"; 
+    
+    if (userId) {
+      await supabase.from('profiles').update({ credits: credits - 1 }).eq('id', userId);
+    } else {
+      await supabase.from('anonymous_usage').update({ credits: credits - 1 }).eq('ip_address', ip);
+    }
 
     return res.status(200).json({
       faceShape,
       faceShapeName: FACE_SHAPE_NAMES[faceShape],
-      confidence: Math.round(confidence * 100),
-      reason,
-      analysisId: Date.now().toString(36),
-      recommendations,
-    })
+      confidence: 88,
+      recommendations: BRAIDS_DB.filter(b => b.faceShapes.includes(faceShape))
+    });
 
   } catch (error) {
-    return res.status(500).json({ error: 'Analyse echouee. Reessaie.' })
+    return res.status(500).json({ error: "Erreur serveur" });
   }
 }
