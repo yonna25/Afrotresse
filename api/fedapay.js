@@ -1,7 +1,33 @@
 export const config = { api: { bodyParser: true } }
 
+// ── RATE LIMIT ──
+const RATE_LIMIT = 5;
+const WINDOW_MS = 60 * 60 * 1000;
+const rateMap = new Map();
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const data = rateMap.get(ip) || { count: 0, start: now };
+
+  if (now - data.start > WINDOW_MS) {
+    rateMap.set(ip, { count: 1, start: now });
+    return true;
+  }
+
+  if (data.count >= RATE_LIMIT) return false;
+
+  data.count++;
+  rateMap.set(ip, data);
+  return true;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+
+  const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown'
+  if (!checkRateLimit(ip)) {
+    return res.status(429).json({ error: 'Trop de requêtes. Réessaie plus tard.' })
+  }
 
   const secretKey = process.env.FEDAPAY_SECRET_KEY
   if (!secretKey) return res.status(500).json({ error: 'FEDAPAY_SECRET_KEY manquante' })
@@ -18,7 +44,6 @@ export default async function handler(req, res) {
     const selectedPack = PACKS[pack]
     if (!selectedPack) return res.status(400).json({ error: 'Pack invalide' })
 
-    // Creer la transaction FedaPay
     const fedaRes = await fetch('https://sandbox-api.fedapay.com/v1/transactions', {
       method: 'POST',
       headers: {
@@ -39,14 +64,10 @@ export default async function handler(req, res) {
 
     if (!fedaRes.ok) {
       const err = await fedaRes.text()
-      console.error('FedaPay error status:', fedaRes.status)
-      console.error('FedaPay error body:', err)
-      console.error('FedaPay secret key prefix:', secretKey?.substring(0, 10))
       return res.status(500).json({ error: 'Erreur FedaPay', details: err })
     }
 
     const data = await fedaRes.json()
-    console.log('FedaPay response:', JSON.stringify(data))
     const transaction = data['v1/transaction'] || data?.v1?.transaction || data?.transaction
     const transactionId = transaction?.id
     const paymentUrl = transaction?.payment_url
@@ -56,7 +77,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ paymentUrl, transactionId, credits: selectedPack.credits })
 
   } catch (error) {
-    console.error('Handler error:', error)
     return res.status(500).json({ error: 'Erreur de paiement. Reessaie.' })
   }
 }
