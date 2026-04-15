@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { analyzeFace } from "../services/faceAnalysis.js";
+import { consumeAnalysis } from "../services/credits.js";
 
 const STEPS = [
   "Analyse des traits uniques...",
@@ -98,26 +100,16 @@ export default function Analyze() {
     };
   }, [navigate, selfieUrl]);
 
-  // 🔐 Analyse API SÉCURISÉE (via serveur)
+  // Analyse API
   useEffect(() => {
     const run = async () => {
       try {
-        const res = await fetch('/api/analyze', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ selfieUrl })
-        });
-
-        if (!res.ok) {
-          throw new Error("Erreur serveur");
-        }
-
-        const result = await res.json();
+        const result = await analyzeFace(selfieUrl);
 
         sessionStorage.setItem("afrotresse_results", JSON.stringify(result));
         localStorage.setItem("afrotresse_face_shape", result.faceShape);
+
+        consumeAnalysis();
 
         const prevTrials = parseInt(localStorage.getItem('afrotresse_ai_trials') || '0', 10);
         localStorage.setItem('afrotresse_ai_trials', String(prevTrials + 1));
@@ -125,10 +117,7 @@ export default function Analyze() {
         sessionStorage.setItem("afrotresse_fresh_results", "1");
 
         setAnalysisDone(true);
-
       } catch (err) {
-        console.error(err);
-
         const fallback = {
           faceShape: "oval",
           faceShapeName: "Ovale",
@@ -145,10 +134,10 @@ export default function Analyze() {
     run();
   }, [selfieUrl]);
 
-  // ✅ Redirection sécurisée (replace pour éviter retour bug)
+  // Redirection finale (seulement quand tout est fini)
   useEffect(() => {
     if (progress >= 100 && analysisDone && !showForm) {
-      navigate("/results", { replace: true });
+      navigate("/results");
     }
   }, [progress, analysisDone, showForm, navigate]);
 
@@ -158,7 +147,7 @@ export default function Analyze() {
       {/* SCAN */}
       <div className="relative w-64 h-64 mb-12">
         <div className="relative w-full h-full rounded-full border-4 border-[#C9963A] overflow-hidden shadow-2xl">
-          <img src={selfieUrl} className="w-full h-full object-cover" alt="Scan visage utilisateur" />
+          <img src={selfieUrl} className="w-full h-full object-cover" alt="Scan" />
 
           <motion.div
             animate={{ top: ["0%", "100%", "0%"] }}
@@ -199,6 +188,7 @@ export default function Analyze() {
                 boxShadow: "0 -8px 48px rgba(0,0,0,0.7)",
               }}
             >
+              {/* Countdown bar */}
               <div className="w-full h-0.5 bg-white/10 rounded-full overflow-hidden mb-4">
                 <motion.div
                   className="h-full bg-[#C9963A]"
@@ -217,19 +207,21 @@ export default function Analyze() {
                 Ajoute ton prénom pour personnaliser ton résultat.
               </p>
 
-              <input
-                type="text"
-                placeholder="Ton prénom..."
-                value={prenom}
-                onChange={e => setPrenom(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && handleFormSubmit()}
-                className="w-full px-4 py-3 rounded-xl text-sm font-semibold outline-none mb-3"
-                style={{
-                  background: "rgba(92,51,23,0.55)",
-                  border: "1px solid rgba(201,150,58,0.3)",
-                  color: "#FAF4EC",
-                }}
-              />
+              <div className="flex flex-col gap-2 mb-3">
+                <input
+                  type="text"
+                  placeholder="Ton prénom..."
+                  value={prenom}
+                  onChange={e => setPrenom(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleFormSubmit()}
+                  className="w-full px-4 py-3 rounded-xl text-sm font-semibold outline-none"
+                  style={{
+                    background: "rgba(92,51,23,0.55)",
+                    border: "1px solid rgba(201,150,58,0.3)",
+                    color: "#FAF4EC",
+                  }}
+                />
+              </div>
 
               <button
                 onClick={handleFormSubmit}
