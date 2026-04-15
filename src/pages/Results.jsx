@@ -140,6 +140,103 @@ function CreditSuccessPopup({ data, onClose }) {
   );
 }
 
+// ─── Feu d'artifice canvas DOUX ─────────────────────────────────────────────
+function Fireworks({ onDone }) {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width  = window.innerWidth;
+    const H = canvas.height = window.innerHeight;
+
+    const COLORS = ["#C9963A","#E8B96A","#FAF4EC","#FFD700"];
+
+    class Particle {
+      constructor(x, y) {
+        this.x = x; this.y = y;
+        this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 3 + 1;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.life = 1;
+        this.decay = Math.random() * 0.012 + 0.006;
+        this.size = Math.random() * 2 + 0.8;
+        this.trail = Math.random() > 0.5;
+      }
+      update() {
+        this.x += this.vx; this.y += this.vy;
+        this.vy += 0.05; this.vx *= 0.98;
+        this.life -= this.decay;
+      }
+      draw() {
+        ctx.globalAlpha = Math.max(0, this.life);
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        if (this.trail) {
+          ctx.globalAlpha = Math.max(0, this.life * 0.3);
+          ctx.beginPath();
+          ctx.arc(this.x - this.vx * 2, this.y - this.vy * 2, this.size * 0.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+
+    const particles = [];
+    const BURSTS = [
+      { x: W * 0.2,  y: H * 0.28, delay: 0   },
+      { x: W * 0.8,  y: H * 0.22, delay: 100 },
+      { x: W * 0.5,  y: H * 0.15, delay: 200 },
+      { x: W * 0.15, y: H * 0.5,  delay: 300 },
+      { x: W * 0.85, y: H * 0.42, delay: 400 },
+      { x: W * 0.5,  y: H * 0.38, delay: 500 },
+    ];
+
+    const timers = BURSTS.map(b =>
+      setTimeout(() => {
+        for (let i = 0; i < 40; i++) particles.push(new Particle(b.x, b.y));
+      }, b.delay)
+    );
+
+    let animId;
+    let finished = false;
+    const animate = () => {
+      ctx.clearRect(0, 0, W, H);
+      for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update();
+        particles[i].draw();
+        if (particles[i].life <= 0) particles.splice(i, 1);
+      }
+      ctx.globalAlpha = 1;
+      if (particles.length > 0 || !finished) {
+        animId = requestAnimationFrame(animate);
+      } else {
+        onDone?.();
+      }
+    };
+    animate();
+    const doneTimer = setTimeout(() => { finished = true; }, 4000);
+
+    return () => {
+      timers.forEach(clearTimeout);
+      clearTimeout(doneTimer);
+      cancelAnimationFrame(animId);
+    };
+  }, [onDone]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 pointer-events-none"
+      style={{ zIndex: 9999, width: "100%", height: "100%" }}
+    />
+  );
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 
 export default function Results() {
@@ -157,12 +254,13 @@ export default function Results() {
   const [savesCount, setSavesCount] = useState(0);
   const [creditPopup, setCreditPopup] = useState(null);
   const [showVirtualTryOnModal, setShowVirtualTryOnModal] = useState(false);
+  const [showFireworks, setShowFireworks] = useState(false);
 
-  // ── Étape 2 : Bloc sauvegarde prénom/email ────────────────────────────────
-  const [savePrenom, setSavePrenom] = useState(() => localStorage.getItem("afrotresse_user_name") || "");
+  // ── Étape 2 : Bloc sauvegarde email uniquement ────────────────────────────────
   const [saveEmail, setSaveEmail]   = useState(() => localStorage.getItem("afrotresse_email") || "");
   const [saveDone, setSaveDone]     = useState(() => !!localStorage.getItem("afrotresse_email"));
   const [displayName, setDisplayName] = useState(() => localStorage.getItem("afrotresse_user_name") || "");
+  const [saveOpen, setSaveOpen]     = useState(() => !localStorage.getItem("afrotresse_email"));
 
   // ── Étape 4 : Favoris volatils — max 3 gratuits ────────────────────────────
   const FREE_FAV_LIMIT = 3;
@@ -201,6 +299,13 @@ export default function Results() {
         setFaceShape(parsed.faceShape || "oval");
         const recs = parsed.recommendations || [];
         setStyles(recs);
+        
+        // Fireworks SEULEMENT si afrotresse_fresh_results = "1"
+        const isFresh = sessionStorage.getItem("afrotresse_fresh_results") === "1";
+        if (recs.length > 0 && isFresh) {
+          setShowFireworks(true);
+          sessionStorage.removeItem("afrotresse_fresh_results");
+        }
 
         // Initialiser les stats (vues/likes) pour chaque style si pas encore fait
         setStyleStats(prev => {
@@ -403,15 +508,10 @@ export default function Results() {
   };
 
   const handleSaveProfile = () => {
-    if (!savePrenom.trim() && !saveEmail.trim()) return;
-    if (savePrenom.trim()) {
-      localStorage.setItem("afrotresse_user_name", savePrenom.trim());
-      setDisplayName(savePrenom.trim());
-    }
-    if (saveEmail.trim()) {
-      localStorage.setItem("afrotresse_email", saveEmail.trim());
-    }
+    if (!saveEmail.trim()) return;
+    localStorage.setItem("afrotresse_email", saveEmail.trim());
     setSaveDone(true);
+    setSaveOpen(false);
   };
 
   // ── Favoris volatils ───────────────────────────────────────────────────────
@@ -685,6 +785,11 @@ export default function Results() {
   return (
     <div className="min-h-[100dvh] bg-[#2C1A0E] text-[#FAF4EC] p-4 sm:p-6 pb-40 relative">
 
+      {/* ── Feu d'artifice DOUX — seulement au 1er chargement ── */}
+      {showFireworks && (
+        <Fireworks onDone={() => setShowFireworks(false)} />
+      )}
+
       {/* ── Pop-up crédit ── */}
       <AnimatePresence>
         {creditPopup && (
@@ -735,56 +840,75 @@ export default function Results() {
         </p>
       </motion.div>
 
-      {/* ── BLOC SAUVEGARDE PRÉNOM / EMAIL ── */}
-      <AnimatePresence>
-        {!saveDone ? (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className="mb-6 rounded-[2rem] p-5"
-            style={{ background: "linear-gradient(135deg, #3D2616, #2C1A0E)", border: "1.5px solid rgba(201,150,58,0.35)" }}
+      {/* ── BLOC SAUVEGARDE EMAIL UNIQUEMENT — pliable ── */}
+      {saveDone ? (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+          className="mb-6 px-4 py-3 rounded-2xl flex items-center gap-3"
+          style={{ background: "rgba(39,174,96,0.1)", border: "1px solid rgba(39,174,96,0.3)" }}
+        >
+          <span className="text-lg">✅</span>
+          <p className="text-[12px] text-green-300 font-semibold">
+            Résultats sauvegardés pour <span className="font-black">{displayName || saveEmail}</span> !
+          </p>
+        </motion.div>
+      ) : (
+        <div
+          className="mb-6 rounded-[2rem] overflow-hidden"
+          style={{ background: "linear-gradient(135deg, #3D2616, #2C1A0E)", border: "1.5px solid rgba(201,150,58,0.35)" }}
+        >
+          {/* En-tête cliquable */}
+          <button
+            onClick={() => setSaveOpen(o => !o)}
+            className="w-full flex items-center justify-between px-5 py-4 active:opacity-80 transition-opacity"
           >
-            <p className="text-sm font-black text-white mb-1">Sauvegarder tes résultats 💾</p>
-            <p className="text-[11px] text-white/50 mb-4">Retrouve tes favoris sur n&apos;importe quel appareil.</p>
-            <div className="flex flex-col gap-2 mb-3">
-              <input
-                type="text"
-                placeholder="Ton prénom..."
-                value={savePrenom}
-                onChange={e => setSavePrenom(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold outline-none"
-                style={{ background: "rgba(92,51,23,0.5)", border: "1px solid rgba(201,150,58,0.3)", color: "#FAF4EC" }}
-              />
-              <input
-                type="email"
-                placeholder="Ton email..."
-                value={saveEmail}
-                onChange={e => setSaveEmail(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && handleSaveProfile()}
-                className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold outline-none"
-                style={{ background: "rgba(92,51,23,0.5)", border: "1px solid rgba(201,150,58,0.3)", color: "#FAF4EC" }}
-              />
-            </div>
-            <button
-              onClick={handleSaveProfile}
-              className="w-full py-3 rounded-xl font-black text-sm text-[#2C1A0E]"
-              style={{ background: "linear-gradient(135deg, #C9963A, #E8B96A)" }}
+            <span className="font-black text-sm text-white">Sauvegarder mes résultats ✨</span>
+            <motion.span
+              animate={{ rotate: saveOpen ? 180 : 0 }}
+              transition={{ duration: 0.25 }}
+              className="text-[#C9963A] text-base leading-none"
             >
-              Sauvegarder mes résultats ✨
-            </button>
-          </motion.div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="mb-6 px-4 py-3 rounded-2xl flex items-center gap-3"
-            style={{ background: "rgba(39,174,96,0.1)", border: "1px solid rgba(39,174,96,0.3)" }}
-          >
-            <span className="text-lg">✅</span>
-            <p className="text-[12px] text-green-300 font-semibold">
-              Résultats sauvegardés pour <span className="font-black">{displayName || saveEmail}</span> !
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              ▾
+            </motion.span>
+          </button>
+
+          {/* Formulaire pliable — email uniquement */}
+          <AnimatePresence initial={false}>
+            {saveOpen && (
+              <motion.div
+                key="save-form"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.28, ease: "easeInOut" }}
+                style={{ overflow: "hidden" }}
+              >
+                <div className="px-5 pb-5">
+                  <p className="text-[11px] text-white/50 mb-4">Retrouve tes favoris sur n&apos;importe quel appareil.</p>
+                  <div className="flex flex-col gap-2 mb-3">
+                    <input
+                      type="email"
+                      placeholder="Ton email..."
+                      value={saveEmail}
+                      onChange={e => setSaveEmail(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && handleSaveProfile()}
+                      className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold outline-none"
+                      style={{ background: "rgba(92,51,23,0.5)", border: "1px solid rgba(201,150,58,0.3)", color: "#FAF4EC" }}
+                    />
+                  </div>
+                  <button
+                    onClick={handleSaveProfile}
+                    className="w-full py-3 rounded-xl font-black text-sm text-[#2C1A0E]"
+                    style={{ background: "linear-gradient(135deg, #C9963A, #E8B96A)" }}
+                  >
+                    Sauvegarder mes résultats ✨
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
 
       {/* ERROR / MESSAGE */}
       <AnimatePresence>
