@@ -20,10 +20,8 @@ import FAQ from './pages/FAQ.jsx'
 import MagicLink from './pages/MagicLink.jsx'
 import Library from './pages/Library.jsx'
 
-// 🔥 FIX : fallback si composant absent
-function BottomNav() {
-  return null
-}
+// Import de la navigation
+import BottomNav from './components/BottomNav.jsx'
 
 // CREDIT SUCCESS POPUP
 function CreditSuccessPopup({ data, onClose }) {
@@ -211,4 +209,4 @@ export default function App() {
       </div>
     </BrowserRouter>
   )
-      }
+}
