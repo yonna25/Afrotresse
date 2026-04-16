@@ -1,7 +1,4 @@
-import { IncomingForm } from 'formidable';
 import { createClient } from '@supabase/supabase-js';
-
-export const config = { api: { bodyParser: false } };
 
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
@@ -41,6 +38,14 @@ export default async function handler(req, res) {
   let credits = 0;
 
   try {
+    // Récupérer faceShape du body
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const { faceShape } = body;
+
+    if (!faceShape) {
+      return res.status(400).json({ error: "faceShape requis" });
+    }
+
     // Auth user
     if (authHeader && authHeader !== 'Bearer null') {
       const token = authHeader.replace('Bearer ', '');
@@ -86,23 +91,11 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: "Crédits insuffisants" });
     }
 
-    // Lecture fichier
-    const form = new IncomingForm();
-    await new Promise((resolve, reject) => {
-      form.parse(req, (err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
-
-    // Simulation analyse
-    const faceShape = "long";
-
     // Décrément crédits
     if (userId) {
       const { error } = await supabase
         .from('profiles')
-        .update({ credits: credits - 1 })
+        .update({ credits: credits - 1, updated_at: new Date().toISOString() })
         .eq('id', userId);
 
       if (error) throw error;
@@ -110,23 +103,24 @@ export default async function handler(req, res) {
     } else {
       const { error } = await supabase
         .from('anonymous_usage')
-        .update({ credits: credits - 1 })
+        .update({ credits: credits - 1, updated_at: new Date().toISOString() })
         .eq('ip_address', ip);
 
       if (error) throw error;
     }
 
-    // Réponse
+    // Retourner recommendations
     return res.status(200).json({
       faceShape,
       faceShapeName: FACE_SHAPE_NAMES[faceShape],
-      confidence: 88,
+      confidence: 95,
       recommendations: BRAIDS_DB.filter(b =>
         b.faceShapes.includes(faceShape)
       )
     });
 
   } catch (error) {
+    console.error('Erreur /api/analyze:', error);
     return res.status(500).json({
       error: "Erreur serveur",
       details: error.message
