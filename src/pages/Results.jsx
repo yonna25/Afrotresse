@@ -260,6 +260,7 @@ export default function Results() {
   const [saveEmail, setSaveEmail]   = useState(() => localStorage.getItem("afrotresse_email") || "");
   const [saveDone, setSaveDone]     = useState(() => !!localStorage.getItem("afrotresse_email"));
   const [displayName, setDisplayName] = useState(() => localStorage.getItem("afrotresse_user_name") || "");
+  const [saveName, setSaveName]     = useState(() => localStorage.getItem("afrotresse_user_name") || "");
   const [saveOpen, setSaveOpen]     = useState(() => !localStorage.getItem("afrotresse_email"));
 
   // ── Étape 4 : Favoris volatils — max 3 gratuits ────────────────────────────
@@ -510,6 +511,10 @@ export default function Results() {
   const handleSaveProfile = () => {
     if (!saveEmail.trim()) return;
     localStorage.setItem("afrotresse_email", saveEmail.trim());
+    if (saveName.trim()) {
+      localStorage.setItem("afrotresse_user_name", saveName.trim());
+      setDisplayName(saveName.trim());
+    }
     setSaveDone(true);
     setSaveOpen(false);
   };
@@ -827,7 +832,8 @@ export default function Results() {
         </div>
       </motion.div>
 
-      {/* ── ALERTE VOLATILITÉ ── */}
+      {/* ── ALERTE VOLATILITÉ — masquée si saveDone ── */}
+      {!saveDone && (
       <motion.div
         initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
         className="mb-4 px-4 py-3 rounded-2xl flex items-start gap-3"
@@ -839,6 +845,7 @@ export default function Results() {
           {" "}Ajoute tes styles en favoris pour les conserver, ou sauvegarde ton compte ci-dessous.
         </p>
       </motion.div>
+      )}
 
       {/* ── BLOC SAUVEGARDE EMAIL UNIQUEMENT — pliable ── */}
       {saveDone ? (
@@ -886,6 +893,15 @@ export default function Results() {
                 <div className="px-5 pb-5">
                   <p className="text-[11px] text-white/50 mb-4">Retrouve tes favoris sur n&apos;importe quel appareil.</p>
                   <div className="flex flex-col gap-2 mb-3">
+                    <input
+                      type="text"
+                      placeholder="Ton prénom..."
+                      value={saveName}
+                      onChange={e => setSaveName(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && handleSaveProfile()}
+                      className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold outline-none"
+                      style={{ background: "rgba(92,51,23,0.5)", border: "1px solid rgba(201,150,58,0.3)", color: "#FAF4EC" }}
+                    />
                     <input
                       type="email"
                       placeholder="Ton email..."
