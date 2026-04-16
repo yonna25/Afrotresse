@@ -1,7 +1,11 @@
+/**
+ * API AfroTresse - version corrigée stable
+ */
+
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
-  process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
@@ -28,99 +32,99 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const ip =
-    req.headers['x-forwarded-for']?.split(',')[0] ||
-    req.socket.remoteAddress ||
-    'unknown';
-
-  const authHeader = req.headers.authorization;
-  let userId = null;
-  let credits = 0;
+  console.log("🔥 API HIT");
 
   try {
-    // Récupérer faceShape du body
-    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    const { faceShape } = body;
+    // 🔥 PARSE BODY ROBUSTE
+    let body = req.body;
+
+    if (typeof body === "string") {
+      body = JSON.parse(body);
+    }
+
+    const { faceShape } = body || {};
+
+    console.log("👉 faceShape reçu :", faceShape);
 
     if (!faceShape) {
       return res.status(400).json({ error: "faceShape requis" });
     }
 
-    // Auth user
-    if (authHeader && authHeader !== 'Bearer null') {
-      const token = authHeader.replace('Bearer ', '');
-      const { data: { user }, error } = await supabase.auth.getUser(token);
-      if (!error && user) userId = user.id;
+    const allowedShapes = ["oval","round","square","heart","long","diamond"];
+    if (!allowedShapes.includes(faceShape)) {
+      return res.status(400).json({ error: "faceShape invalide" });
     }
 
-    // Récupération crédits
-    if (userId) {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('credits')
-        .eq('id', userId)
-        .maybeSingle();
+    const ip =
+      req.headers['x-forwarded-for']?.split(',')[0] ||
+      req.socket?.remoteAddress ||
+      'unknown';
 
-      if (error) throw error;
-      credits = data?.credits ?? 0;
+    console.log("👉 IP :", ip);
+
+    // 🔥 CHECK EXISTENCE
+    const { data, error } = await supabase
+      .from('anonymous_usage')
+      .select('*')
+      .eq('ip_address', ip)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    let credits;
+
+    // 🔥 INSERT SI NOUVEAU
+    if (!data) {
+      console.log("🆕 Nouvel utilisateur");
+
+      const { error: insertError } = await supabase
+        .from('anonymous_usage')
+        .insert([{
+          ip_address: ip,
+          credits: 2
+        }]);
+
+      if (insertError) throw insertError;
+
+      credits = 2;
 
     } else {
-      const { data, error } = await supabase
-        .from('anonymous_usage')
-        .select('credits')
-        .eq('ip_address', ip)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (!data) {
-        const { error: insertError } = await supabase
-          .from('anonymous_usage')
-          .insert([{ ip_address: ip, credits: 2 }]);
-
-        if (insertError) throw insertError;
-        credits = 2;
-
-      } else {
-        credits = data.credits ?? 0;
-      }
+      credits = data.credits ?? 0;
+      console.log("💰 Credits existants :", credits);
     }
 
-    // Vérif crédits
+    // 🔴 BLOQUAGE
     if (credits <= 0) {
       return res.status(403).json({ error: "Crédits insuffisants" });
     }
 
-    // Décrément crédits
-    if (userId) {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ credits: credits - 1, updated_at: new Date().toISOString() })
-        .eq('id', userId);
+    // 🔥 UPDATE
+    const { error: updateError } = await supabase
+      .from('anonymous_usage')
+      .update({
+        credits: credits - 1,
+        updated_at: new Date().toISOString()
+      })
+      .eq('ip_address', ip);
 
-      if (error) throw error;
+    if (updateError) throw updateError;
 
-    } else {
-      const { error } = await supabase
-        .from('anonymous_usage')
-        .update({ credits: credits - 1, updated_at: new Date().toISOString() })
-        .eq('ip_address', ip);
+    console.log("✅ Crédit décrémenté");
 
-      if (error) throw error;
-    }
+    const recommendations = BRAIDS_DB.filter(b =>
+      b.faceShapes.includes(faceShape)
+    );
 
-    // Retourner recommendations
     return res.status(200).json({
       faceShape,
       faceShapeName: FACE_SHAPE_NAMES[faceShape],
       confidence: 95,
-      recommendations: BRAIDS_DB.filter(b =>
-        b.faceShapes.includes(faceShape)
-      )
+      recommendations
     });
 
   } catch (error) {
-    console.error('Erreur /api/analyze:', error);
+    console.error("❌ ERREUR API :", error);
+
     return res.status(500).json({
       error: "Erreur serveur",
       details: error.message
