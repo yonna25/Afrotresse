@@ -1,32 +1,71 @@
+/**
+ * Hook AfroTresse v2 - MediaPipe local + validation serveur
+ * 1. Analyse faciale côté frontend (MediaPipe)
+ * 2. Envoie faceShape au serveur (validation crédits)
+ * 3. Retourne recommendations
+ */
+
+let isAnalyzing = false;
+const STORAGE_KEY = "afrotresse_last_analysis_done";
+
 export async function analyzeFaceWithAI(photoData, timeoutMs = 10000) {
   return new Promise(async (resolve, reject) => {
     try {
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // 🔒 ANTI DOUBLE ANALYSE
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      if (isAnalyzing) {
+        return reject(new Error("Analyse déjà en cours"));
+      }
+
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // 🔒 ANTI REFRESH / BACK NAVIGATION
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      const alreadyDone = sessionStorage.getItem(STORAGE_KEY);
+      if (alreadyDone) {
+        return reject(new Error("Analyse déjà effectuée dans cette session"));
+      }
+
+      isAnalyzing = true;
+
       let file;
 
+      // Cas 1 : Blob/File
       if (photoData instanceof Blob) {
         file = photoData;
-      } else if (typeof photoData === "string") {
+      }
+      // Cas 2 : string (base64 ou URL)
+      else if (typeof photoData === "string") {
         const res = await fetch(photoData);
         file = await res.blob();
-      } else {
+      }
+      // Cas invalide
+      else {
+        isAnalyzing = false;
         return reject(new Error("Format image non supporté"));
       }
 
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // 1️⃣ ANALYSE LOCALE (MediaPipe)
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       const faceShape = await detectFaceShapeLocal(file);
 
       if (!faceShape) {
+        isAnalyzing = false;
         return reject(new Error("Impossible de détecter le visage"));
       }
 
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // 2️⃣ VALIDATION BACKEND (CRÉDITS)
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       const timer = setTimeout(() => {
+        isAnalyzing = false;
         reject(new Error("Timeout API analyse"));
       }, timeoutMs);
 
       const response = await fetch("/api/analyze", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ faceShape }),
       });
 
@@ -34,12 +73,20 @@ export async function analyzeFaceWithAI(photoData, timeoutMs = 10000) {
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
+        isAnalyzing = false;
         return reject(err);
       }
 
       const data = await response.json();
 
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // 🔒 VERROU SESSION (ANTI RE-RUN REFRESH)
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      sessionStorage.setItem(STORAGE_KEY, "true");
+      isAnalyzing = false;
+
       resolve({
+        landmarks: [],
         faceShape: data.faceShape,
         faceShapeName: data.faceShapeName,
         confidence: data.confidence,
@@ -47,36 +94,34 @@ export async function analyzeFaceWithAI(photoData, timeoutMs = 10000) {
       });
 
     } catch (err) {
+      isAnalyzing = false;
       reject(err);
     }
   });
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RESET MANUEL (bouton "Refaire analyse")
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+export function resetFaceAnalysisLock() {
+  sessionStorage.removeItem(STORAGE_KEY);
+}
+
 /**
- * FIX MEDIA PIPE VERCEL (PRODUCTION SAFE)
+ * DÉTECTION FACIALE LOCAL (MediaPipe Face Mesh)
  */
 async function detectFaceShapeLocal(photoBlob) {
   try {
     const module = await import("@mediapipe/face_mesh");
-
-    // 🔴 FIX CRITIQUE VITE + MEDIA PIPE
-    const FaceMesh =
-      module.FaceMesh || module.default?.FaceMesh || window.FaceMesh;
+    const FaceMesh = module.default || module.FaceMesh;
 
     if (!FaceMesh) {
-      throw new Error("FaceMesh introuvable (import échoué)");
+      throw new Error("MediaPipe Face Mesh non disponible");
     }
 
     const faceMesh = new FaceMesh({
       locateFile: (file) =>
         `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
-    });
-
-    faceMesh.setOptions({
-      maxNumFaces: 1,
-      refineLandmarks: true,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5,
     });
 
     const img = new Image();
@@ -85,22 +130,19 @@ async function detectFaceShapeLocal(photoBlob) {
     return new Promise((resolve, reject) => {
       img.onload = async () => {
         try {
-          faceMesh.onResults((results) => {
-            if (
-              !results.multiFaceLandmarks ||
-              results.multiFaceLandmarks.length === 0
-            ) {
-              resolve(null);
-              return;
-            }
+          const results = await faceMesh.send({ image: img });
 
-            const landmarks = results.multiFaceLandmarks[0];
-            const shape = calculateFaceShape(landmarks);
+          if (
+            !results.multiFaceLandmarks ||
+            results.multiFaceLandmarks.length === 0
+          ) {
+            return resolve(null);
+          }
 
-            resolve(shape);
-          });
+          const landmarks = results.multiFaceLandmarks[0];
+          const shape = calculateFaceShape(landmarks);
 
-          await faceMesh.send({ image: img });
+          resolve(shape);
         } catch (err) {
           reject(err);
         } finally {
@@ -114,13 +156,13 @@ async function detectFaceShapeLocal(photoBlob) {
     });
 
   } catch (err) {
-    console.error("MediaPipe error FIXED:", err);
+    console.error("MediaPipe error:", err);
     throw err;
   }
 }
 
 /**
- * CALCUL FACE SHAPE
+ * CALCUL FORME VISAGE
  */
 function calculateFaceShape(landmarks) {
   if (!landmarks || landmarks.length < 10) return null;
@@ -135,7 +177,6 @@ function calculateFaceShape(landmarks) {
   const faceHeight = Math.abs(chin.y - forehead.y);
   const faceWidth = Math.abs(right.x - left.x);
   const jawWidth = Math.abs(jawRight.x - jawLeft.x);
-
   const ratio = faceHeight / faceWidth;
 
   if (ratio > 1.4) return "long";
