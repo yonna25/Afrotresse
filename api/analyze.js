@@ -1,148 +1,92 @@
-/**
- * API AfroTresse - version corrigée stable (fix Supabase + logs)
- */
-
 import { createClient } from '@supabase/supabase-js';
 
-// 🔥 FIX ENV (CRITIQUE)
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  console.error("❌ ENV MANQUANTES SUPABASE");
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-const BRAIDS_DB = [
-  { id: "pompom", faceShapes: ["round", "square", "oval", "heart", "diamond"] },
-  { id: "tresseplaquees", faceShapes: ["oval", "long", "diamond", "square", "heart"] },
-  { id: "ghanabraids", faceShapes: ["square", "heart", "oval", "diamond", "round", "long"] },
-  { id: "tressecollees", faceShapes: ["oval", "long", "diamond", "heart", "round", "square"] },
-  { id: "box-braids", faceShapes: ["oval", "round", "square", "heart", "long", "diamond"] },
-  { id: "stitch-braids", faceShapes: ["oval", "long", "square", "diamond", "round"] }
-];
-
-const FACE_SHAPE_NAMES = {
-  oval: "Ovale",
-  round: "Ronde",
-  square: "Carrée",
-  heart: "Cœur",
-  long: "Allongée",
-  diamond: "Diamant"
-};
-
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
-
-  console.log("🔥 API HIT");
-
   try {
-    // 🔥 BODY SAFE
-    let body = req.body;
-    if (typeof body === "string") {
-      body = JSON.parse(body);
+    console.log("API HIT OK");
+
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: "Method not allowed" });
     }
 
-    const { faceShape } = body || {};
+    // SAFE BODY PARSE
+    let body = {};
+    try {
+      body = typeof req.body === "string"
+        ? JSON.parse(req.body)
+        : req.body || {};
+    } catch (e) {
+      return res.status(400).json({ error: "Invalid JSON" });
+    }
 
-    console.log("👉 faceShape reçu :", faceShape);
+    const { faceShape } = body;
 
     if (!faceShape) {
       return res.status(400).json({ error: "faceShape requis" });
     }
 
-    const allowedShapes = ["oval","round","square","heart","long","diamond"];
-    if (!allowedShapes.includes(faceShape)) {
-      return res.status(400).json({ error: "faceShape invalide" });
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      console.error("ENV MISSING");
+      return res.status(500).json({ error: "Config serveur manquante" });
     }
 
-    // 🔥 IP SAFE
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
     const ip =
       req.headers['x-forwarded-for']?.split(',')[0] ||
       req.socket?.remoteAddress ||
       'unknown';
 
-    console.log("👉 IP :", ip);
-
-    // 🔥 SELECT
-    const { data, error } = await supabase
+    let { data } = await supabase
       .from('anonymous_usage')
-      .select('credits')
+      .select('*')
       .eq('ip_address', ip)
       .maybeSingle();
 
-    if (error) {
-      console.error("❌ SELECT ERROR:", error);
-      throw error;
-    }
-
-    let credits = 0;
-
-    // 🔥 INSERT SI NOUVEAU
     if (!data) {
-      console.log("🆕 Nouvel utilisateur");
-
-      const { error: insertError } = await supabase
+      const { error } = await supabase
         .from('anonymous_usage')
-        .insert([{
-          ip_address: ip,
-          credits: 2,
-          updated_at: new Date().toISOString()
-        }]);
+        .insert([{ ip_address: ip, credits: 2 }]);
 
-      if (insertError) {
-        console.error("❌ INSERT ERROR:", insertError);
-        throw insertError;
+      if (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Insert failed" });
       }
 
-      credits = 2;
-
-    } else {
-      credits = data.credits ?? 0;
-      console.log("💰 Credits existants :", credits);
+      data = { credits: 2 };
     }
 
-    // 🔴 BLOQUAGE
-    if (credits <= 0) {
-      return res.status(403).json({ error: "Crédits insuffisants" });
+    if ((data.credits ?? 0) <= 0) {
+      return res.status(403).json({ error: "No credits" });
     }
 
-    // 🔥 UPDATE (SAFE)
     const { error: updateError } = await supabase
       .from('anonymous_usage')
       .update({
-        credits: credits - 1,
+        credits: data.credits - 1,
         updated_at: new Date().toISOString()
       })
       .eq('ip_address', ip);
 
     if (updateError) {
-      console.error("❌ UPDATE ERROR:", updateError);
-      throw updateError;
+      console.error(updateError);
+      return res.status(500).json({ error: "Update failed" });
     }
-
-    console.log("✅ Crédit décrémenté");
-
-    const recommendations = BRAIDS_DB.filter(b =>
-      b.faceShapes.includes(faceShape)
-    );
 
     return res.status(200).json({
       faceShape,
-      faceShapeName: FACE_SHAPE_NAMES[faceShape],
+      faceShapeName: faceShape,
       confidence: 95,
-      recommendations
+      recommendations: []
     });
 
-  } catch (error) {
-    console.error("❌ ERREUR API :", error);
-
+  } catch (err) {
+    console.error("FATAL ERROR:", err);
     return res.status(500).json({
-      error: "Erreur serveur",
-      details: error.message
+      error: "Server crashed",
+      details: err.message
     });
   }
 }
