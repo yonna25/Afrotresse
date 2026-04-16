@@ -1,5 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
+// ── Rate limit en mémoire (reset à chaque cold start Vercel)
+// Pour prod → remplacer par Upstash Redis
+const rateLimitMap = new Map();
+const RATE_LIMIT_MS = 15_000; // 15s entre deux appels par IP
+
+// ── Whitelist formes valides
+const VALID_SHAPES = ["oval", "round", "square", "heart", "long", "diamond", "oblong"];
+
 export default async function handler(req, res) {
   try {
     console.log("API HIT OK");
@@ -18,10 +26,21 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Invalid JSON" });
     }
 
-    const { faceShape } = body;
+    const { faceShape, requestId } = body;
 
+    // ── Validation faceShape : non-null + whitelist
     if (!faceShape) {
       return res.status(400).json({ error: "faceShape requis" });
+    }
+    if (!VALID_SHAPES.includes(faceShape.toLowerCase())) {
+      return res.status(400).json({
+        error: `faceShape invalide. Valeurs acceptées : ${VALID_SHAPES.join(", ")}`
+      });
+    }
+
+    // ── Validation requestId
+    if (!requestId || typeof requestId !== "string" || requestId.length < 10) {
+      return res.status(400).json({ error: "requestId manquant ou invalide" });
     }
 
     // ENV CHECK
@@ -48,6 +67,40 @@ export default async function handler(req, res) {
 
     if (ip === "unknown") {
       return res.status(400).json({ error: "IP non identifiable" });
+    }
+
+    // ── Rate limit IP
+    const now = Date.now();
+    const lastCall = rateLimitMap.get(ip);
+    if (lastCall && now - lastCall < RATE_LIMIT_MS) {
+      const remaining = Math.ceil((RATE_LIMIT_MS - (now - lastCall)) / 1000);
+      return res.status(429).json({
+        error: `Trop de requêtes. Attendez ${remaining} seconde(s).`
+      });
+    }
+    rateLimitMap.set(ip, now);
+
+    // ── Idempotence : vérifier que le requestId n'a pas déjà été traité
+    const { data: existingReq, error: reqCheckError } = await supabase
+      .from('used_request_ids')
+      .select('id')
+      .eq('id', requestId)
+      .maybeSingle();
+
+    if (reqCheckError) {
+      return res.status(500).json({ error: "Erreur vérification requestId" });
+    }
+    if (existingReq) {
+      return res.status(409).json({ error: "Requête déjà traitée" });
+    }
+
+    // ── Enregistrer le requestId AVANT de décrémenter (anti race condition)
+    const { error: insertReqError } = await supabase
+      .from('used_request_ids')
+      .insert([{ id: requestId, ip, created_at: new Date().toISOString() }]);
+
+    if (insertReqError) {
+      return res.status(500).json({ error: "Erreur enregistrement requestId" });
     }
 
     // SELECT
