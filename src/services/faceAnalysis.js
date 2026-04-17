@@ -1,172 +1,63 @@
-import { analyzeFaceWithAI } from './ai.js'
+/**
+ * Service d'analyse de visage
+ * Appelle l'API serverless Vercel (/api/analyze) ou utilise un mock en développement
+ */
 
-// --- CONSTANTES EXPORTÉES ---
-export const FACE_SHAPE_NAMES = {
-  oval: "Ovale",
-  round: "Ronde",
-  square: "Carrée",
-  heart: "Cœur",
-  long: "Allongée",
-  diamond: "Diamant"
-};
+// Fonction principale à exporter
+export async function analyzeFace(imageFile) {
+  // Mode mock pour le développement local sans backend
+  const useMock = import.meta.env.DEV && !import.meta.env.VITE_USE_REAL_API;
 
-export const FACE_SHAPE_DESCRIPTIONS = {
-  oval: "Visage équilibré — la plupart des styles te conviennent à merveille.",
-  round: "Visage doux et rond — les styles avec du volume en haut allongeront tes traits.",
-  square: "Visage anguleux — les styles souples adoucissent ta mâchoire.",
-  heart: "Visage en cœur — les styles qui encadrent le visage équilibrent ton menton.",
-  long: "Visage allongé — les styles sans trop de hauteur créent l'harmonie parfaite.",
-  diamond: "Pommettes larges — les styles structurés te subliment."
-};
-
-export const BRAIDS_DB = [
-  {
-    id: "pompom",
-    name: "Pompom Braids",
-    description: "Un style ludique qui ajoute de la hauteur pour affiner le visage.",
-    tags: ["Volume", "Jeune", "Tendance"],
-    faceShapes: ["round", "square", "oval", "heart", "diamond"],
-    duration: "2-3h",
-    difficulty: "Facile",
-    views: {
-      face: "/styles/Pompom-face.jpg",
-      back: "/styles/Pompom-back.jpg",
-      top: "/styles/Pompom-top.jpg"
-    },
-    matchScore: 98
-  },
-  {
-    id: "tresseplaquees",
-    name: "Tresses Plaquées",
-    description: "Un look net qui met en valeur la structure osseuse sans surcharge.",
-    tags: ["Minimaliste", "Sport", "Nette"],
-    faceShapes: ["oval", "long", "diamond", "square", "heart"],
-    duration: "2-4h",
-    difficulty: "Intermédiaire",
-    views: {
-      face: "/styles/tresseplaquees-face.jpg",
-      back: "/styles/tresseplaquees-back.jpg",
-      top: "/styles/tresseplaquees-top.jpg"
-    },
-    matchScore: 95
-  },
-  {
-    id: "ghanabraids",
-    name: "Ghana Braids",
-    description: "Des tresses sculpturales qui adoucissent les traits et encadrent le regard.",
-    tags: ["Sculptural", "Élégant", "Durable"],
-    faceShapes: ["square", "heart", "oval", "diamond", "round", "long"],
-    duration: "3-5h",
-    difficulty: "Avancée",
-    views: {
-      face: "/styles/ghanabraids-face.jpg",
-      back: "/styles/ghanabraids-back.jpg",
-      top: "/styles/ghanabraids-top.jpg"
-    },
-    matchScore: 96
-  },
-  {
-    id: "tressecollees",
-    name: "Tresses Collées",
-    description: "Style versatile qui suit les courbes naturelles de ton visage.",
-    tags: ["Protectrice", "Chic", "Classique"],
-    faceShapes: ["oval", "long", "diamond", "heart", "round", "square"],
-    duration: "2-4h",
-    difficulty: "Intermédiaire",
-    views: {
-      face: "/styles/tressecollees-face.jpg",
-      back: "/styles/tressecollees-back.jpg",
-      top: "/styles/tressecollees-top.jpg"
-    },
-    matchScore: 92
-  },
-  {
-    id: "cornrowspuffs",
-    name: "Cornrows & Puffs",
-    description: "Le volume des puffs attire le regard vers le haut, idéal pour harmoniser le visage.",
-    tags: ["Mixte", "Volume", "Moderne"],
-    faceShapes: ["round", "heart", "oval", "square", "diamond"],
-    duration: "3-4h",
-    difficulty: "Intermédiaire",
-    views: {
-      face: "/styles/cornowspuffs-face.jpg",
-      back: "/styles/cornowspuffs-back.jpg",
-      top: "/styles/cornowspuffs-top.jpg"
-    },
-    matchScore: 94
-  },
-  {
-    id: "box-braids",
-    name: "Box Braids",
-    description: "Intemporelles et protectrices, elles s'adaptent à toutes les occasions.",
-    tags: ["Protectrice", "Classique", "Polyvalente"],
-    faceShapes: ["oval", "round", "square", "heart", "long", "diamond"],
-    duration: "4-6h",
-    difficulty: "Intermédiaire",
-    views: {
-      face: "/styles/boxbraids-face.jpg",
-      back: "/styles/boxbraids-back.jpg",
-      top: "/styles/boxbraids-top.jpg"
-    },
-    matchScore: 97
-  },
-  {
-    id: "coco-twists",
-    name: "Coco Twists",
-    description: "Des vanilles volumineuses pour un look naturel et plein de mouvement.",
-    tags: ["Volume", "Légèreté", "Texture"],
-    faceShapes: ["round", "square", "heart", "oval", "diamond"],
-    duration: "5-7h",
-    difficulty: "Intermédiaire",
-    views: {
-      face: "/styles/cocotwists-face.jpg",
-      back: "/styles/cocotwists-back.jpg",
-      top: "/styles/cocotwists-top.jpg"
-    },
-    matchScore: 91
-  },
-  {
-    id: "fulani-braids",
-    name: "Fulani Style",
-    description: "Tresses artistiques inspirées de la culture peule.",
-    tags: ["Culturel", "Perles", "Artistique"],
-    faceShapes: ["oval", "heart", "diamond", "long"],
-    duration: "3-5h",
-    difficulty: "Avancée",
-    views: {
-      face: "/styles/fulani-face.jpg",
-      back: "/styles/fulani-back.jpg",
-      top: "/styles/fulani-top.jpg"
-    },
-    matchScore: 89
+  if (useMock) {
+    console.log("🔧 Mode mock : analyse simulée");
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          success: true,
+          faceShape: "ovale",
+          hairType: "bouclé",
+          recommendations: [
+            { id: 1, name: "Tresses collées", description: "Idéal pour visage ovale" },
+            { id: 2, name: "Chignon flou", description: "Volume et légèreté" },
+            { id: 3, name: "Natte simple", description: "Classique intemporel" }
+          ],
+          confidence: 0.92
+        });
+      }, 1500);
+    });
   }
-];
 
-// --- LOGIQUE D'ANALYSE ---
-export async function analyzeFace(photoBlob) {
-  const result = await analyzeFaceWithAI(photoBlob, 8000);
+  // Appel réel à l'API Vercel
+  try {
+    const formData = new FormData();
+    formData.append('image', imageFile);
 
-  const faceShape = result?.faceShape || "oval";
-  const confidence = result?.confidence || 0.85;
+    const response = await fetch('/api/analyze', {
+      method: 'POST',
+      body: formData,
+    });
 
-  return buildRecommendations(faceShape, "", confidence);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Erreur API (${response.status}): ${errorText}`);
+    }
+
+    const data = await response.json();
+    return { success: true, ...data };
+  } catch (error) {
+    console.error("Erreur lors de l'appel à l'API d'analyse :", error);
+    // En cas d'échec, on peut retourner un mock de secours
+    // ou relancer l'erreur pour que l'UI la gère
+    throw new Error("Impossible d'analyser l'image. Vérifiez votre connexion ou réessayez.");
+  }
 }
 
-function buildRecommendations(faceShape, reason = "", confidence = 0.85) {
-  const matching = BRAIDS_DB
-    .filter(b => b.faceShapes.includes(faceShape))
-    .sort((a, b) => b.matchScore - a.matchScore)
-    .map((b, i) => ({
-      ...b,
-      matchScore: Math.max(75, b.matchScore - i * 2)
-    }));
-
-  return {
-    faceShape,
-    faceShapeName: FACE_SHAPE_NAMES[faceShape] || faceShape,
-    faceShapeDescription: FACE_SHAPE_DESCRIPTIONS[faceShape] || "",
-    aiReason: reason,
-    confidence: Math.round(confidence * 100),
-    recommendations: matching
-  };
-    }
+// Optionnel : fonction utilitaire pour convertir un fichier en base64 (si besoin)
+export function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+  });
+}
