@@ -1,4 +1,3 @@
-import { analyzeFaceWithAI } from '../hooks/useFaceAnalysis.js'
 import { detectFaceShape, calculateConfidence } from '../utils/faceShapeDetector.js'
 
 // CONSTANTES
@@ -21,7 +20,6 @@ export const FACE_SHAPE_DESCRIPTIONS = {
 };
 
 // ── Catalogue de styles par forme de visage ──────────────────────────────────
-// id = clé utilisée pour /styles/{id}-face.jpg / -back.jpg / -top.jpg
 const STYLES_BY_SHAPE = {
   oval: [
     {
@@ -295,20 +293,13 @@ const STYLES_BY_SHAPE = {
 };
 
 // ── Analyse principale ────────────────────────────────────────────────────────
-export async function analyzeFace(photoBlob) {
+// Reçoit les landmarks déjà calculés par MediaPipe (depuis useFaceAnalysis)
+// + optionnellement faceShape et confidence si déjà détectés par le hook
+export function analyzeFace(landmarks, faceShapeOverride = null, confidenceOverride = null) {
   try {
-    const result = await analyzeFaceWithAI(photoBlob);
-
-    const faceShape =
-      result?.faceShape ||
-      detectFaceShape(result?.landmarks);
-
-    const confidence =
-      result?.confidence ||
-      calculateConfidence(result?.landmarks);
-
+    const faceShape = faceShapeOverride || detectFaceShape(landmarks);
+    const confidence = confidenceOverride || calculateConfidence(landmarks);
     return buildRecommendations(faceShape, "", confidence);
-
   } catch (err) {
     console.error("Face analysis error:", err);
     return buildRecommendations("oval", "fallback", 0.75);
