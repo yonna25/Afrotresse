@@ -1,4 +1,4 @@
-import { detectFaceShape, calculateConfidence } from '../utils/faceShapeDetector.js'
+import { analyzeFaceWithAI } from '../hooks/useFaceAnalysis.js'
 
 // CONSTANTES
 export const FACE_SHAPE_NAMES = {
@@ -20,6 +20,7 @@ export const FACE_SHAPE_DESCRIPTIONS = {
 };
 
 // ── Catalogue de styles par forme de visage ──────────────────────────────────
+// id = clé utilisée pour /styles/{id}-face.jpg / -back.jpg / -top.jpg
 const STYLES_BY_SHAPE = {
   oval: [
     {
@@ -293,17 +294,15 @@ const STYLES_BY_SHAPE = {
 };
 
 // ── Analyse principale ────────────────────────────────────────────────────────
-// Reçoit les landmarks déjà calculés par MediaPipe (depuis useFaceAnalysis)
-// + optionnellement faceShape et confidence si déjà détectés par le hook
-export function analyzeFace(landmarks, faceShapeOverride = null, confidenceOverride = null) {
-  try {
-    const faceShape = faceShapeOverride || detectFaceShape(landmarks);
-    const confidence = confidenceOverride || calculateConfidence(landmarks);
-    return buildRecommendations(faceShape, "", confidence);
-  } catch (err) {
-    console.error("Face analysis error:", err);
-    return buildRecommendations("oval", "fallback", 0.75);
-  }
+// Pas de try/catch global — les erreurs remontent à l'appelant
+// (403 no credits, 429 rate limit, 409 double requête, etc.)
+export async function analyzeFace(photoBlob) {
+  const result = await analyzeFaceWithAI(photoBlob);
+
+  const faceShape = result?.faceShape || "oval";
+  const confidence = result?.confidence || 85;
+
+  return buildRecommendations(faceShape, "", confidence);
 }
 
 function buildRecommendations(faceShape, reason = "", confidence = 0.85) {
@@ -318,4 +317,4 @@ function buildRecommendations(faceShape, reason = "", confidence = 0.85) {
     confidence: Math.round((confidence || 0.85) * 100),
     recommendations,
   };
-}
+    }
