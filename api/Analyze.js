@@ -1,19 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 
-const VALID_SHAPES = [
-  "oval",
-  "round",
-  "square",
-  "heart",
-  "long",
-  "diamond",
-  "oblong",
-];
-
+const VALID_SHAPES = ["oval", "round", "square", "heart", "long", "diamond", "oblong"];
 const rateLimitMap = new Map();
 const RATE_LIMIT_MS = 15_000;
 
-// ✅ FIX IP
 function resolveIp(req) {
   const forwarded = req.headers["x-forwarded-for"];
   if (forwarded) return forwarded.split(",")[0].trim();
@@ -21,7 +11,8 @@ function resolveIp(req) {
 }
 
 export default async function handler(req, res) {
-  // ✅ FIX 405 + CORS
+
+  // CORS preflight
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -29,56 +20,58 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  res.setHeader("Access-Control-Allow-Origin", "*");
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Méthode non autorisée" });
   }
 
-  res.setHeader("Access-Control-Allow-Origin", "*");
-
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_KEY;
+  // ✅ Variables d'environnement — noms exacts Vercel
+  const supabaseUrl    = process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !serviceRoleKey) {
+    console.error("Env manquantes:", { supabaseUrl: !!supabaseUrl, serviceRoleKey: !!serviceRoleKey });
     return res.status(500).json({ error: "Configuration serveur incomplète" });
   }
 
+  // IP
   const ip = resolveIp(req);
 
+  // Rate limit
   const now = Date.now();
   const lastCall = rateLimitMap.get(ip);
   if (lastCall && now - lastCall < RATE_LIMIT_MS) {
     const remaining = Math.ceil((RATE_LIMIT_MS - (now - lastCall)) / 1000);
-    return res.status(429).json({
-      error: `Trop de requêtes. Attendez ${remaining}s.`,
-    });
+    return res.status(429).json({ error: `Trop de requêtes. Attendez ${remaining}s.` });
   }
   rateLimitMap.set(ip, now);
 
-  // ✅ FIX body parsing safe
+  // Body parsing
   let body = req.body;
   if (typeof body === "string") {
-    try {
-      body = JSON.parse(body);
-    } catch {
-      return res.status(400).json({ error: "JSON invalide" });
-    }
+    try { body = JSON.parse(body); }
+    catch { return res.status(400).json({ error: "JSON invalide" }); }
   }
 
-  const { faceShape, requestId, sessionId } = body || {};
+  const { faceShape, requestId, fingerprintId } = body || {};
 
+  // Validation faceShape
   if (!faceShape || !VALID_SHAPES.includes(faceShape.toLowerCase())) {
     return res.status(400).json({ error: "faceShape invalide" });
   }
 
+  // Validation requestId
   if (!requestId || requestId.length < 10) {
     return res.status(400).json({ error: "requestId invalide" });
   }
 
+  // Client Supabase
   const supabase = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  // Idempotence
+  // Idempotence — requestId déjà traité ?
   const { data: existing } = await supabase
     .from("used_request_ids")
     .select("id")
@@ -89,40 +82,88 @@ export default async function handler(req, res) {
     return res.status(409).json({ error: "Requête déjà traitée" });
   }
 
-  await supabase.from("used_request_ids").insert([{ id: requestId, ip }]);
+  await supabase
+    .from("used_request_ids")
+    .insert([{ id: requestId, ip }]);
 
-  const { data: usage } = await supabase
-    .from("anonymous_usage")
-    .select("*")
-    .eq("ip", ip)
-    .maybeSingle();
+  // ✅ Recherche par fingerprint en priorité, sinon par ip_address
+  let existingData = null;
+  let matchColumn  = "ip_address";
+  let matchValue   = ip;
 
-  if (!usage) {
-    await supabase.from("anonymous_usage").insert([
-      { ip, credits: 2, session_id: sessionId ?? null },
-    ]);
+  if (fingerprintId) {
+    const { data: fpData } = await supabase
+      .from("anonymous_usage")
+      .select("*")
+      .eq("fingerprint_id", fingerprintId)
+      .maybeSingle();
+    if (fpData) {
+      existingData = fpData;
+      matchColumn  = "fingerprint_id";
+      matchValue   = fingerprintId;
+    }
   }
 
-  const { data: current } = await supabase
-    .from("anonymous_usage")
-    .select("*")
-    .eq("ip", ip)
-    .maybeSingle();
+  if (!existingData) {
+    const { data: ipData } = await supabase
+      .from("anonymous_usage")
+      .select("*")
+      .eq("ip_address", ip)         // ✅ colonne correcte
+      .maybeSingle();
+    if (ipData) existingData = ipData;
+  }
 
-  if (!current || current.credits <= 0) {
+  // Nouvelle utilisatrice
+  if (!existingData) {
+    await supabase
+      .from("anonymous_usage")
+      .insert([{
+        ip_address:     ip,           // ✅ colonne correcte
+        fingerprint_id: fingerprintId ?? null,
+        credits:        2,
+      }]);
+
+    const { data: fresh } = await supabase
+      .from("anonymous_usage")
+      .select("*")
+      .eq("ip_address", ip)
+      .maybeSingle();
+
+    existingData = fresh;
+    matchColumn  = "ip_address";
+    matchValue   = ip;
+  } else {
+    // Enrichir avec fingerprint si manquant
+    if (fingerprintId && !existingData.fingerprint_id) {
+      await supabase
+        .from("anonymous_usage")
+        .update({ fingerprint_id: fingerprintId })
+        .eq("ip_address", ip);
+    }
+  }
+
+  // Vérifier crédits
+  if (!existingData || existingData.credits <= 0) {
     return res.status(403).json({ error: "Crédits insuffisants" });
   }
 
-  const newCredits = current.credits - 1;
+  const newCredits = existingData.credits - 1;
 
-  await supabase
+  // UPDATE crédits
+  const { data: updated, error: updateError } = await supabase
     .from("anonymous_usage")
-    .update({ credits: newCredits })
-    .eq("ip", ip);
+    .update({ credits: newCredits, updated_at: new Date().toISOString() })
+    .eq(matchColumn, matchValue)
+    .select();
+
+  if (updateError || !updated?.length) {
+    return res.status(500).json({ error: "Erreur mise à jour crédits" });
+  }
 
   return res.status(200).json({
-    faceShape: faceShape.toLowerCase(),
-    confidence: 0.87,
+    faceShape:        faceShape.toLowerCase(),
+    faceShapeName:    faceShape.toLowerCase(),
+    confidence:       95,
     creditsRemaining: newCredits,
   });
-}
+      }
