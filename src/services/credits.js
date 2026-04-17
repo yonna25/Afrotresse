@@ -176,3 +176,40 @@ export function incrementAnalyses() {
   const current = getTotalUsed();
   localStorage.setItem('afrotresse_used_tests', (current + 1).toString());
 }
+
+// ─── Sync depuis le serveur (source de vérité) ───────────────
+// À appeler au chargement de l'app et après un paiement
+export async function syncCreditsFromServer() {
+  try {
+    const sessionId = localStorage.getItem('afrotresse_session');
+    if (!sessionId) return getCredits(); // pas encore de session
+
+    const res = await fetch(`/api/credits?sessionId=${encodeURIComponent(sessionId)}`);
+    if (!res.ok) return getCredits(); // fallback localStorage si API down
+
+    const { credits } = await res.json();
+
+    // Écraser localStorage avec la valeur serveur
+    localStorage.setItem(KEY_CREDITS, String(Math.max(0, credits)));
+    return credits;
+  } catch {
+    return getCredits(); // fallback silencieux
+  }
+}
+
+// ─── Passer sessionId au endpoint /api/fedapay ───────────────
+export function getSessionId() {
+  try {
+    let id = localStorage.getItem('afrotresse_session');
+    if (!id) {
+      id = typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : Math.random().toString(36).substring(2);
+      localStorage.setItem('afrotresse_session', id);
+    }
+    return id;
+  } catch {
+    return null;
+  }
+  }
+        
