@@ -5,8 +5,6 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   envPrefix: ['VITE_', 'FEDAPAY_PUBLIC'],
 
-  // FIX : @mediapipe/face_mesh utilise des exports CJS non compatibles
-  // avec l'optimiseur Vite — on l'exclut pour qu'il soit chargé tel quel
   optimizeDeps: {
     exclude: ['@mediapipe/face_mesh'],
   },
@@ -74,15 +72,8 @@ export default defineConfig({
               expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 },
             },
           },
-          {
-            urlPattern: /^\/api\//,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 5 },
-              networkTimeoutSeconds: 10,
-            },
-          },
+          // FIX : règle /api/ supprimée — Workbox ne supporte pas les POST
+          // et bloquait les appels avec 405
         ],
       },
     }),
@@ -94,3 +85,4 @@ export default defineConfig({
     },
   },
 })
+        
