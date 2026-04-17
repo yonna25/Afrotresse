@@ -6,25 +6,26 @@ import { consumeAnalysis } from "../services/credits.js";
 
 const STEPS = [
   "Analyse des traits uniques...",
-  "Étude de la structure osseuse...",
-  "Calcul des proportions idéales...",
-  "Sélection des tresses royales..."
+  "\u00c9tude de la structure osseuse...",
+  "Calcul des proportions id\u00e9ales...",
+  "S\u00e9lection des tresses royales..."
 ];
 
-// Messages d'erreur lisibles par l'utilisatrice
+// DEBUG : affiche le vrai message d'erreur
 function getErrorMessage(err) {
   const msg = err?.message || "";
-  if (msg.includes("No credits") || msg.includes("crédits"))
-    return { title: "Plus de crédits 💛", body: "Tu as utilisé tes analyses gratuites.", cta: "Obtenir des crédits", route: "/credits" };
-  if (msg.includes("429") || msg.includes("Trop de requêtes"))
-    return { title: "Doucement 😊", body: "Attends quelques secondes avant de réessayer.", cta: "Réessayer", route: "/camera" };
-  if (msg.includes("déjà effectuée") || msg.includes("409") || msg.includes("déjà traitée"))
-    return { title: "Analyse déjà faite 👑", body: "Tu as déjà analysé cette photo dans cette session.", cta: "Voir mes résultats", route: "/results" };
-  if (msg.includes("visage") || msg.includes("détecter"))
-    return { title: "Visage non détecté 📸", body: "Reprends un selfie bien éclairé, de face.", cta: "Reprendre une photo", route: "/camera" };
-  if (msg.includes("Timeout") || msg.includes("connexion") || msg.includes("réseau"))
-    return { title: "Connexion lente 📡", body: "Vérifie ta connexion et réessaie.", cta: "Réessayer", route: "/camera" };
-  return { title: "Une erreur est survenue", body: "Réessaie dans quelques instants.", cta: "Réessayer", route: "/camera" };
+  if (msg.includes("No credits") || msg.includes("cr\u00e9dits"))
+    return { title: "Plus de cr\u00e9dits \ud83d\udcdb", body: "Tu as utilis\u00e9 tes analyses gratuites.", cta: "Obtenir des cr\u00e9dits", route: "/credits" };
+  if (msg.includes("429") || msg.includes("Trop de requ\u00eates"))
+    return { title: "Doucement \ud83d\ude0a", body: "Attends quelques secondes avant de r\u00e9essayer.", cta: "R\u00e9essayer", route: "/camera" };
+  if (msg.includes("d\u00e9j\u00e0 effectu\u00e9e") || msg.includes("409") || msg.includes("d\u00e9j\u00e0 trait\u00e9e"))
+    return { title: "Analyse d\u00e9j\u00e0 faite \ud83d\udc51", body: "Tu as d\u00e9j\u00e0 analys\u00e9 cette photo dans cette session.", cta: "Voir mes r\u00e9sultats", route: "/results" };
+  if (msg.includes("visage") || msg.includes("d\u00e9tecter"))
+    return { title: "Visage non d\u00e9tect\u00e9 \ud83d\udcf8", body: "Reprends un selfie bien \u00e9clair\u00e9, de face.", cta: "Reprendre une photo", route: "/camera" };
+  if (msg.includes("Timeout") || msg.includes("connexion") || msg.includes("r\u00e9seau"))
+    return { title: "Connexion lente \ud83d\udce1", body: "V\u00e9rifie ta connexion et r\u00e9essaie.", cta: "R\u00e9essayer", route: "/camera" };
+  // FALLBACK DEBUG : affiche le vrai message d'erreur
+  return { title: "Erreur (debug)", body: msg || "Erreur inconnue", cta: "R\u00e9essayer", route: "/camera" };
 }
 
 export default function Analyze() {
@@ -120,8 +121,7 @@ export default function Analyze() {
         clearInterval(interval);
         clearInterval(stepInterval);
         console.error("Analysis error:", err);
-        // Cas spécial : analyse déjà faite → résultats déjà en session
-        if (err?.message?.includes("déjà effectuée")) {
+        if (err?.message?.includes("d\u00e9j\u00e0 effectu\u00e9e")) {
           navigate("/results");
           return;
         }
@@ -147,7 +147,7 @@ export default function Analyze() {
             boxShadow: "0 0 40px rgba(0,0,0,0.5)",
           }}
         >
-          <div className="text-5xl mb-4">😔</div>
+          <div className="text-5xl mb-4">\ud83d\ude14</div>
           <h2 className="text-xl font-black text-[#C9963A] mb-2">{errorState.title}</h2>
           <p className="text-sm text-white/60 mb-8 leading-relaxed">{errorState.body}</p>
           <button
@@ -161,7 +161,7 @@ export default function Analyze() {
             onClick={() => navigate("/")}
             className="w-full py-3 mt-2 text-sm text-white/30"
           >
-            Retour à l'accueil
+            Retour \u00e0 l'accueil
           </button>
         </motion.div>
       </div>
@@ -222,7 +222,7 @@ export default function Analyze() {
 
               <div className="flex items-start justify-between mb-1">
                 <p className="font-black text-base text-white leading-tight">
-                  Sauvegarder tes résultats 💾
+                  Sauvegarder tes r\u00e9sultats \ud83d\udcbe
                 </p>
                 <span className="text-[10px] text-white/30 font-bold ml-2 mt-0.5 shrink-0">
                   {countdown}s
@@ -235,7 +235,7 @@ export default function Analyze() {
               <div className="flex flex-col gap-2 mb-3">
                 <input
                   type="text"
-                  placeholder="Ton prénom..."
+                  placeholder="Ton pr\u00e9nom..."
                   value={prenom}
                   onChange={e => setPrenom(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold outline-none"
@@ -265,7 +265,7 @@ export default function Analyze() {
                 className="w-full py-3 rounded-xl font-black text-sm text-[#2C1A0E]"
                 style={{ background: "linear-gradient(135deg, #C9963A, #E8B96A)" }}
               >
-                Sauvegarder mes résultats ✨
+                Sauvegarder mes r\u00e9sultats \u2728
               </button>
 
               <button
