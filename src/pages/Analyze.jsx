@@ -11,6 +11,22 @@ const STEPS = [
   "Sélection des tresses royales..."
 ];
 
+// Messages d'erreur lisibles par l'utilisatrice
+function getErrorMessage(err) {
+  const msg = err?.message || "";
+  if (msg.includes("No credits") || msg.includes("crédits"))
+    return { title: "Plus de crédits 💛", body: "Tu as utilisé tes analyses gratuites.", cta: "Obtenir des crédits", route: "/credits" };
+  if (msg.includes("429") || msg.includes("Trop de requêtes"))
+    return { title: "Doucement 😊", body: "Attends quelques secondes avant de réessayer.", cta: "Réessayer", route: "/camera" };
+  if (msg.includes("déjà effectuée") || msg.includes("409") || msg.includes("déjà traitée"))
+    return { title: "Analyse déjà faite 👑", body: "Tu as déjà analysé cette photo dans cette session.", cta: "Voir mes résultats", route: "/results" };
+  if (msg.includes("visage") || msg.includes("détecter"))
+    return { title: "Visage non détecté 📸", body: "Reprends un selfie bien éclairé, de face.", cta: "Reprendre une photo", route: "/camera" };
+  if (msg.includes("Timeout") || msg.includes("connexion") || msg.includes("réseau"))
+    return { title: "Connexion lente 📡", body: "Vérifie ta connexion et réessaie.", cta: "Réessayer", route: "/camera" };
+  return { title: "Une erreur est survenue", body: "Réessaie dans quelques instants.", cta: "Réessayer", route: "/camera" };
+}
+
 export default function Analyze() {
   const navigate   = useNavigate();
   const [progress, setProgress]       = useState(0);
@@ -18,6 +34,7 @@ export default function Analyze() {
   const [displayName, setDisplayName] = useState(
     () => localStorage.getItem("afrotresse_user_name") || ""
   );
+  const [errorState, setErrorState]   = useState(null);
 
   // Formulaire 60%
   const [showForm, setShowForm]   = useState(false);
@@ -81,7 +98,7 @@ export default function Analyze() {
     if (!selfieUrl) { navigate("/"); return; }
 
     const interval = setInterval(() => {
-      setProgress(prev => (prev >= 100 ? 100 : prev + 1));
+      setProgress(prev => (prev >= 95 ? 95 : prev + 1));
     }, 45);
 
     const stepInterval = setInterval(() => {
@@ -91,17 +108,24 @@ export default function Analyze() {
     const run = async () => {
       try {
         const result = await analyzeFace(selfieUrl);
+        clearInterval(interval);
+        setProgress(100);
         sessionStorage.setItem("afrotresse_results", JSON.stringify(result));
         localStorage.setItem("afrotresse_face_shape", result.faceShape);
         consumeAnalysis();
         const prevTrials = parseInt(localStorage.getItem('afrotresse_ai_trials') || '0', 10);
         localStorage.setItem('afrotresse_ai_trials', String(prevTrials + 1));
-        navigate("/results");
+        setTimeout(() => navigate("/results"), 400);
       } catch (err) {
+        clearInterval(interval);
+        clearInterval(stepInterval);
         console.error("Analysis error:", err);
-        const fallback = { faceShape: "oval", faceShapeName: "Ovale", recommendations: [] };
-        sessionStorage.setItem("afrotresse_results", JSON.stringify(fallback));
-        navigate("/results");
+        // Cas spécial : analyse déjà faite → résultats déjà en session
+        if (err?.message?.includes("déjà effectuée")) {
+          navigate("/results");
+          return;
+        }
+        setErrorState(getErrorMessage(err));
       }
     };
 
@@ -109,6 +133,42 @@ export default function Analyze() {
     return () => { clearInterval(interval); clearInterval(stepInterval); };
   }, [navigate, selfieUrl]);
 
+  // ── Écran erreur ────────────────────────────────────────────
+  if (errorState) {
+    return (
+      <div className="min-h-screen bg-[#2C1A0E] flex flex-col items-center justify-center p-8 text-[#FAF4EC]">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="w-full max-w-sm rounded-[2.5rem] p-8 text-center"
+          style={{
+            background: "linear-gradient(160deg, #2C1A0E 0%, #3D2616 100%)",
+            border: "2px solid rgba(201,150,58,0.4)",
+            boxShadow: "0 0 40px rgba(0,0,0,0.5)",
+          }}
+        >
+          <div className="text-5xl mb-4">😔</div>
+          <h2 className="text-xl font-black text-[#C9963A] mb-2">{errorState.title}</h2>
+          <p className="text-sm text-white/60 mb-8 leading-relaxed">{errorState.body}</p>
+          <button
+            onClick={() => navigate(errorState.route)}
+            className="w-full py-4 rounded-2xl font-black text-[#2C1A0E] text-base"
+            style={{ background: "linear-gradient(135deg, #C9963A, #E8B96A)" }}
+          >
+            {errorState.cta}
+          </button>
+          <button
+            onClick={() => navigate("/")}
+            className="w-full py-3 mt-2 text-sm text-white/30"
+          >
+            Retour à l'accueil
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // ── Écran analyse ───────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#2C1A0E] flex flex-col items-center justify-center p-10 text-[#FAF4EC]">
 
@@ -132,7 +192,7 @@ export default function Analyze() {
         </div>
       </div>
 
-      {/* MINI FORMULAIRE à 60% — bottom sheet fixe */}
+      {/* MINI FORMULAIRE à 60% */}
       <AnimatePresence>
         {showForm && (
           <motion.div
@@ -151,7 +211,6 @@ export default function Analyze() {
                 boxShadow: "0 -8px 48px rgba(0,0,0,0.7)",
               }}
             >
-              {/* Countdown bar */}
               <div className="w-full h-0.5 bg-white/10 rounded-full overflow-hidden mb-4">
                 <motion.div
                   className="h-full bg-[#C9963A] rounded-full"
