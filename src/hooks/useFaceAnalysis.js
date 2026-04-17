@@ -170,12 +170,13 @@ async function detectFaceShapeLocal(photoBlob) {
       minTrackingConfidence: 0.5,
     });
 
-    // FIX : enregistrer onResults AVANT d'appeler send()
-    // send() ne retourne PAS les r\u00e9sultats \u2014 il appelle ce callback
+    // \u2705 FIX 1 : initialize() n'existe pas dans @mediapipe/face_mesh \u2014 supprim\u00e9
+    // \u2705 FIX 2 : send() ne retourne pas les r\u00e9sultats \u2014 on utilise onResults()
+
     const objectUrl = URL.createObjectURL(photoBlob);
 
     return new Promise((resolve, reject) => {
-      // \u2705 Callback onResults enregistr\u00e9 en premier
+      // Enregistrer le callback AVANT send()
       faceMesh.onResults((results) => {
         URL.revokeObjectURL(objectUrl);
         if (!results?.multiFaceLandmarks?.length) {
@@ -189,7 +190,7 @@ async function detectFaceShapeLocal(photoBlob) {
 
       img.onload = async () => {
         try {
-          // send() d\u00e9clenche le traitement et appellera onResults
+          // send() est async, il appellera onResults quand termin\u00e9
           await faceMesh.send({ image: img });
         } catch (err) {
           URL.revokeObjectURL(objectUrl);
