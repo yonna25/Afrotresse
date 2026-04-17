@@ -17,10 +17,10 @@
     "@fal-ai/client": "^1.0.0",
     "@supabase/supabase-js": "^2.39.0",
     "replicate": "^0.30.0",
-
     "@mediapipe/face_mesh": "^0.4.1646424915",
     "@mediapipe/camera_utils": "^0.3.1675466862",
-    "@mediapipe/drawing_utils": "^0.3.1675466124"
+    "@mediapipe/drawing_utils": "^0.3.1675466124",
+    "@fingerprintjs/fingerprintjs": "^4.4.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
