@@ -24,12 +24,17 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/*.png', 'icons/*.svg', 'og-image.jpg'],
+      includeAssets: [
+        'icons/*.png',
+        'icons/*.svg',
+        'og-image.jpg',
+        'styles/*.jpg',   // ✅ inclure les images de styles
+      ],
 
       manifest: {
         name: 'AfroTresse',
         short_name: 'AfroTresse',
-        description: 'Trouve ta tresse parfaite gr\u00e2ce \u00e0 un selfie',
+        description: 'Trouve ta tresse parfaite grâce à un selfie',
         theme_color: '#2C1A0E',
         background_color: '#2C1A0E',
         display: 'standalone',
@@ -44,7 +49,7 @@ export default defineConfig({
       },
 
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webp}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webp,jpg,jpeg}'], // ✅ jpg ajouté
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
 
         runtimeCaching: [
@@ -72,8 +77,6 @@ export default defineConfig({
               expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 },
             },
           },
-          // FIX : règle /api/ supprimée — Workbox ne supporte pas les POST
-          // et bloquait les appels avec 405
         ],
       },
     }),
@@ -85,4 +88,3 @@ export default defineConfig({
     },
   },
 })
-        
