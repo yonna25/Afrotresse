@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getCredits, addCredits, PRICING } from "../services/credits.js";
 import { getCurrentUser } from "../services/useSupabaseCredits.js";
+import Seo from "../components/Seo.jsx";
 import { supabase } from "../services/supabase.js";
 
 // ── Helpers localStorage ─────────────────────────────────────────────────────
@@ -130,7 +131,9 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-[#2b1810] text-white flex flex-col items-center pb-32 relative">
+    
+      <Seo title="Mon profil — AfroTresse" noindex />
+      <div className="min-h-screen bg-[#2b1810] text-white flex flex-col items-center pb-32 relative">
 
       {/* ── TOAST ── */}
       <AnimatePresence>
