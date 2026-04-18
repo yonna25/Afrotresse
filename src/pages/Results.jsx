@@ -2,26 +2,19 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getCredits, consumeCredits, hasCredits } from "../services/credits.js";
+import OptimizedImage from "../components/OptimizedImage.jsx";
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
 const FACE_SHAPE_TEXTS = {
-  oval:    "Ton visage est de forme Ovale. Une structure \u00e9quilibr\u00e9e qui s'adapte \u00e0 presque tous les styles.",
+  oval:    "Ton visage est de forme Ovale. Une structure équilibrée qui s'adapte à presque tous les styles.",
   round:   "Ton visage est de forme Ronde. Les tresses hautes allongent et affinent visuellement tes traits.",
-  square:  "Ton visage est de forme Carr\u00e9e. Les tresses avec du volume adoucissent ta m\u00e2choire.",
-  heart:   "Ton visage est en forme de C\u0153ur. Les tresses avec du volume en bas \u00e9quilibrent ton menton.",
-  long:    "Ton visage est de forme Longue. Les tresses lat\u00e9rales cr\u00e9ent l'harmonie parfaite.",
+  square:  "Ton visage est de forme Carrée. Les tresses avec du volume adoucissent ta mâchoire.",
+  heart:   "Ton visage est en forme de Cœur. Les tresses avec du volume en bas équilibrent ton menton.",
+  long:    "Ton visage est de forme Longue. Les tresses latérales créent l'harmonie parfaite.",
   diamond: "Ton visage est de forme Diamant. Les tresses qui encadrent le visage te subliment.",
 };
 
-const TEASER_STYLES = [
-  { key: "boxbraids",      label: "Box Braids" },
-  { key: "cornrows",       label: "Cornrows" },
-  { key: "knotlessbraids", label: "Knotless Braids" },
-  { key: "twists",         label: "Twists" },
-  { key: "fulanibraids",   label: "Fulani Braids" },
-  { key: "goddessbraids",  label: "Goddess Braids" },
-];
 
 const STYLES_PER_PAGE = 3;
 
@@ -277,7 +270,7 @@ export default function Results() {
     }
     const creditsFree = !localStorage.getItem("afrotresse_email");
     if (creditsFree && favorites.length >= FREE_FAV_LIMIT) {
-      setErrorMsg("Limite de 3 favoris gratuits atteinte \u2014 sauvegarde ton compte pour en ajouter plus\u00a0!");
+      setErrorMsg("💎 Limite de 3 favoris gratuits atteinte — sauvegarde ton compte pour en ajouter plus !");
       setTimeout(() => errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
       return;
     }
@@ -315,7 +308,7 @@ export default function Results() {
               transition={{ delay: 0.2 }}
               className="text-white font-black text-2xl text-center px-4 leading-tight">
               Tes styles parfaits<br />
-              <span className="text-[#C9963A]">t&apos;attendent</span>
+              <span className="text-[#C9963A]">t'attendent</span>
             </motion.p>
           </div>
           <div className="absolute bottom-0 left-0 right-0 h-24"
@@ -329,7 +322,7 @@ export default function Results() {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }} className="mb-5">
             <h2 className="text-xl font-black text-white mb-2">
-              D\u00e9couvre les tresses faites pour toi 💛
+              Découvre les tresses faites pour toi 💛
             </h2>
             <p className="text-[12px] text-white/50 leading-relaxed">
               Un selfie suffit. Notre IA analyse la forme de ton visage et te recommande les styles qui te mettront le plus en valeur.
@@ -342,8 +335,8 @@ export default function Results() {
             transition={{ delay: 0.25 }} className="flex flex-col gap-3 mb-8">
             {[
               { icon: "📸", label: "Prends un selfie",            sub: "Ou uploade une photo existante" },
-              { icon: "🔍", label: "Analyse IA instantan\u00e9e", sub: "Forme de visage d\u00e9tect\u00e9e en secondes" },
-              { icon: "✨", label: "Styles personnalis\u00e9s",    sub: "3 recommandations taill\u00e9es pour toi" },
+              { icon: "🔍", label: "Analyse IA instantanée",      sub: "Forme de visage détectée en secondes" },
+              { icon: "✨", label: "Styles personnalisés",         sub: "3 recommandations taillées pour toi" },
             ].map((step, i) => (
               <motion.div key={i}
                 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
@@ -361,33 +354,6 @@ export default function Results() {
             ))}
           </motion.div>
 
-          {/* Aperçu styles floutés */}
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }} className="mb-8">
-            <p className="text-[10px] text-white/30 uppercase tracking-widest mb-3 text-center">
-              Styles qui t&apos;attendent
-            </p>
-            <div className="grid grid-cols-3 gap-1.5">
-              {TEASER_STYLES.map((s, i) => (
-                <motion.div key={s.key}
-                  initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.5 + i * 0.06 }}
-                  className="relative h-24 rounded-2xl overflow-hidden">
-                  <img src={`/styles/${s.key}-face.jpg`} alt={s.label}
-                    className="w-full h-full object-cover"
-                    style={{ filter: "brightness(0.45) blur(1px)" }}
-                    draggable={false} onContextMenu={(e) => e.preventDefault()} />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-                    <span className="text-white/50 text-lg">🔒</span>
-                    <span className="text-[9px] text-white/30 font-semibold text-center px-1 leading-tight">
-                      {s.label}
-                    </span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
 
           {/* CTA */}
           <motion.button
@@ -407,7 +373,7 @@ export default function Results() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
             className="text-center text-[10px] text-white/30 mt-3">
-            2 cr\u00e9dits offerts \u2022 Aucune inscription requise
+            2 crédits offerts • Aucune inscription requise
           </motion.p>
         </div>
       </div>
@@ -441,8 +407,8 @@ export default function Results() {
         <div className="flex flex-col flex-1">
           <h1 className="font-bold text-3xl text-[#C9963A]">
             {displayName
-              ? <><span className="text-[#FAF4EC]">{displayName}</span>, voici tes r\u00e9sultats ✨</>
-              : <>Voici tes r\u00e9sultats ✨</>
+              ? <><span className="text-[#FAF4EC]">{displayName}</span>, voici tes résultats ✨</>
+              : <>Voici tes résultats ✨</>
             }
           </h1>
           <p className="text-[11px] opacity-80 leading-tight mt-1 max-w-xs">{faceText}</p>
@@ -456,35 +422,28 @@ export default function Results() {
         style={{ background: "rgba(201,150,58,0.08)", border: "1px solid rgba(201,150,58,0.25)" }}>
         <span className="text-lg mt-0.5">⚠️</span>
         <p className="text-[11px] text-white/60 leading-relaxed">
-          <span className="text-[#C9963A] font-bold">Tes r\u00e9sultats ne sont pas sauvegard\u00e9s.</span>
+          <span className="text-[#C9963A] font-bold">Tes résultats ne sont pas sauvegardés.</span>
           {" "}Ajoute tes styles en favoris ou sauvegarde ton compte ci-dessous.
         </p>
       </motion.div>
 
-      {/* BLOC SAUVEGARDE — bouton Modifier quand déjà sauvegardé */}
+      {/* BLOC SAUVEGARDE */}
       {saveDone ? (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-          className="mb-6 px-4 py-3 rounded-2xl flex items-center justify-between gap-3"
+          className="mb-6 px-4 py-3 rounded-2xl flex items-center gap-3"
           style={{ background: "rgba(39,174,96,0.1)", border: "1px solid rgba(39,174,96,0.3)" }}>
-          <div className="flex items-center gap-3">
-            <span className="text-lg">✅</span>
-            <p className="text-[12px] text-green-300 font-semibold">
-              Sauvegard\u00e9 pour <span className="font-black">{displayName || saveEmail}</span>\u00a0!
-            </p>
-          </div>
-          <button
-            onClick={() => setSaveDone(false)}
-            className="text-[10px] text-white/40 underline shrink-0 active:opacity-60">
-            Modifier
-          </button>
+          <span className="text-lg">✅</span>
+          <p className="text-[12px] text-green-300 font-semibold">
+            Résultats sauvegardés pour <span className="font-black">{displayName || saveEmail}</span> !
+          </p>
         </motion.div>
       ) : (
         <div className="mb-6 rounded-[2rem] overflow-hidden"
           style={{ background: "linear-gradient(135deg, #3D2616, #2C1A0E)", border: "1.5px solid rgba(201,150,58,0.35)" }}>
           <button onClick={() => setSaveOpen(o => !o)}
             className="w-full flex items-center justify-between px-5 py-4 active:opacity-80 transition-opacity">
-            <span className="font-black text-sm text-white">Sauvegarder mes r\u00e9sultats ✨</span>
+            <span className="font-black text-sm text-white">Sauvegarder mes résultats ✨</span>
             <motion.span animate={{ rotate: saveOpen ? 180 : 0 }} transition={{ duration: 0.25 }}
               className="text-[#C9963A] text-base leading-none">&#9662;</motion.span>
           </button>
@@ -496,10 +455,10 @@ export default function Results() {
                 style={{ overflow: "hidden" }}>
                 <div className="px-5 pb-5">
                   <p className="text-[11px] text-white/50 mb-4">
-                    Retrouve tes favoris sur n&apos;importe quel appareil.
+                    Retrouve tes favoris sur n'importe quel appareil.
                   </p>
                   <div className="flex flex-col gap-2 mb-3">
-                    <input type="text" placeholder="Ton pr\u00e9nom..."
+                    <input type="text" placeholder="Ton prénom..."
                       value={savePrenom} onChange={e => setSavePrenom(e.target.value)}
                       className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold outline-none"
                       style={{ background: "rgba(92,51,23,0.5)", border: "1px solid rgba(201,150,58,0.3)", color: "#FAF4EC" }} />
@@ -512,7 +471,7 @@ export default function Results() {
                   <button onClick={handleSaveProfile}
                     className="w-full py-3 rounded-xl font-black text-sm text-[#2C1A0E]"
                     style={{ background: "linear-gradient(135deg, #C9963A, #E8B96A)" }}>
-                    Sauvegarder mes r\u00e9sultats ✨
+                    Sauvegarder mes résultats ✨
                   </button>
                 </div>
               </motion.div>
@@ -547,31 +506,17 @@ export default function Results() {
               transition={{ delay: index * 0.08 }}
               className="bg-[#3D2616] rounded-[2.5rem] overflow-hidden border border-[#C9963A]/20 shadow-2xl">
 
-              {/* Galerie 3 vues — image principale remplit le casier + zoom au tap */}
+              {/* Galerie 3 vues */}
               <div className="grid grid-cols-3 gap-0.5 h-72 bg-black/40">
-                <div className="col-span-2 h-full overflow-hidden cursor-pointer"
-                  onClick={() => setZoomImage(faceImg)}>
-                  <img
-                    src={faceImg}
-                    alt={style.name}
-                    className="w-full h-full object-cover"
-                    draggable={false}
-                    onContextMenu={(e) => e.preventDefault()}
-                    style={{ userSelect: "none", WebkitUserSelect: "none" }}
-                  />
+                <div className="col-span-2 h-full overflow-hidden">
+                  <OptimizedImage src={faceImg} alt={style.name} className="w-full h-full" onClick={() => setZoomImage(faceImg)} />
                 </div>
                 <div className="col-span-1 grid grid-rows-2 gap-0.5">
                   <div className="overflow-hidden">
-                    <img src={backImg} alt="dos" className="w-full h-full object-cover"
-                      onClick={() => setZoomImage(backImg)}
-                      draggable={false} onContextMenu={(e) => e.preventDefault()}
-                      style={{ userSelect: "none", WebkitUserSelect: "none", cursor: "pointer" }} />
+                    <OptimizedImage src={backImg} alt="dos" className="w-full h-full" onClick={() => setZoomImage(backImg)} />
                   </div>
                   <div className="overflow-hidden">
-                    <img src={topImg} alt="dessus" className="w-full h-full object-cover"
-                      onClick={() => setZoomImage(topImg)}
-                      draggable={false} onContextMenu={(e) => e.preventDefault()}
-                      style={{ userSelect: "none", WebkitUserSelect: "none", cursor: "pointer" }} />
+                    <OptimizedImage src={topImg} alt="dessus" className="w-full h-full" onClick={() => setZoomImage(topImg)} />
                   </div>
                 </div>
               </div>
@@ -602,11 +547,11 @@ export default function Results() {
                 </div>
 
                 <p className="text-[11px] opacity-70 mb-6 leading-relaxed">
-                  {style.description || "Un style unique adapt\u00e9 \u00e0 ta morphologie"}
+                  {style.description || "Un style unique adapté à ta morphologie"}
                 </p>
 
                 <div className="flex gap-2 flex-wrap mb-4">
-                  {(style.tags || ["Tendance", "\u00c9l\u00e9gant"]).slice(0, 3).map((tag, i) => (
+                  {(style.tags || ["Tendance", "Élégant"]).slice(0, 3).map((tag, i) => (
                     <span key={i} className="text-[10px] bg-white/10 text-white/80 px-3 py-1 rounded-full">{tag}</span>
                   ))}
                 </div>
@@ -627,7 +572,7 @@ export default function Results() {
                     <span className="text-white/50 font-bold text-sm">Essayer virtuellement</span>
                     <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full"
                       style={{ background: "linear-gradient(135deg, #C9963A, #E8B96A)", color: "#2C1A0E", boxShadow: "0 0 10px rgba(201,150,58,0.4)" }}>
-                      ⏳ Bient\u00f4t
+                      ⏳ Bientôt
                     </span>
                   </span>
                 </button>
@@ -643,7 +588,7 @@ export default function Results() {
           transition={{ delay: 0.4 }} className="mt-10 flex flex-col items-center gap-3">
           <div className="flex items-center gap-3 w-full max-w-xs">
             <div className="flex-1 h-px bg-white/10" />
-            <span className="text-[10px] text-white/30 uppercase tracking-widest">Envie de plus\u00a0?</span>
+            <span className="text-[10px] text-white/30 uppercase tracking-widest">Envie de plus ?</span>
             <div className="flex-1 h-px bg-white/10" />
           </div>
           <motion.button whileTap={{ scale: 0.97 }} onClick={handleGenerateMore}
@@ -656,11 +601,11 @@ export default function Results() {
             <span className="flex items-center justify-center gap-2 text-[#C9963A]">
               ✨ Voir 3 autres styles
               <span className="text-[10px] bg-[#C9963A]/20 border border-[#C9963A]/40 text-[#C9963A] px-2 py-0.5 rounded-full font-black">
-                1 cr\u00e9dit
+                1 crédit
               </span>
             </span>
             <p className="text-[10px] text-white/30 mt-1 font-normal">
-              Solde actuel\u00a0: {credits} cr\u00e9dit{credits > 1 ? "s" : ""}
+              Solde actuel : {credits} crédit{credits > 1 ? "s" : ""}
             </p>
           </motion.button>
         </motion.div>
@@ -695,7 +640,7 @@ export default function Results() {
             </button>
           </div>
           <p className="text-[10px] text-[#C9963A]/60">
-            Solde\u00a0: {credits} cr\u00e9dit{credits > 1 ? "s" : ""}
+            Solde : {credits} crédit{credits > 1 ? "s" : ""}
           </p>
           <motion.button whileTap={{ scale: 0.97 }} onClick={handleGenerateMore}
             className="mt-2 px-6 py-3 rounded-2xl font-bold text-sm relative overflow-hidden"
@@ -703,7 +648,7 @@ export default function Results() {
             <span className="flex items-center gap-2 text-[#C9963A]">
               ✨ Voir 3 autres styles
               <span className="text-[9px] bg-[#C9963A]/20 border border-[#C9963A]/40 text-[#C9963A] px-1.5 py-0.5 rounded-full font-black">
-                -1 cr\u00e9dit
+                -1 crédit
               </span>
             </span>
           </motion.button>
@@ -730,18 +675,18 @@ export default function Results() {
                 transition={{ delay: 0.1, duration: 0.5 }} className="text-5xl mb-4">🧖‍♀️</motion.div>
               <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-4 inline-block"
                 style={{ background: "linear-gradient(135deg, #C9963A, #E8B96A)", color: "#2C1A0E" }}>
-                Bient\u00f4t disponible
+                Bientôt disponible
               </span>
               <h2 className="text-2xl font-black text-white mt-3 mb-2 leading-tight">
                 Virtual Try-On ✨
               </h2>
               <p className="text-sm text-white/60 mb-6 leading-relaxed">
-                Vois-toi <span className="text-[#C9963A] font-bold">r\u00e9ellement</span> avec la coiffure gr\u00e2ce \u00e0 notre IA \u2014 disponible tr\u00e8s bient\u00f4t\u00a0!
+                Vois-toi <span className="text-[#C9963A] font-bold">réellement</span> avec la coiffure grâce à notre IA — disponible très bientôt !
               </p>
               <div className="flex flex-col gap-3 mb-6">
                 {[
                   { icon: "📸", text: "Superposition IA sur ton selfie" },
-                  { icon: "🎨", text: "Rendu r\u00e9aliste en quelques secondes" },
+                  { icon: "🎨", text: "Rendu réaliste en quelques secondes" },
                   { icon: "💾", text: "Sauvegarde & partage facilement" },
                 ].map((item, i) => (
                   <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
@@ -755,7 +700,7 @@ export default function Results() {
               <button onClick={() => setShowVirtualTryOnModal(false)}
                 className="w-full py-4 rounded-2xl font-black text-[#2C1A0E] text-base"
                 style={{ background: "linear-gradient(135deg, #C9963A, #E8B96A)" }}>
-                J&apos;ai h\u00e2te\u00a0! 🔥
+                J'ai hâte ! 🔥
               </button>
             </motion.div>
           </motion.div>
@@ -770,7 +715,7 @@ export default function Results() {
             onClick={() => setZoomImage(null)} onContextMenu={(e) => e.preventDefault()}>
             <div className="relative" onClick={(e) => e.stopPropagation()}>
               <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }}>
-                <img src={zoomImage} alt="Zoom"
+                <OptimizedImage src={zoomImage} alt="Zoom"
                   className="max-w-full max-h-[70vh] rounded-3xl shadow-2xl border border-white/10"
                   draggable={false} onContextMenu={(e) => e.preventDefault()}
                   style={{ objectFit: "contain", userSelect: "none", WebkitUserSelect: "none" }} />
