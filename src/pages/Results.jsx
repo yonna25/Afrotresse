@@ -3,17 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getCredits, consumeCredits, hasCredits } from "../services/credits.js";
 import OptimizedImage from "../components/OptimizedImage.jsx";
-
-// ─── Constantes ───────────────────────────────────────────────────────────────
-
-const FACE_SHAPE_TEXTS = {
-  oval:    "Ton visage est de forme Ovale. Une structure équilibrée qui s'adapte à presque tous les styles.",
-  round:   "Ton visage est de forme Ronde. Les tresses hautes allongent et affinent visuellement tes traits.",
-  square:  "Ton visage est de forme Carrée. Les tresses avec du volume adoucissent ta mâchoire.",
-  heart:   "Ton visage est en forme de Cœur. Les tresses avec du volume en bas équilibrent ton menton.",
-  long:    "Ton visage est de forme Longue. Les tresses latérales créent l'harmonie parfaite.",
-  diamond: "Ton visage est de forme Diamant. Les tresses qui encadrent le visage te subliment.",
-};
+import {
+  generateStableMessage,
+  getOrCreateSessionId,
+  resetMessageAssignment,
+} from "../services/stableMessage.js";
 
 
 const STYLES_PER_PAGE = 3;
@@ -113,6 +107,7 @@ export default function Results() {
   const [errorMsg, setErrorMsg]       = useState("");
   const [showFireworks, setShowFireworks] = useState(false);
   const [showVirtualTryOnModal, setShowVirtualTryOnModal] = useState(false);
+  const [stableMsg, setStableMsg]     = useState({ headline: "Voici tes résultats ✨", subtext: "" });
 
   // Sauvegarde profil
   const [savePrenom, setSavePrenom]   = useState(() => localStorage.getItem("afrotresse_user_name") || "");
@@ -164,7 +159,17 @@ export default function Results() {
         const recs = parsed.recommendations || [];
         setStyles(recs);
         // Fireworks uniquement si navigation fraîche depuis l'analyse
-        if (recs.length > 0 && isFreshNavigation()) setShowFireworks(true);
+        if (recs.length > 0 && isFreshNavigation()) {
+          setShowFireworks(true);
+          // Nouvelle analyse → réinitialise l'assignation pour un message frais
+          resetMessageAssignment();
+        }
+        // Génère le message stable dès que faceShape + prénom sont connus
+        const sessionId   = getOrCreateSessionId();
+        const name        = localStorage.getItem("afrotresse_user_name") || "";
+        const confidence  = parsed.confidence ?? 0.5;
+        const shape       = parsed.faceShape || "oval";
+        setStableMsg(generateStableMessage({ faceShape: shape, sessionId, name, confidence }));
         setStyleStats(prev => {
           const next = { ...prev };
           let changed = false;
@@ -297,8 +302,6 @@ export default function Results() {
     }
   };
 
-  const faceText = FACE_SHAPE_TEXTS[faceShape] || "";
-
   // ══════════════════════════════════════════════════════════════════════════
   // OPTION A — Nouvelle utilisatrice, aucun résultat
   // ══════════════════════════════════════════════════════════════════════════
@@ -418,13 +421,13 @@ export default function Results() {
           <div className="absolute -bottom-2 -right-2 bg-[#C9963A] text-[#2C1A0E] text-[10px] font-black px-2 py-1 rounded-md uppercase">Moi</div>
         </div>
         <div className="flex flex-col flex-1">
-          <h1 className="font-bold text-3xl text-[#C9963A]">
+          <h1 className="font-bold text-2xl text-[#C9963A] leading-tight">
             {displayName
               ? <><span className="text-[#FAF4EC]">{displayName}</span>, voici tes résultats ✨</>
-              : <>Voici tes résultats ✨</>
+              : stableMsg.headline
             }
           </h1>
-          <p className="text-[11px] opacity-80 leading-tight mt-1 max-w-xs">{faceText}</p>
+          <p className="text-[11px] opacity-80 leading-snug mt-1.5 max-w-xs">{stableMsg.subtext}</p>
         </div>
       </motion.div>
 
