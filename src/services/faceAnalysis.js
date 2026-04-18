@@ -20,13 +20,13 @@ export const FACE_SHAPE_DESCRIPTIONS = {
 };
 
 // ── Catalogue de styles par forme de visage ──────────────────────────────────
-// id = clé utilisée pour /styles/{id}-face.jpg / -back.jpg / -top.jpg
+// ids correspondent exactement aux fichiers dans public/styles/
 const STYLES_BY_SHAPE = {
   oval: [
     {
       id: "boxbraids",
       name: "Box Braids",
-      description: "Le classique indémodable. Les box braids s'adaptent parfaitement à ton visage ovale et te donnent un look à la fois élégant et polyvalent.",
+      description: "Le classique indémodable. Les box braids s'adaptent parfaitement à ton visage ovale et te donnent un look élégant et polyvalent.",
       tags: ["Tendance", "Polyvalent", "Protecteur"],
       duration: "4-6h"
     },
@@ -38,32 +38,32 @@ const STYLES_BY_SHAPE = {
       duration: "2-4h"
     },
     {
-      id: "knotlessbraids",
-      name: "Knotless Braids",
-      description: "Plus légères et sans tension, ces tresses sans nœuds sont idéales pour ton visage ovale. Confort maximal, style royal.",
-      tags: ["Confort", "Naturel", "Léger"],
-      duration: "5-7h"
-    },
-    {
-      id: "fulanibraids",
+      id: "fulani",
       name: "Fulani Braids",
       description: "Un mélange de cornrows et de tresses libres avec des perles dorées. Ce style d'inspiration west-africaine sublime les visages ovales.",
       tags: ["Ethnique", "Bohème", "Perles"],
       duration: "3-5h"
     },
     {
-      id: "goddessbraids",
-      name: "Goddess Braids",
-      description: "Grosses tresses majestueuses avec des extensions ondulées. Un look de déesse pour mettre en valeur ton visage équilibré.",
-      tags: ["Glamour", "Majestueux", "Volume"],
+      id: "ghanabraids",
+      name: "Ghana Braids",
+      description: "Des tresses sculpturales qui mettent en valeur ton visage ovale avec élégance et caractère.",
+      tags: ["Sculptural", "Élégant", "Durable"],
       duration: "3-5h"
     },
     {
-      id: "twists",
-      name: "Twists",
-      description: "Des torsades naturelles et élégantes qui encadrent parfaitement ton visage. Faciles à entretenir et très stylées.",
-      tags: ["Naturel", "Simple", "Chic"],
+      id: "tresseplaquees",
+      name: "Tresses Plaquées",
+      description: "Un look net qui met en valeur la structure osseuse sans surcharge. Idéal pour les visages ovales.",
+      tags: ["Minimaliste", "Sport", "Nette"],
       duration: "2-4h"
+    },
+    {
+      id: "stitchbraids",
+      name: "Stitch Braids",
+      description: "Une technique ultra-précise avec des lignes graphiques qui subliment ton visage ovale.",
+      tags: ["Graphique", "Précision", "Moderne"],
+      duration: "3-5h"
     },
   ],
 
@@ -71,7 +71,7 @@ const STYLES_BY_SHAPE = {
     {
       id: "boxbraids",
       name: "Box Braids hautes",
-      description: "Portées en chignon haut ou en queue de cheval, les box braids allongent visuellement ton visage rond pour un effet élancé.",
+      description: "Portées en chignon haut ou en queue de cheval, les box braids allongent visuellement ton visage rond.",
       tags: ["Allongeant", "Élégant", "Tendance"],
       duration: "4-6h"
     },
@@ -83,75 +83,75 @@ const STYLES_BY_SHAPE = {
       duration: "2-4h"
     },
     {
-      id: "knotlessbraids",
-      name: "Knotless Braids longues",
-      description: "Les tresses longues qui tombent allongent le visage. Les knotless braids sont parfaites pour cet effet naturel.",
-      tags: ["Allongeant", "Naturel", "Léger"],
-      duration: "5-7h"
+      id: "tresseplaquees",
+      name: "Tresses Plaquées",
+      description: "Les tresses plaquées vers le haut créent un effet allongeant parfait pour les visages ronds.",
+      tags: ["Allongeant", "Structuré", "Net"],
+      duration: "2-4h"
     },
     {
-      id: "fulanibraids",
+      id: "fulani",
       name: "Fulani Braids",
       description: "Les Fulani braids avec leur bandeau central créent une ligne qui allonge visuellement ton visage rond.",
       tags: ["Ethnique", "Allongeant", "Perles"],
       duration: "3-5h"
     },
     {
-      id: "goddessbraids",
-      name: "Goddess Braids",
-      description: "Portées vers le haut, ces tresses majestueuses donnent de la hauteur et affinent les contours de ton visage.",
-      tags: ["Glamour", "Hauteur", "Volume"],
+      id: "ghanabraids",
+      name: "Ghana Braids",
+      description: "Portées vers le haut, ces tresses sculpturales donnent de la hauteur et affinent les contours de ton visage.",
+      tags: ["Hauteur", "Élégant", "Durable"],
       duration: "3-5h"
     },
     {
-      id: "twists",
-      name: "Twists longs",
-      description: "Des torsades longues et fluides qui créent un effet allongeant parfait pour les visages ronds.",
-      tags: ["Naturel", "Allongeant", "Chic"],
-      duration: "2-4h"
+      id: "stitchbraids",
+      name: "Stitch Braids",
+      description: "Les lignes graphiques des stitch braids créent un effet visuel allongeant parfait pour ton visage rond.",
+      tags: ["Graphique", "Allongeant", "Moderne"],
+      duration: "3-5h"
     },
   ],
 
   square: [
     {
-      id: "knotlessbraids",
-      name: "Knotless Braids",
-      description: "La légèreté des knotless braids adoucit les angles de ton visage carré tout en te donnant un look naturel et élégant.",
-      tags: ["Adoucissant", "Naturel", "Léger"],
+      id: "cocotwists",
+      name: "Coco Twists",
+      description: "Des vanilles volumineuses qui adoucissent les angles de ton visage carré pour un look naturel et doux.",
+      tags: ["Doux", "Volume", "Naturel"],
       duration: "5-7h"
     },
     {
-      id: "twists",
-      name: "Twists",
-      description: "Les torsades naturelles adoucissent les contours anguleux de ton visage carré et apportent une touche de douceur.",
-      tags: ["Doux", "Naturel", "Équilibré"],
-      duration: "2-4h"
-    },
-    {
-      id: "fulanibraids",
+      id: "fulani",
       name: "Fulani Braids",
-      description: "Les Fulani braids encadrent joliment ton visage en adoucissant la mâchoire avec leurs ornements et tresses libres.",
+      description: "Les Fulani braids encadrent joliment ton visage en adoucissant la mâchoire avec leurs ornements.",
       tags: ["Ethnique", "Adoucissant", "Bohème"],
       duration: "3-5h"
     },
     {
-      id: "goddessbraids",
-      name: "Goddess Braids",
-      description: "Le volume sur les côtés des goddess braids équilibre la largeur de ton visage carré pour un rendu harmonieux.",
+      id: "tressecollees",
+      name: "Tresses Collées",
+      description: "Style versatile qui suit les courbes naturelles et adoucit les angles de ton visage carré.",
+      tags: ["Protectrice", "Chic", "Classique"],
+      duration: "2-4h"
+    },
+    {
+      id: "ghanabraids",
+      name: "Ghana Braids",
+      description: "Le volume des ghana braids équilibre la largeur de ton visage carré pour un rendu harmonieux.",
       tags: ["Glamour", "Équilibré", "Volume"],
       duration: "3-5h"
     },
     {
       id: "boxbraids",
       name: "Box Braids",
-      description: "En version side-swept (sur le côté), les box braids adoucissent les angles forts de ton visage carré.",
+      description: "En version side-swept, les box braids adoucissent les angles forts de ton visage carré.",
       tags: ["Tendance", "Polyvalent", "Stylé"],
       duration: "4-6h"
     },
     {
       id: "cornrows",
       name: "Cornrows courbés",
-      description: "Des cornrows en courbes ou en motifs arrondis adoucissent les contours anguleux de ton visage.",
+      description: "Des cornrows en courbes adoucissent les contours anguleux de ton visage.",
       tags: ["Structuré", "Créatif", "Adoucissant"],
       duration: "2-4h"
     },
@@ -159,28 +159,28 @@ const STYLES_BY_SHAPE = {
 
   heart: [
     {
-      id: "goddessbraids",
-      name: "Goddess Braids",
-      description: "Le volume en bas des goddess braids équilibre parfaitement ton menton fin et met en valeur ton visage en cœur.",
+      id: "ghanabraids",
+      name: "Ghana Braids",
+      description: "Le volume en bas des ghana braids équilibre parfaitement ton menton fin et met en valeur ton visage en cœur.",
       tags: ["Équilibrant", "Glamour", "Volume"],
       duration: "3-5h"
     },
     {
-      id: "twists",
-      name: "Twists avec volume bas",
-      description: "Des torsades avec du volume à mi-longueur équilibrent ton visage en cœur en créant de l'harmonie vers le bas.",
+      id: "cocotwists",
+      name: "Coco Twists",
+      description: "Des torsades volumineuses qui équilibrent ton visage en cœur en créant de l'harmonie vers le bas.",
       tags: ["Équilibrant", "Naturel", "Harmonieux"],
-      duration: "2-4h"
-    },
-    {
-      id: "knotlessbraids",
-      name: "Knotless Braids",
-      description: "Les knotless braids légères et naturelles s'adaptent bien aux visages en cœur sans surcharger le haut du visage.",
-      tags: ["Naturel", "Léger", "Équilibré"],
       duration: "5-7h"
     },
     {
-      id: "fulanibraids",
+      id: "tressecollees",
+      name: "Tresses Collées",
+      description: "Les tresses collées légères s'adaptent bien aux visages en cœur sans surcharger le haut.",
+      tags: ["Naturel", "Léger", "Équilibré"],
+      duration: "2-4h"
+    },
+    {
+      id: "fulani",
       name: "Fulani Braids",
       description: "Avec leurs tresses libres sur les côtés, les Fulani braids encadrent et équilibrent ton visage en cœur.",
       tags: ["Ethnique", "Encadrant", "Perles"],
@@ -196,7 +196,7 @@ const STYLES_BY_SHAPE = {
     {
       id: "cornrows",
       name: "Cornrows",
-      description: "Des cornrows plaqués en haut avec des tresses libres en bas équilibrent parfaitement les proportions de ton visage.",
+      description: "Des cornrows plaqués en haut avec des tresses libres en bas équilibrent les proportions de ton visage.",
       tags: ["Structuré", "Net", "Équilibré"],
       duration: "2-4h"
     },
@@ -204,46 +204,46 @@ const STYLES_BY_SHAPE = {
 
   long: [
     {
-      id: "fulanibraids",
+      id: "fulani",
       name: "Fulani Braids",
-      description: "Les Fulani braids avec leur bandeau central et leurs ornements créent de la largeur visuelle idéale pour ton visage allongé.",
+      description: "Les Fulani braids avec leur bandeau central créent de la largeur visuelle idéale pour ton visage allongé.",
       tags: ["Élargissant", "Ethnique", "Perles"],
       duration: "3-5h"
     },
     {
       id: "cornrows",
       name: "Cornrows latéraux",
-      description: "Des cornrows qui partent sur les côtés créent l'illusion de largeur et équilibrent parfaitement ton visage allongé.",
+      description: "Des cornrows sur les côtés créent l'illusion de largeur et équilibrent ton visage allongé.",
       tags: ["Élargissant", "Structuré", "Net"],
       duration: "2-4h"
     },
     {
-      id: "goddessbraids",
-      name: "Goddess Braids larges",
-      description: "Des goddess braids épaisses et volumineuses créent de la largeur et de la présence pour ton visage allongé.",
+      id: "ghanabraids",
+      name: "Ghana Braids larges",
+      description: "Des ghana braids épaisses créent de la largeur et de la présence pour ton visage allongé.",
       tags: ["Volume", "Glamour", "Élargissant"],
       duration: "3-5h"
     },
     {
       id: "boxbraids",
       name: "Box Braids courtes",
-      description: "En version courte ou mi-longue, les box braids évitent d'allonger encore plus ton visage tout en restant très stylées.",
+      description: "En version courte, les box braids évitent d'allonger encore plus ton visage tout en restant stylées.",
       tags: ["Équilibrant", "Tendance", "Polyvalent"],
       duration: "3-5h"
     },
     {
-      id: "twists",
-      name: "Twists courts",
-      description: "Des torsades courtes et volumineuses qui créent de la largeur et harmonisent les proportions de ton visage allongé.",
+      id: "tressecollees",
+      name: "Tresses Collées",
+      description: "Des tresses collées volumineuses qui créent de la largeur pour les visages allongés.",
       tags: ["Équilibrant", "Volume", "Naturel"],
-      duration: "2-3h"
+      duration: "2-4h"
     },
     {
-      id: "knotlessbraids",
-      name: "Knotless Braids courtes",
-      description: "En version bob ou mi-longue, les knotless braids apportent du volume qui équilibre ton visage allongé.",
+      id: "tresseplaquees",
+      name: "Tresses Plaquées",
+      description: "En version latérale, les tresses plaquées apportent du volume qui équilibre ton visage allongé.",
       tags: ["Léger", "Volume", "Naturel"],
-      duration: "4-6h"
+      duration: "2-4h"
     },
   ],
 
@@ -251,41 +251,41 @@ const STYLES_BY_SHAPE = {
     {
       id: "cornrows",
       name: "Cornrows structurés",
-      description: "Des cornrows précis qui encadrent ton visage diamant et mettent en valeur tes pommettes prononcées.",
+      description: "Des cornrows précis qui encadrent ton visage diamant et mettent en valeur tes pommettes.",
       tags: ["Structuré", "Net", "Encadrant"],
       duration: "2-4h"
     },
     {
       id: "boxbraids",
       name: "Box Braids",
-      description: "Les box braids encadrent et subliment les pommettes larges de ton visage diamant tout en créant un équilibre harmonieux.",
+      description: "Les box braids encadrent et subliment les pommettes larges de ton visage diamant.",
       tags: ["Encadrant", "Tendance", "Élégant"],
       duration: "4-6h"
     },
     {
-      id: "fulanibraids",
+      id: "fulani",
       name: "Fulani Braids",
-      description: "Avec leurs ornements et leur structure, les Fulani braids mettent parfaitement en valeur les pommettes d'un visage diamant.",
+      description: "Avec leurs ornements, les Fulani braids mettent parfaitement en valeur les pommettes d'un visage diamant.",
       tags: ["Ethnique", "Sublimant", "Perles"],
       duration: "3-5h"
     },
     {
-      id: "knotlessbraids",
-      name: "Knotless Braids",
-      description: "La légèreté des knotless braids encadre subtilement ton visage diamant pour un résultat naturel et équilibré.",
+      id: "tressecollees",
+      name: "Tresses Collées",
+      description: "Les tresses collées encadrent subtilement ton visage diamant pour un résultat naturel et équilibré.",
       tags: ["Naturel", "Léger", "Équilibré"],
-      duration: "5-7h"
+      duration: "2-4h"
     },
     {
-      id: "goddessbraids",
-      name: "Goddess Braids",
+      id: "ghanabraids",
+      name: "Ghana Braids",
       description: "Des tresses majestueuses qui encadrent et subliment les pommettes de ton visage diamant.",
       tags: ["Glamour", "Majestueux", "Sublimant"],
       duration: "3-5h"
     },
     {
-      id: "twists",
-      name: "Twists",
+      id: "stitchbraids",
+      name: "Stitch Braids",
       description: "Des torsades naturelles qui encadrent ton visage diamant en douceur et mettent en valeur tes traits.",
       tags: ["Naturel", "Doux", "Chic"],
       duration: "2-4h"
