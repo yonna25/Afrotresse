@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { analyzeFace } from "../services/faceAnalysis.js";
 import { consumeAnalysis } from "../services/credits.js";
+import Seo from "../components/Seo.jsx";
 
 const STEPS = [
   "Analyse des traits uniques...",
@@ -152,6 +153,8 @@ export default function Analyze() {
   // ── Écran erreur ────────────────────────────────────────────
   if (errorState) {
     return (
+      
+      <Seo title="AfroTresse" noindex />
       <div className="min-h-screen bg-[#2C1A0E] flex flex-col items-center justify-center p-8 text-[#FAF4EC]">
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
