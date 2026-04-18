@@ -142,6 +142,18 @@ export default function Results() {
   const errorRef = useRef(null);
   const userName = localStorage.getItem("afrotresse_user_name") || "Reine";
 
+  // ── Détection navigation fraîche (pas refresh ni retour arrière) ───────────
+  const isFreshNavigation = () => {
+    try {
+      const navType = window.performance?.getEntriesByType?.("navigation")?.[0]?.type;
+      // "navigate" = arrivée depuis un lien/redirect ; "reload" et "back_forward" exclus
+      return navType === "navigate";
+    } catch { return false; }
+  };
+
+  // Déclencher fireworks depuis n'importe quel endroit (ex : VTO résultat)
+  const triggerFireworks = () => setShowFireworks(true);
+
   // ── Init depuis sessionStorage ──────────────────────────────
   useEffect(() => {
     const raw = sessionStorage.getItem("afrotresse_results");
@@ -151,7 +163,8 @@ export default function Results() {
         setFaceShape(parsed.faceShape || "oval");
         const recs = parsed.recommendations || [];
         setStyles(recs);
-        if (recs.length > 0) setShowFireworks(true);
+        // Fireworks uniquement si navigation fraîche depuis l'analyse
+        if (recs.length > 0 && isFreshNavigation()) setShowFireworks(true);
         setStyleStats(prev => {
           const next = { ...prev };
           let changed = false;
@@ -325,7 +338,7 @@ export default function Results() {
               Découvre les tresses faites pour toi 💛
             </h2>
             <p className="text-[12px] text-white/50 leading-relaxed">
-              Un selfie suffit. Notre IA analyse la forme de ton visage et te recommande les styles qui te mettront le plus en valeur.
+              Un selfie suffit. Notre technologie lit les proportions de ton visage et sélectionne les styles faits pour toi.
             </p>
           </motion.div>
 
@@ -335,7 +348,7 @@ export default function Results() {
             transition={{ delay: 0.25 }} className="flex flex-col gap-3 mb-8">
             {[
               { icon: "📸", label: "Prends un selfie",            sub: "Ou uploade une photo existante" },
-              { icon: "🔍", label: "Analyse IA instantanée",      sub: "Forme de visage détectée en secondes" },
+              { icon: "🔍", label: "Lecture de visage",            sub: "Tes proportions analysées en secondes" },
               { icon: "✨", label: "Styles personnalisés",         sub: "3 recommandations taillées pour toi" },
             ].map((step, i) => (
               <motion.div key={i}
@@ -683,11 +696,11 @@ export default function Results() {
                 Virtual Try-On ✨
               </h2>
               <p className="text-sm text-white/60 mb-6 leading-relaxed">
-                Vois-toi <span className="text-[#C9963A] font-bold">réellement</span> avec la coiffure grâce à notre IA — disponible très bientôt !
+                Vois-toi <span className="text-[#C9963A] font-bold">réellement</span> avec la coiffure, avec une précision bluffante — disponible très bientôt !
               </p>
               <div className="flex flex-col gap-3 mb-6">
                 {[
-                  { icon: "📸", text: "Superposition IA sur ton selfie" },
+                  { icon: "📸", text: "Rendu sur mesure sur ton selfie" },
                   { icon: "🎨", text: "Rendu réaliste en quelques secondes" },
                   { icon: "💾", text: "Sauvegarde & partage facilement" },
                 ].map((item, i) => (
@@ -699,6 +712,7 @@ export default function Results() {
                   </motion.div>
                 ))}
               </div>
+              {/* Quand le VTO livrera ses résultats : appeler triggerFireworks() ici */}
               <button onClick={() => setShowVirtualTryOnModal(false)}
                 className="w-full py-4 rounded-2xl font-black text-[#2C1A0E] text-base"
                 style={{ background: "linear-gradient(135deg, #C9963A, #E8B96A)" }}>
