@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getCredits, consumeCredits, hasCredits } from "../services/credits.js";
 import OptimizedImage from "../components/OptimizedImage.jsx";
+import Seo from "../components/Seo.jsx";
 import {
   generateStableMessage,
   getOrCreateSessionId,
@@ -91,7 +92,9 @@ function Fireworks({ onDone }) {
   }, [onDone]);
 
   return (
-    <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none"
+    
+      <Seo title="Tes résultats — AfroTresse" noindex />
+      <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none"
       style={{ zIndex: 9999, width: "100%", height: "100%" }} />
   );
 }
