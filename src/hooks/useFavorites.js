@@ -55,7 +55,21 @@ function mergeGuestIntoUser() {
 // HOOK PRINCIPAL
 // ─────────────────────────────────────────────────────────────────────────────
 export function useFavorites() {
-  const isRegistered = !!localStorage.getItem("afrotresse_email");
+  const [isRegistered, setIsRegistered] = useState(
+    () => !!localStorage.getItem("afrotresse_email")
+  );
+
+  // Réagit si l'utilisatrice s'enregistre en cours de session
+  useEffect(() => {
+    const onStorage = () =>
+      setIsRegistered(!!localStorage.getItem("afrotresse_email"));
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("afrotresse:user-registered", onStorage);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("afrotresse:user-registered", onStorage);
+    };
+  }, []);
 
   const [favorites, setFavorites] = useState(() => readFromStorage());
 
