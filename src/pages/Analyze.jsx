@@ -6,26 +6,26 @@ import { consumeAnalysis } from "../services/credits.js";
 
 const STEPS = [
   "Analyse des traits uniques...",
-  "\u00c9tude de la structure osseuse...",
-  "Calcul des proportions id\u00e9ales...",
-  "S\u00e9lection des tresses royales..."
+  "Étude de la structure osseuse...",
+  "Calcul des proportions idéales...",
+  "Sélection des tresses royales..."
 ];
 
 // DEBUG : affiche le vrai message d'erreur
 function getErrorMessage(err) {
   const msg = err?.message || "";
-  if (msg.includes("No credits") || msg.includes("cr\u00e9dits"))
-    return { title: "Plus de cr\u00e9dits \ud83d\udcdb", body: "Tu as utilis\u00e9 tes analyses gratuites.", cta: "Obtenir des cr\u00e9dits", route: "/credits" };
-  if (msg.includes("429") || msg.includes("Trop de requ\u00eates"))
-    return { title: "Doucement \ud83d\ude0a", body: "Attends quelques secondes avant de r\u00e9essayer.", cta: "R\u00e9essayer", route: "/camera" };
-  if (msg.includes("d\u00e9j\u00e0 effectu\u00e9e") || msg.includes("409") || msg.includes("d\u00e9j\u00e0 trait\u00e9e"))
-    return { title: "Analyse d\u00e9j\u00e0 faite \ud83d\udc51", body: "Tu as d\u00e9j\u00e0 analys\u00e9 cette photo dans cette session.", cta: "Voir mes r\u00e9sultats", route: "/results" };
-  if (msg.includes("visage") || msg.includes("d\u00e9tecter"))
-    return { title: "Visage non d\u00e9tect\u00e9 \ud83d\udcf8", body: "Reprends un selfie bien \u00e9clair\u00e9, de face.", cta: "Reprendre une photo", route: "/camera" };
-  if (msg.includes("Timeout") || msg.includes("connexion") || msg.includes("r\u00e9seau"))
-    return { title: "Connexion lente \ud83d\udce1", body: "V\u00e9rifie ta connexion et r\u00e9essaie.", cta: "R\u00e9essayer", route: "/camera" };
+  if (msg.includes("No credits") || msg.includes("crédits"))
+    return { title: "Plus de crédits 📛", body: "Tu as utilisé tes analyses gratuites.", cta: "Obtenir des crédits", route: "/credits" };
+  if (msg.includes("429") || msg.includes("Trop de requêtes"))
+    return { title: "Doucement 😊", body: "Attends quelques secondes avant de réessayer.", cta: "Réessayer", route: "/camera" };
+  if (msg.includes("déjà effectuée") || msg.includes("409") || msg.includes("déjà traitée"))
+    return { title: "Analyse déjà faite 👑", body: "Tu as déjà analysé cette photo dans cette session.", cta: "Voir mes résultats", route: "/results" };
+  if (msg.includes("visage") || msg.includes("détecter"))
+    return { title: "Visage non détecté 📸", body: "Reprends un selfie bien éclairé, de face.", cta: "Reprendre une photo", route: "/camera" };
+  if (msg.includes("Timeout") || msg.includes("connexion") || msg.includes("réseau"))
+    return { title: "Connexion lente 📡", body: "Vérifie ta connexion et réessaie.", cta: "Réessayer", route: "/camera" };
   // FALLBACK DEBUG : affiche le vrai message d'erreur
-  return { title: "Erreur (debug)", body: msg || "Erreur inconnue", cta: "R\u00e9essayer", route: "/camera" };
+  return { title: "Erreur (debug)", body: msg || "Erreur inconnue", cta: "Réessayer", route: "/camera" };
 }
 
 export default function Analyze() {
@@ -48,6 +48,8 @@ export default function Analyze() {
   const [email, setEmail]         = useState(
     () => localStorage.getItem("afrotresse_email") || ""
   );
+  // Flag : l'analyse est terminée, on peut naviguer dès que la barre est à 100%
+  const readyRef = useRef(false);
   const formShownRef = useRef(false);
   const countdownRef = useRef(null);
   const [countdown, setCountdown] = useState(10);
@@ -95,33 +97,47 @@ export default function Analyze() {
     setShowForm(false);
   };
 
+
+  // Navigation quand la barre atteint 100%
+  useEffect(() => {
+    if (progress === 100) {
+      const t = setTimeout(() => navigate("/results"), 800);
+      return () => clearTimeout(t);
+    }
+  }, [progress, navigate]);
+
   useEffect(() => {
     if (!selfieUrl) { navigate("/"); return; }
 
     const interval = setInterval(() => {
-      setProgress(prev => (prev >= 95 ? 95 : prev + 1));
-    }, 45);
+      setProgress(prev => {
+        if (prev >= 100) return 100;
+        if (prev >= 95 && readyRef.current) return prev + 1;
+        if (prev >= 95) return 95; // Attendre que l'analyse finisse
+        return prev + 1;
+      });
+    }, 80);
 
     const stepInterval = setInterval(() => {
       setStepIdx(prev => (prev < STEPS.length - 1 ? prev + 1 : prev));
-    }, 1200);
+    }, 2500);
 
     const run = async () => {
       try {
         const result = await analyzeFace(selfieUrl);
-        clearInterval(interval);
-        setProgress(100);
+        // Stocker les résultats dès qu'ils arrivent
         sessionStorage.setItem("afrotresse_results", JSON.stringify(result));
         localStorage.setItem("afrotresse_face_shape", result.faceShape);
         consumeAnalysis();
         const prevTrials = parseInt(localStorage.getItem('afrotresse_ai_trials') || '0', 10);
         localStorage.setItem('afrotresse_ai_trials', String(prevTrials + 1));
-        setTimeout(() => navigate("/results"), 400);
+        // Signaler que l'analyse est prête — la barre finira jusqu'à 100% puis naviguera
+        readyRef.current = true;
       } catch (err) {
         clearInterval(interval);
         clearInterval(stepInterval);
         console.error("Analysis error:", err);
-        if (err?.message?.includes("d\u00e9j\u00e0 effectu\u00e9e")) {
+        if (err?.message?.includes("déjà effectuée")) {
           navigate("/results");
           return;
         }
@@ -147,7 +163,7 @@ export default function Analyze() {
             boxShadow: "0 0 40px rgba(0,0,0,0.5)",
           }}
         >
-          <div className="text-5xl mb-4">\ud83d\ude14</div>
+          <div className="text-5xl mb-4">😔</div>
           <h2 className="text-xl font-black text-[#C9963A] mb-2">{errorState.title}</h2>
           <p className="text-sm text-white/60 mb-8 leading-relaxed">{errorState.body}</p>
           <button
@@ -161,7 +177,7 @@ export default function Analyze() {
             onClick={() => navigate("/")}
             className="w-full py-3 mt-2 text-sm text-white/30"
           >
-            Retour \u00e0 l'accueil
+            Retour à l'accueil
           </button>
         </motion.div>
       </div>
@@ -222,7 +238,7 @@ export default function Analyze() {
 
               <div className="flex items-start justify-between mb-1">
                 <p className="font-black text-base text-white leading-tight">
-                  Sauvegarder tes r\u00e9sultats \ud83d\udcbe
+                  Sauvegarder tes résultats 💾
                 </p>
                 <span className="text-[10px] text-white/30 font-bold ml-2 mt-0.5 shrink-0">
                   {countdown}s
@@ -235,7 +251,7 @@ export default function Analyze() {
               <div className="flex flex-col gap-2 mb-3">
                 <input
                   type="text"
-                  placeholder="Ton pr\u00e9nom..."
+                  placeholder="Ton prénom..."
                   value={prenom}
                   onChange={e => setPrenom(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold outline-none"
@@ -265,7 +281,7 @@ export default function Analyze() {
                 className="w-full py-3 rounded-xl font-black text-sm text-[#2C1A0E]"
                 style={{ background: "linear-gradient(135deg, #C9963A, #E8B96A)" }}
               >
-                Sauvegarder mes r\u00e9sultats \u2728
+                Sauvegarder mes résultats ✨
               </button>
 
               <button
